@@ -1,0 +1,23 @@
+# Dependencies and framework output
+node_modules/
+.next/
+.vercel/
+coverage/
+*.tsbuildinfo
+
+# Secrets and local configuration
+.env
+.env.*
+!.env.example
+
+# Local operating-system and editor files
+.DS_Store
+*.log
+
+# Existing generated/downloaded podcast assets stay local in Phase 1.
+.cache/
+.venv-asr/
+data/raw/
+data/transcripts/
+data/work/
+data/processed/*.jsonl
