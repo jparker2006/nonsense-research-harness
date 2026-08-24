@@ -1,0 +1,179 @@
+{
+  "schema_version": "1.0",
+  "ranking_policy": {
+    "vectorCandidateLimit": 25,
+    "fusionCandidateLimit": 20,
+    "reciprocalRankConstant": 60,
+    "minimumBm25Score": 12,
+    "minimumVectorScore": 0.3,
+    "minimumRerankScore": 0.1,
+    "maximumExcerptCharacters": 1600
+  },
+  "query_embedding_latency_ms": 1509.714125,
+  "diagnostics": [
+    {
+      "id": "exact-italian-tune-up",
+      "category": "exact",
+      "bm25_top_score": 71.50613311905789,
+      "vector_top_score": 0.3979828005338762,
+      "expected_vector_rank_in_top_25": 1,
+      "expected_vector_score_in_top_25": 0.3979828005338762,
+      "fused_top_5_segment_ids": [
+        "e58ec754-af0e-4608-8423-6c33a0c56d16:001",
+        "1881f1f6-6747-4acf-9bd5-3086c52119c4:003",
+        "a637e0ad-c197-4a2c-89d5-1f8b8a92c6f4:003",
+        "51d52d05-6d29-49fe-80d2-41381ba48822:004",
+        "d4511c77-ac1e-4560-8257-776091e8a984:009"
+      ]
+    },
+    {
+      "id": "exact-jfd-print-buffer",
+      "category": "exact",
+      "bm25_top_score": 594.6224620494081,
+      "vector_top_score": 0.5957360622984071,
+      "expected_vector_rank_in_top_25": 1,
+      "expected_vector_score_in_top_25": 0.5957360622984071,
+      "fused_top_5_segment_ids": [
+        "e58ec754-af0e-4608-8423-6c33a0c56d16:009",
+        "f56ae474-28a5-4a79-8a78-6439ed2b73b3:010"
+      ]
+    },
+    {
+      "id": "exact-superstitious-pigeons",
+      "category": "exact",
+      "bm25_top_score": 62.13727073292024,
+      "vector_top_score": 0.5433009157141879,
+      "expected_vector_rank_in_top_25": 1,
+      "expected_vector_score_in_top_25": 0.5433009157141879,
+      "fused_top_5_segment_ids": [
+        "c451a04d-d383-4e86-aead-3889097675fa:004",
+        "416928a5-cdb8-4f99-a2fa-79e88291c2ae:008"
+      ]
+    },
+    {
+      "id": "exact-deckmate-usb",
+      "category": "exact",
+      "bm25_top_score": 153.324045213943,
+      "vector_top_score": 0.38182454662796345,
+      "expected_vector_rank_in_top_25": 2,
+      "expected_vector_score_in_top_25": 0.36281971387122436,
+      "fused_top_5_segment_ids": [
+        "d4511c77-ac1e-4560-8257-776091e8a984:007",
+        "d4511c77-ac1e-4560-8257-776091e8a984:008",
+        "d4511c77-ac1e-4560-8257-776091e8a984:009",
+        "d4511c77-ac1e-4560-8257-776091e8a984:007",
+        "e58ec754-af0e-4608-8423-6c33a0c56d16:009"
+      ]
+    },
+    {
+      "id": "semantic-livelihood-belief",
+      "category": "conceptual",
+      "bm25_top_score": 678.9526569180148,
+      "vector_top_score": 0.4368510800913924,
+      "expected_vector_rank_in_top_25": 1,
+      "expected_vector_score_in_top_25": 0.4368510800913924,
+      "fused_top_5_segment_ids": [
+        "c451a04d-d383-4e86-aead-3889097675fa:004",
+        "c451a04d-d383-4e86-aead-3889097675fa:004",
+        "c451a04d-d383-4e86-aead-3889097675fa:004",
+        "c451a04d-d383-4e86-aead-3889097675fa:004",
+        "c451a04d-d383-4e86-aead-3889097675fa:004"
+      ]
+    },
+    {
+      "id": "semantic-remote-control",
+      "category": "conceptual",
+      "bm25_top_score": 543.3583400893871,
+      "vector_top_score": 0.5255082725680996,
+      "expected_vector_rank_in_top_25": 1,
+      "expected_vector_score_in_top_25": 0.5255082725680996,
+      "fused_top_5_segment_ids": [
+        "0abef5d5-1ccb-4352-9e15-eef231e37d1c:001",
+        "0abef5d5-1ccb-4352-9e15-eef231e37d1c:001",
+        "0abef5d5-1ccb-4352-9e15-eef231e37d1c:001",
+        "0abef5d5-1ccb-4352-9e15-eef231e37d1c:001",
+        "0abef5d5-1ccb-4352-9e15-eef231e37d1c:001"
+      ]
+    },
+    {
+      "id": "semantic-ai-job-loss",
+      "category": "conceptual",
+      "bm25_top_score": 207.28296507145825,
+      "vector_top_score": 0.5566981170051,
+      "expected_vector_rank_in_top_25": 10,
+      "expected_vector_score_in_top_25": 0.4903317427287941,
+      "fused_top_5_segment_ids": [
+        "2b1c1d8d-27d3-47bf-8884-399a3cae0550:002",
+        "2b1c1d8d-27d3-47bf-8884-399a3cae0550:004",
+        "9638ff05-30f8-44a6-892a-08c024cc43fe:003",
+        "2b1c1d8d-27d3-47bf-8884-399a3cae0550:006",
+        "9638ff05-30f8-44a6-892a-08c024cc43fe:002"
+      ]
+    },
+    {
+      "id": "semantic-alien-biology",
+      "category": "conceptual",
+      "bm25_top_score": 258.22353525607645,
+      "vector_top_score": 0.5299988699624992,
+      "expected_vector_rank_in_top_25": 1,
+      "expected_vector_score_in_top_25": 0.5299988699624992,
+      "fused_top_5_segment_ids": [
+        "0967a3f9-707e-4972-96fe-ff8acd76c8df:001",
+        "0967a3f9-707e-4972-96fe-ff8acd76c8df:001",
+        "0967a3f9-707e-4972-96fe-ff8acd76c8df:001",
+        "09570c48-f9ab-4a52-b3e6-40d79bcb4b00:004",
+        "0967a3f9-707e-4972-96fe-ff8acd76c8df:001"
+      ]
+    },
+    {
+      "id": "semantic-vaporware",
+      "category": "conceptual",
+      "bm25_top_score": 501.1849502497156,
+      "vector_top_score": 0.43648607948898555,
+      "expected_vector_rank_in_top_25": 2,
+      "expected_vector_score_in_top_25": 0.4287166460853211,
+      "fused_top_5_segment_ids": [
+        "2d0715c0-7548-4778-8384-721641b46777:001",
+        "2d0715c0-7548-4778-8384-721641b46777:001",
+        "2d0715c0-7548-4778-8384-721641b46777:001",
+        "2d0715c0-7548-4778-8384-721641b46777:001",
+        "2d0715c0-7548-4778-8384-721641b46777:001"
+      ]
+    },
+    {
+      "id": "filter-california-economy",
+      "category": "filter",
+      "bm25_top_score": 545.6819743094998,
+      "vector_top_score": 0.5957018798529801,
+      "expected_vector_rank_in_top_25": 1,
+      "expected_vector_score_in_top_25": 0.5957018798529801,
+      "fused_top_5_segment_ids": [
+        "e58ec754-af0e-4608-8423-6c33a0c56d16:006",
+        "e58ec754-af0e-4608-8423-6c33a0c56d16:005",
+        "e58ec754-af0e-4608-8423-6c33a0c56d16:006",
+        "3a806709-2dec-44f8-9657-48298dbaf7f0:005",
+        "e58ec754-af0e-4608-8423-6c33a0c56d16:005"
+      ]
+    },
+    {
+      "id": "filter-retro-printer",
+      "category": "filter",
+      "bm25_top_score": 85.93856825716006,
+      "vector_top_score": 0.45033993466423233,
+      "expected_vector_rank_in_top_25": 1,
+      "expected_vector_score_in_top_25": 0.45033993466423233,
+      "fused_top_5_segment_ids": [
+        "e58ec754-af0e-4608-8423-6c33a0c56d16:009"
+      ]
+    },
+    {
+      "id": "absent-medieval-beekeeping",
+      "category": "absent",
+      "bm25_top_score": null,
+      "vector_top_score": 0.2906215443819447,
+      "expected_vector_rank_in_top_25": null,
+      "expected_vector_score_in_top_25": null,
+      "fused_top_5_segment_ids": []
+    }
+  ]
+}

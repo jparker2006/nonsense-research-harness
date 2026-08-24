@@ -9,6 +9,7 @@ coverage/
 .env
 .env.*
 !.env.example
+data/retrieval/*.checkpoint.json*
 
 # Local operating-system and editor files
 .DS_Store

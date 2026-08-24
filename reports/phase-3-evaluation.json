@@ -1,0 +1,634 @@
+{
+  "schema_version": "1.0",
+  "frozen_case_count": 12,
+  "ranking_policy": {
+    "vectorCandidateLimit": 25,
+    "fusionCandidateLimit": 20,
+    "reciprocalRankConstant": 60,
+    "minimumBm25Score": 12,
+    "minimumVectorScore": 0.3,
+    "minimumRerankScore": 0.1,
+    "maximumExcerptCharacters": 1600
+  },
+  "metrics": {
+    "bm25": {
+      "exact": {
+        "cases": 4,
+        "recall_at_5": 1,
+        "mean_reciprocal_rank": 1
+      },
+      "conceptual": {
+        "cases": 5,
+        "recall_at_5": 0.8,
+        "mean_reciprocal_rank": 0.6666666666666667
+      },
+      "filter": {
+        "cases": 2,
+        "recall_at_5": 1,
+        "mean_reciprocal_rank": 1
+      },
+      "absent": {
+        "cases": 1,
+        "recall_at_5": 0,
+        "mean_reciprocal_rank": 0
+      }
+    },
+    "vector": {
+      "exact": {
+        "cases": 4,
+        "recall_at_5": 1,
+        "mean_reciprocal_rank": 0.875
+      },
+      "conceptual": {
+        "cases": 5,
+        "recall_at_5": 0.8,
+        "mean_reciprocal_rank": 0.7
+      },
+      "filter": {
+        "cases": 2,
+        "recall_at_5": 1,
+        "mean_reciprocal_rank": 1
+      },
+      "absent": {
+        "cases": 1,
+        "recall_at_5": 0,
+        "mean_reciprocal_rank": 0
+      }
+    },
+    "fused": {
+      "exact": {
+        "cases": 4,
+        "recall_at_5": 1,
+        "mean_reciprocal_rank": 1
+      },
+      "conceptual": {
+        "cases": 5,
+        "recall_at_5": 0.8,
+        "mean_reciprocal_rank": 0.8
+      },
+      "filter": {
+        "cases": 2,
+        "recall_at_5": 1,
+        "mean_reciprocal_rank": 1
+      },
+      "absent": {
+        "cases": 1,
+        "recall_at_5": 0,
+        "mean_reciprocal_rank": 0
+      }
+    },
+    "reranked": {
+      "exact": {
+        "cases": 4,
+        "recall_at_5": 1,
+        "mean_reciprocal_rank": 1
+      },
+      "conceptual": {
+        "cases": 5,
+        "recall_at_5": 1,
+        "mean_reciprocal_rank": 0.9
+      },
+      "filter": {
+        "cases": 2,
+        "recall_at_5": 1,
+        "mean_reciprocal_rank": 1
+      },
+      "absent": {
+        "cases": 1,
+        "recall_at_5": 0,
+        "mean_reciprocal_rank": 0
+      }
+    }
+  },
+  "cases": [
+    {
+      "id": "exact-italian-tune-up",
+      "category": "exact",
+      "expected_segment_ids": [
+        "e58ec754-af0e-4608-8423-6c33a0c56d16:001"
+      ],
+      "modes": {
+        "bm25": {
+          "segment_ids": [
+            "e58ec754-af0e-4608-8423-6c33a0c56d16:001",
+            "a637e0ad-c197-4a2c-89d5-1f8b8a92c6f4:003",
+            "d4511c77-ac1e-4560-8257-776091e8a984:009",
+            "a3b32bf3-295c-4a19-8024-a2f17b4c78a2:001",
+            "1881f1f6-6747-4acf-9bd5-3086c52119c4:003"
+          ],
+          "reciprocal_rank": 1
+        },
+        "vector": {
+          "segment_ids": [
+            "e58ec754-af0e-4608-8423-6c33a0c56d16:001",
+            "1881f1f6-6747-4acf-9bd5-3086c52119c4:003",
+            "51d52d05-6d29-49fe-80d2-41381ba48822:004",
+            "c63d43b1-74e2-4180-acac-3502507975d5:009"
+          ],
+          "reciprocal_rank": 1
+        },
+        "fused": {
+          "segment_ids": [
+            "e58ec754-af0e-4608-8423-6c33a0c56d16:001",
+            "1881f1f6-6747-4acf-9bd5-3086c52119c4:003",
+            "a637e0ad-c197-4a2c-89d5-1f8b8a92c6f4:003",
+            "51d52d05-6d29-49fe-80d2-41381ba48822:004",
+            "d4511c77-ac1e-4560-8257-776091e8a984:009"
+          ],
+          "reciprocal_rank": 1
+        },
+        "reranked": {
+          "segment_ids": [
+            "e58ec754-af0e-4608-8423-6c33a0c56d16:001"
+          ],
+          "reciprocal_rank": 1
+        }
+      }
+    },
+    {
+      "id": "exact-jfd-print-buffer",
+      "category": "exact",
+      "expected_segment_ids": [
+        "e58ec754-af0e-4608-8423-6c33a0c56d16:009"
+      ],
+      "modes": {
+        "bm25": {
+          "segment_ids": [
+            "e58ec754-af0e-4608-8423-6c33a0c56d16:009"
+          ],
+          "reciprocal_rank": 1
+        },
+        "vector": {
+          "segment_ids": [
+            "e58ec754-af0e-4608-8423-6c33a0c56d16:009",
+            "f56ae474-28a5-4a79-8a78-6439ed2b73b3:010"
+          ],
+          "reciprocal_rank": 1
+        },
+        "fused": {
+          "segment_ids": [
+            "e58ec754-af0e-4608-8423-6c33a0c56d16:009",
+            "f56ae474-28a5-4a79-8a78-6439ed2b73b3:010"
+          ],
+          "reciprocal_rank": 1
+        },
+        "reranked": {
+          "segment_ids": [
+            "e58ec754-af0e-4608-8423-6c33a0c56d16:009"
+          ],
+          "reciprocal_rank": 1
+        }
+      }
+    },
+    {
+      "id": "exact-superstitious-pigeons",
+      "category": "exact",
+      "expected_segment_ids": [
+        "c451a04d-d383-4e86-aead-3889097675fa:004"
+      ],
+      "modes": {
+        "bm25": {
+          "segment_ids": [
+            "c451a04d-d383-4e86-aead-3889097675fa:004"
+          ],
+          "reciprocal_rank": 1
+        },
+        "vector": {
+          "segment_ids": [
+            "c451a04d-d383-4e86-aead-3889097675fa:004",
+            "416928a5-cdb8-4f99-a2fa-79e88291c2ae:008"
+          ],
+          "reciprocal_rank": 1
+        },
+        "fused": {
+          "segment_ids": [
+            "c451a04d-d383-4e86-aead-3889097675fa:004",
+            "416928a5-cdb8-4f99-a2fa-79e88291c2ae:008"
+          ],
+          "reciprocal_rank": 1
+        },
+        "reranked": {
+          "segment_ids": [
+            "c451a04d-d383-4e86-aead-3889097675fa:004"
+          ],
+          "reciprocal_rank": 1
+        }
+      }
+    },
+    {
+      "id": "exact-deckmate-usb",
+      "category": "exact",
+      "expected_segment_ids": [
+        "d4511c77-ac1e-4560-8257-776091e8a984:007"
+      ],
+      "modes": {
+        "bm25": {
+          "segment_ids": [
+            "d4511c77-ac1e-4560-8257-776091e8a984:007",
+            "d4511c77-ac1e-4560-8257-776091e8a984:007",
+            "d4511c77-ac1e-4560-8257-776091e8a984:008",
+            "d4511c77-ac1e-4560-8257-776091e8a984:009",
+            "d4511c77-ac1e-4560-8257-776091e8a984:009"
+          ],
+          "reciprocal_rank": 1
+        },
+        "vector": {
+          "segment_ids": [
+            "d4511c77-ac1e-4560-8257-776091e8a984:008",
+            "d4511c77-ac1e-4560-8257-776091e8a984:007",
+            "e58ec754-af0e-4608-8423-6c33a0c56d16:009",
+            "d4511c77-ac1e-4560-8257-776091e8a984:009",
+            "78a70975-9c3c-4021-a9ea-3043f728d17e:009"
+          ],
+          "reciprocal_rank": 0.5
+        },
+        "fused": {
+          "segment_ids": [
+            "d4511c77-ac1e-4560-8257-776091e8a984:007",
+            "d4511c77-ac1e-4560-8257-776091e8a984:008",
+            "d4511c77-ac1e-4560-8257-776091e8a984:009",
+            "d4511c77-ac1e-4560-8257-776091e8a984:007",
+            "e58ec754-af0e-4608-8423-6c33a0c56d16:009"
+          ],
+          "reciprocal_rank": 1
+        },
+        "reranked": {
+          "segment_ids": [
+            "d4511c77-ac1e-4560-8257-776091e8a984:007",
+            "d4511c77-ac1e-4560-8257-776091e8a984:009",
+            "d4511c77-ac1e-4560-8257-776091e8a984:008",
+            "d4511c77-ac1e-4560-8257-776091e8a984:009",
+            "d4511c77-ac1e-4560-8257-776091e8a984:008"
+          ],
+          "reciprocal_rank": 1
+        }
+      }
+    },
+    {
+      "id": "semantic-livelihood-belief",
+      "category": "conceptual",
+      "expected_segment_ids": [
+        "c451a04d-d383-4e86-aead-3889097675fa:004"
+      ],
+      "modes": {
+        "bm25": {
+          "segment_ids": [
+            "c451a04d-d383-4e86-aead-3889097675fa:004",
+            "c451a04d-d383-4e86-aead-3889097675fa:004",
+            "c451a04d-d383-4e86-aead-3889097675fa:004",
+            "c451a04d-d383-4e86-aead-3889097675fa:004",
+            "c451a04d-d383-4e86-aead-3889097675fa:004"
+          ],
+          "reciprocal_rank": 1
+        },
+        "vector": {
+          "segment_ids": [
+            "c451a04d-d383-4e86-aead-3889097675fa:004",
+            "c451a04d-d383-4e86-aead-3889097675fa:004",
+            "c451a04d-d383-4e86-aead-3889097675fa:002",
+            "c451a04d-d383-4e86-aead-3889097675fa:004",
+            "c451a04d-d383-4e86-aead-3889097675fa:004"
+          ],
+          "reciprocal_rank": 1
+        },
+        "fused": {
+          "segment_ids": [
+            "c451a04d-d383-4e86-aead-3889097675fa:004",
+            "c451a04d-d383-4e86-aead-3889097675fa:004",
+            "c451a04d-d383-4e86-aead-3889097675fa:004",
+            "c451a04d-d383-4e86-aead-3889097675fa:004",
+            "c451a04d-d383-4e86-aead-3889097675fa:004"
+          ],
+          "reciprocal_rank": 1
+        },
+        "reranked": {
+          "segment_ids": [
+            "c451a04d-d383-4e86-aead-3889097675fa:004",
+            "c451a04d-d383-4e86-aead-3889097675fa:004",
+            "c451a04d-d383-4e86-aead-3889097675fa:004",
+            "c451a04d-d383-4e86-aead-3889097675fa:004",
+            "2d0715c0-7548-4778-8384-721641b46777:001"
+          ],
+          "reciprocal_rank": 1
+        }
+      }
+    },
+    {
+      "id": "semantic-remote-control",
+      "category": "conceptual",
+      "expected_segment_ids": [
+        "0abef5d5-1ccb-4352-9e15-eef231e37d1c:001"
+      ],
+      "modes": {
+        "bm25": {
+          "segment_ids": [
+            "0abef5d5-1ccb-4352-9e15-eef231e37d1c:001",
+            "0abef5d5-1ccb-4352-9e15-eef231e37d1c:001",
+            "0abef5d5-1ccb-4352-9e15-eef231e37d1c:001",
+            "2d0715c0-7548-4778-8384-721641b46777:001",
+            "0abef5d5-1ccb-4352-9e15-eef231e37d1c:001"
+          ],
+          "reciprocal_rank": 1
+        },
+        "vector": {
+          "segment_ids": [
+            "0abef5d5-1ccb-4352-9e15-eef231e37d1c:001",
+            "0abef5d5-1ccb-4352-9e15-eef231e37d1c:001",
+            "0abef5d5-1ccb-4352-9e15-eef231e37d1c:001",
+            "0abef5d5-1ccb-4352-9e15-eef231e37d1c:001",
+            "0abef5d5-1ccb-4352-9e15-eef231e37d1c:001"
+          ],
+          "reciprocal_rank": 1
+        },
+        "fused": {
+          "segment_ids": [
+            "0abef5d5-1ccb-4352-9e15-eef231e37d1c:001",
+            "0abef5d5-1ccb-4352-9e15-eef231e37d1c:001",
+            "0abef5d5-1ccb-4352-9e15-eef231e37d1c:001",
+            "0abef5d5-1ccb-4352-9e15-eef231e37d1c:001",
+            "0abef5d5-1ccb-4352-9e15-eef231e37d1c:001"
+          ],
+          "reciprocal_rank": 1
+        },
+        "reranked": {
+          "segment_ids": [
+            "0abef5d5-1ccb-4352-9e15-eef231e37d1c:001",
+            "0abef5d5-1ccb-4352-9e15-eef231e37d1c:001",
+            "0abef5d5-1ccb-4352-9e15-eef231e37d1c:001",
+            "0abef5d5-1ccb-4352-9e15-eef231e37d1c:001",
+            "0abef5d5-1ccb-4352-9e15-eef231e37d1c:001"
+          ],
+          "reciprocal_rank": 1
+        }
+      }
+    },
+    {
+      "id": "semantic-ai-job-loss",
+      "category": "conceptual",
+      "expected_segment_ids": [
+        "3a21261d-b12f-4a10-9996-38def4e09440:001"
+      ],
+      "modes": {
+        "bm25": {
+          "segment_ids": [
+            "2b1c1d8d-27d3-47bf-8884-399a3cae0550:006",
+            "891a9d90-5247-4f87-a55d-be0caf9f4d0b:001",
+            "891a9d90-5247-4f87-a55d-be0caf9f4d0b:004",
+            "2b1c1d8d-27d3-47bf-8884-399a3cae0550:004",
+            "891a9d90-5247-4f87-a55d-be0caf9f4d0b:006"
+          ],
+          "reciprocal_rank": 0
+        },
+        "vector": {
+          "segment_ids": [
+            "9638ff05-30f8-44a6-892a-08c024cc43fe:002",
+            "9638ff05-30f8-44a6-892a-08c024cc43fe:003",
+            "ec0eceeb-9cca-4d88-b910-255982a7fa56:003",
+            "9638ff05-30f8-44a6-892a-08c024cc43fe:001",
+            "ec0eceeb-9cca-4d88-b910-255982a7fa56:005"
+          ],
+          "reciprocal_rank": 0
+        },
+        "fused": {
+          "segment_ids": [
+            "2b1c1d8d-27d3-47bf-8884-399a3cae0550:002",
+            "2b1c1d8d-27d3-47bf-8884-399a3cae0550:004",
+            "9638ff05-30f8-44a6-892a-08c024cc43fe:003",
+            "2b1c1d8d-27d3-47bf-8884-399a3cae0550:006",
+            "9638ff05-30f8-44a6-892a-08c024cc43fe:002"
+          ],
+          "reciprocal_rank": 0
+        },
+        "reranked": {
+          "segment_ids": [
+            "9638ff05-30f8-44a6-892a-08c024cc43fe:003",
+            "3a21261d-b12f-4a10-9996-38def4e09440:001",
+            "ec0eceeb-9cca-4d88-b910-255982a7fa56:002",
+            "9638ff05-30f8-44a6-892a-08c024cc43fe:003",
+            "9638ff05-30f8-44a6-892a-08c024cc43fe:001"
+          ],
+          "reciprocal_rank": 0.5
+        }
+      }
+    },
+    {
+      "id": "semantic-alien-biology",
+      "category": "conceptual",
+      "expected_segment_ids": [
+        "0967a3f9-707e-4972-96fe-ff8acd76c8df:001"
+      ],
+      "modes": {
+        "bm25": {
+          "segment_ids": [
+            "a1b160e2-45ad-48c9-9bd2-9929064e3838:004",
+            "2150b37f-1d9b-4e2f-9ade-fb946913e2d3:001",
+            "0967a3f9-707e-4972-96fe-ff8acd76c8df:001",
+            "09570c48-f9ab-4a52-b3e6-40d79bcb4b00:004",
+            "0967a3f9-707e-4972-96fe-ff8acd76c8df:001"
+          ],
+          "reciprocal_rank": 0.3333333333333333
+        },
+        "vector": {
+          "segment_ids": [
+            "0967a3f9-707e-4972-96fe-ff8acd76c8df:001",
+            "0967a3f9-707e-4972-96fe-ff8acd76c8df:001",
+            "0967a3f9-707e-4972-96fe-ff8acd76c8df:001",
+            "0967a3f9-707e-4972-96fe-ff8acd76c8df:001",
+            "0967a3f9-707e-4972-96fe-ff8acd76c8df:001"
+          ],
+          "reciprocal_rank": 1
+        },
+        "fused": {
+          "segment_ids": [
+            "0967a3f9-707e-4972-96fe-ff8acd76c8df:001",
+            "0967a3f9-707e-4972-96fe-ff8acd76c8df:001",
+            "0967a3f9-707e-4972-96fe-ff8acd76c8df:001",
+            "09570c48-f9ab-4a52-b3e6-40d79bcb4b00:004",
+            "0967a3f9-707e-4972-96fe-ff8acd76c8df:001"
+          ],
+          "reciprocal_rank": 1
+        },
+        "reranked": {
+          "segment_ids": [
+            "0967a3f9-707e-4972-96fe-ff8acd76c8df:001",
+            "0967a3f9-707e-4972-96fe-ff8acd76c8df:001",
+            "0967a3f9-707e-4972-96fe-ff8acd76c8df:001",
+            "0967a3f9-707e-4972-96fe-ff8acd76c8df:001",
+            "0967a3f9-707e-4972-96fe-ff8acd76c8df:001"
+          ],
+          "reciprocal_rank": 1
+        }
+      }
+    },
+    {
+      "id": "semantic-vaporware",
+      "category": "conceptual",
+      "expected_segment_ids": [
+        "2d0715c0-7548-4778-8384-721641b46777:001"
+      ],
+      "modes": {
+        "bm25": {
+          "segment_ids": [
+            "2d0715c0-7548-4778-8384-721641b46777:001",
+            "2d0715c0-7548-4778-8384-721641b46777:001",
+            "2d0715c0-7548-4778-8384-721641b46777:001",
+            "2d0715c0-7548-4778-8384-721641b46777:001",
+            "2d0715c0-7548-4778-8384-721641b46777:001"
+          ],
+          "reciprocal_rank": 1
+        },
+        "vector": {
+          "segment_ids": [
+            "de2486dd-7dc1-4f10-b980-97eb4186aedd:003",
+            "2d0715c0-7548-4778-8384-721641b46777:001",
+            "2d0715c0-7548-4778-8384-721641b46777:001",
+            "2d0715c0-7548-4778-8384-721641b46777:001",
+            "2d0715c0-7548-4778-8384-721641b46777:001"
+          ],
+          "reciprocal_rank": 0.5
+        },
+        "fused": {
+          "segment_ids": [
+            "2d0715c0-7548-4778-8384-721641b46777:001",
+            "2d0715c0-7548-4778-8384-721641b46777:001",
+            "2d0715c0-7548-4778-8384-721641b46777:001",
+            "2d0715c0-7548-4778-8384-721641b46777:001",
+            "2d0715c0-7548-4778-8384-721641b46777:001"
+          ],
+          "reciprocal_rank": 1
+        },
+        "reranked": {
+          "segment_ids": [
+            "2d0715c0-7548-4778-8384-721641b46777:001",
+            "a825cc53-0a9e-4a32-a935-674544fb232a:007",
+            "2d0715c0-7548-4778-8384-721641b46777:001",
+            "2d0715c0-7548-4778-8384-721641b46777:001",
+            "2d0715c0-7548-4778-8384-721641b46777:001"
+          ],
+          "reciprocal_rank": 1
+        }
+      }
+    },
+    {
+      "id": "filter-california-economy",
+      "category": "filter",
+      "expected_segment_ids": [
+        "e58ec754-af0e-4608-8423-6c33a0c56d16:006"
+      ],
+      "modes": {
+        "bm25": {
+          "segment_ids": [
+            "e58ec754-af0e-4608-8423-6c33a0c56d16:006",
+            "e58ec754-af0e-4608-8423-6c33a0c56d16:006",
+            "e58ec754-af0e-4608-8423-6c33a0c56d16:005",
+            "e58ec754-af0e-4608-8423-6c33a0c56d16:005",
+            "e58ec754-af0e-4608-8423-6c33a0c56d16:005"
+          ],
+          "reciprocal_rank": 1
+        },
+        "vector": {
+          "segment_ids": [
+            "e58ec754-af0e-4608-8423-6c33a0c56d16:006",
+            "e58ec754-af0e-4608-8423-6c33a0c56d16:005",
+            "e58ec754-af0e-4608-8423-6c33a0c56d16:006",
+            "3a806709-2dec-44f8-9657-48298dbaf7f0:005",
+            "52019ad4-527c-48bf-ba91-8ec45d5ed703:009"
+          ],
+          "reciprocal_rank": 1
+        },
+        "fused": {
+          "segment_ids": [
+            "e58ec754-af0e-4608-8423-6c33a0c56d16:006",
+            "e58ec754-af0e-4608-8423-6c33a0c56d16:005",
+            "e58ec754-af0e-4608-8423-6c33a0c56d16:006",
+            "3a806709-2dec-44f8-9657-48298dbaf7f0:005",
+            "e58ec754-af0e-4608-8423-6c33a0c56d16:005"
+          ],
+          "reciprocal_rank": 1
+        },
+        "reranked": {
+          "segment_ids": [
+            "e58ec754-af0e-4608-8423-6c33a0c56d16:006",
+            "e58ec754-af0e-4608-8423-6c33a0c56d16:005",
+            "e58ec754-af0e-4608-8423-6c33a0c56d16:006"
+          ],
+          "reciprocal_rank": 1
+        }
+      }
+    },
+    {
+      "id": "filter-retro-printer",
+      "category": "filter",
+      "expected_segment_ids": [
+        "e58ec754-af0e-4608-8423-6c33a0c56d16:009"
+      ],
+      "modes": {
+        "bm25": {
+          "segment_ids": [
+            "e58ec754-af0e-4608-8423-6c33a0c56d16:009"
+          ],
+          "reciprocal_rank": 1
+        },
+        "vector": {
+          "segment_ids": [
+            "e58ec754-af0e-4608-8423-6c33a0c56d16:009"
+          ],
+          "reciprocal_rank": 1
+        },
+        "fused": {
+          "segment_ids": [
+            "e58ec754-af0e-4608-8423-6c33a0c56d16:009"
+          ],
+          "reciprocal_rank": 1
+        },
+        "reranked": {
+          "segment_ids": [
+            "e58ec754-af0e-4608-8423-6c33a0c56d16:009"
+          ],
+          "reciprocal_rank": 1
+        }
+      }
+    },
+    {
+      "id": "absent-medieval-beekeeping",
+      "category": "absent",
+      "expected_segment_ids": [],
+      "modes": {
+        "bm25": {
+          "segment_ids": [],
+          "reciprocal_rank": 0
+        },
+        "vector": {
+          "segment_ids": [],
+          "reciprocal_rank": 0
+        },
+        "fused": {
+          "segment_ids": [],
+          "reciprocal_rank": 0
+        },
+        "reranked": {
+          "segment_ids": [],
+          "reciprocal_rank": 0
+        }
+      }
+    }
+  ],
+  "reranker_decision": "retained",
+  "reranker_rule": "Retain only for strictly higher conceptual MRR with no exact/filter Recall@5 regression; ties remove.",
+  "acceptance": {
+    "exact_recall_at_5": true,
+    "filter_recall_at_5": true,
+    "conceptual_recall_at_5": true,
+    "fusion_no_exact_filter_regression": true,
+    "absent_default_no_match": true
+  },
+  "latency": {
+    "cold_start_ms": 157.51,
+    "evaluation_loop_including_provider_ms": 8378.8,
+    "query_embedding_ms": 1509.714125
+  },
+  "usage": {
+    "provider_requests": 35,
+    "cumulative_cost_usd": 0.031363800000000004
+  }
+}

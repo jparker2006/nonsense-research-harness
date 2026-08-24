@@ -1,0 +1,12 @@
+{
+  "schema_version": "1.0",
+  "method": "Five local passes over the 12 frozen queries; document vectors stand in for query vectors so no provider is contacted.",
+  "cold_start_ms": 208.13,
+  "local_search_samples": 60,
+  "local_search_latency_ms": {
+    "minimum": 2.35,
+    "median": 9.95,
+    "p95": 24.76,
+    "maximum": 29.96
+  }
+}

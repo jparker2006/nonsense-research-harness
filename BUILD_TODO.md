@@ -1,6 +1,6 @@
 # Nonsense Research Harness — Build TODO
 
-Status: Phase 2 passed with recorded limitations on 2026-08-23. Phase 3's hybrid transcript-retrieval architecture and `$0.50` OpenRouter budget are approved and frozen in `docs/PHASE_3_PLAN.md`; implementation has not started. Hosted databases, Vercel projects, and deployment remain unauthorized.
+Status: Phase 3 passed on 2026-08-23 with the retained evaluation-gated reranker and evidence in `docs/PHASE_3_RESULT.md`. Phase 4 has not started. Hosted databases, Vercel projects, and deployment remain unauthorized.
 
 ## Intended v0 outcome
 
@@ -19,6 +19,7 @@ The product prepares conversation material. It does not choose the final stories
   - 59 episode records: `/Users/jakeparker/Desktop/Nonsense Podcast Project/data/processed/episodes.jsonl`
   - 441 segment records: `/Users/jakeparker/Desktop/Nonsense Podcast Project/data/processed/segments.jsonl`
 - The processed files are about 4.9 MB combined. They are small enough for a simple server-side archive index in v0.
+- Phase 3 produced 1,259 exact-source retrieval chunks, local BM25, 1,536-dimensional document vectors, reciprocal-rank fusion, and two server-only transcript tools. The frozen reranked evaluation reached 100% Recall@5 across exact, conceptual, and filter cases.
 
 ## Phase rules
 
@@ -157,36 +158,36 @@ This phase builds one server-side archive tool using deterministic exact-text ch
 ### Harden before running
 
 - [x] Choose the authoritative Desktop copy of the 59 episodes and 441 segments.
-- [ ] Verify counts and checksums before and after any copy or generated index.
-- [ ] Keep the corpus server-only; do not place it under `public/`.
+- [x] Verify counts and checksums before and after any copy or generated index.
+- [x] Keep the corpus server-only; do not place it under `public/`.
 - [x] Define stable segment/chunk IDs and exact-source offsets so returned references cannot point at the wrong text.
 - [x] Define `complete`, `hybrid_unreranked`, `keyword_only`, `no_match`, `unavailable`, and `not_found` states.
 - [x] Freeze the embedding/rerank provider policies, 40-request limit, and `$0.50` approved budget in `docs/PHASE_3_PLAN.md`.
-- [ ] Freeze 12 human-inspected retrieval cases before tuning ranking constants.
+- [x] Freeze 12 human-inspected retrieval cases before tuning ranking constants.
 
 ### Build
 
-- [ ] Generate sentence-aware exact-text chunks with stable IDs, complete source coverage, and a provenance manifest.
-- [ ] Add a pinned MiniSearch BM25 index and provider-disabled keyword search.
-- [ ] Generate `openai/text-embedding-3-small` vectors through OpenRouter's ZDR Azure endpoint; do not add a vector database.
-- [ ] Add cosine vector retrieval and deterministic reciprocal-rank fusion.
-- [ ] Evaluate `qwen/qwen3-reranker-8b` through OpenRouter's ZDR Fireworks endpoint and retain it only if it meets the frozen rule.
-- [ ] Implement `search_transcripts(query, filters, limit)`.
-- [ ] Implement `open_transcript_chunk(chunk_id)`.
-- [ ] Return episode title, date, show type, segment label, excerpt, and stable source ID.
-- [ ] Add deterministic tests for source integrity, exact matches, conceptual queries, filters, ranking, limits, empty results, malformed records, duplicate IDs, provider failures, and degraded search.
+- [x] Generate sentence-aware exact-text chunks with stable IDs, complete source coverage, and a provenance manifest.
+- [x] Add a pinned MiniSearch BM25 index and provider-disabled keyword search.
+- [x] Generate `openai/text-embedding-3-small` vectors through OpenRouter's ZDR Azure endpoint; do not add a vector database.
+- [x] Add cosine vector retrieval and deterministic reciprocal-rank fusion.
+- [x] Evaluate `qwen/qwen3-reranker-8b` through OpenRouter's ZDR Fireworks endpoint and retain it only if it meets the frozen rule.
+- [x] Implement `search_transcripts(query, filters, limit)`.
+- [x] Implement `open_transcript_chunk(chunk_id)`.
+- [x] Return episode title, date, show type, segment label, excerpt, and stable source ID.
+- [x] Add deterministic tests for source integrity, exact matches, conceptual queries, filters, ranking, limits, empty results, malformed records, duplicate IDs, provider failures, and degraded search.
 
 ### Phase 3 gate — STOP
 
-- [ ] All 59 episodes and 441 segments validate, and every segment is represented with gap-free source coverage.
-- [ ] Every chunk and returned excerpt matches the underlying corpus byte-for-byte.
-- [ ] The frozen exact/filter and conceptual retrieval thresholds pass.
-- [ ] Reranking is retained only if it improves conceptual MRR without regressing exact/filter Recall@5.
-- [ ] Keyword-only degradation works with all provider access disabled.
-- [ ] No speaker attribution is invented.
-- [ ] Search cold-start and provider latency are measured and recorded honestly.
-- [ ] Actual Phase 3 OpenRouter spend is at or below `$0.50`; live-call scripts are locked after proof.
-- [ ] `pnpm gate` passes, `docs/PHASE_3_RESULT.md` is complete, and the exact passing commit is pushed to private `origin/main`.
+- [x] All 59 episodes and 441 segments validate, and every segment is represented with gap-free source coverage.
+- [x] Every chunk and returned excerpt matches the underlying corpus byte-for-byte.
+- [x] The frozen exact/filter and conceptual retrieval thresholds pass.
+- [x] Reranking is retained only if it improves conceptual MRR without regressing exact/filter Recall@5.
+- [x] Keyword-only degradation works with all provider access disabled.
+- [x] No speaker attribution is invented.
+- [x] Search cold-start and provider latency are measured and recorded honestly.
+- [x] Actual Phase 3 OpenRouter spend is at or below `$0.50`; live-call scripts are locked after proof.
+- [x] `pnpm gate` passes, `docs/PHASE_3_RESULT.md` is complete, and the exact passing commit is pushed to private `origin/main`.
 
 ## Phase 4 — Build safe research tools
 

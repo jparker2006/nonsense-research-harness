@@ -1,6 +1,6 @@
 # Nonsense Research Harness — v0 Specification
 
-Status: Approved by Jake on 2026-08-23. Phase 1 implementation is authorized; provider calls, hosted resources, and deployment remain unauthorized.
+Status: Approved by Jake on 2026-08-23. Phase 3 transcript retrieval is complete; hosted resources, deployment, and later phases remain unauthorized.
 
 Authoritative project root: `/Users/jakeparker/Desktop/Nonsense Podcast Project`
 
@@ -45,7 +45,7 @@ For a real Headline or Big Story topic, either host can create a workspace, watc
 - Finished scripts intended to be read on air
 - Speaker attribution in the archive
 - Audio download, transcription, or ASR
-- Embeddings, a vector database, or semantic RAG
+- Hosted vector database or external retrieval service
 - Any model beyond the fixed light/heavy pair, fallback models, subagents, critic agents, or delegation
 - Simultaneous multiplayer editing
 - Google Drive synchronization

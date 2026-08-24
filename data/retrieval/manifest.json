@@ -1,0 +1,61 @@
+{
+  "schema_version": "1.0",
+  "corpus": {
+    "episodes": {
+      "path": "data/processed/episodes.jsonl",
+      "count": 59,
+      "bytes": 2577783,
+      "sha256": "4ceea4085e0bbe36513706f42a7bedf0008ee4b02b52fd7d695b69f585fe219a"
+    },
+    "segments": {
+      "path": "data/processed/segments.jsonl",
+      "count": 441,
+      "bytes": 2533810,
+      "sha256": "a774dc9e6a1de562105a64c72853ca30ade7bdd54c7e8f84c869eaf6bc8e5155"
+    }
+  },
+  "counts": {
+    "episodes": 59,
+    "segments": 441,
+    "chunks": 1259
+  },
+  "chunking_policy": {
+    "minimumWords": 250,
+    "maximumWords": 450,
+    "overlapWords": 60
+  },
+  "embedding": {
+    "status": "ready",
+    "model": "openai/text-embedding-3-small",
+    "provider": "azure",
+    "dimensions": 1536,
+    "generation": {
+      "request_count": 20,
+      "input_count": 1259,
+      "total_tokens": 595032,
+      "cost_usd": 0.01190064
+    }
+  },
+  "reranker": {
+    "status": "retained",
+    "model": "qwen/qwen3-reranker-8b",
+    "provider": "fireworks"
+  },
+  "artifacts": {
+    "chunks": {
+      "path": "data/retrieval/chunks.jsonl",
+      "bytes": 3277930,
+      "sha256": "c5667e392c8b242ab96c55b1b0f4c10d0dc74e883940cde0c1b78e433f3ecfd8"
+    },
+    "bm25": {
+      "path": "data/retrieval/bm25-index.json",
+      "bytes": 2592054,
+      "sha256": "c58293b55a95aad89621872b9387a285ab7355979fc752269a4fdf76ca7c4e02"
+    },
+    "embeddings": {
+      "path": "data/retrieval/embeddings.f32",
+      "bytes": 7735296,
+      "sha256": "ed72ac74f763c9eaab7443400f4a481ae703882b8d20926c0efc5b6f2fc05961"
+    }
+  }
+}

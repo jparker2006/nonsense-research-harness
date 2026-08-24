@@ -1,0 +1,84 @@
+[
+  {
+    "id": "exact-italian-tune-up",
+    "category": "exact",
+    "query": "Italian tune up",
+    "expected_segment_ids": ["e58ec754-af0e-4608-8423-6c33a0c56d16:001"]
+  },
+  {
+    "id": "exact-jfd-print-buffer",
+    "category": "exact",
+    "query": "JFD Universal Print Buffer",
+    "expected_segment_ids": ["e58ec754-af0e-4608-8423-6c33a0c56d16:009"]
+  },
+  {
+    "id": "exact-superstitious-pigeons",
+    "category": "exact",
+    "query": "superstitious pigeons",
+    "expected_segment_ids": ["c451a04d-d383-4e86-aead-3889097675fa:004"]
+  },
+  {
+    "id": "exact-deckmate-usb",
+    "category": "exact",
+    "query": "DeckMate USB port",
+    "expected_segment_ids": ["d4511c77-ac1e-4560-8257-776091e8a984:007"]
+  },
+  {
+    "id": "semantic-livelihood-belief",
+    "category": "conceptual",
+    "query": "why people keep believing false claims when their livelihood depends on it",
+    "expected_segment_ids": ["c451a04d-d383-4e86-aead-3889097675fa:004"]
+  },
+  {
+    "id": "semantic-remote-control",
+    "category": "conceptual",
+    "query": "the invention that let television viewers change channels without leaving the couch",
+    "expected_segment_ids": ["0abef5d5-1ccb-4352-9e15-eef231e37d1c:001"]
+  },
+  {
+    "id": "semantic-ai-job-loss",
+    "category": "conceptual",
+    "query": "artificial intelligence eliminating jobs beyond software programming",
+    "expected_segment_ids": ["3a21261d-b12f-4a10-9996-38def4e09440:001"]
+  },
+  {
+    "id": "semantic-alien-biology",
+    "category": "conceptual",
+    "query": "hypothetical alien life built from unfamiliar chemistry instead of normal Earth biology",
+    "expected_segment_ids": ["0967a3f9-707e-4972-96fe-ff8acd76c8df:001"]
+  },
+  {
+    "id": "semantic-vaporware",
+    "category": "conceptual",
+    "query": "revolutionary products that companies announce but never actually ship",
+    "expected_segment_ids": ["2d0715c0-7548-4778-8384-721641b46777:001"]
+  },
+  {
+    "id": "filter-california-economy",
+    "category": "filter",
+    "query": "California economy overtakes Japan",
+    "filters": {
+      "season": 3,
+      "episode_format": "headlines",
+      "segment_role": "headline_topic"
+    },
+    "expected_segment_ids": ["e58ec754-af0e-4608-8423-6c33a0c56d16:006"]
+  },
+  {
+    "id": "filter-retro-printer",
+    "category": "filter",
+    "query": "slow printer technology recommendation",
+    "filters": {
+      "season": 3,
+      "episode_format": "headlines",
+      "segment_role": "retro_tech_closer"
+    },
+    "expected_segment_ids": ["e58ec754-af0e-4608-8423-6c33a0c56d16:009"]
+  },
+  {
+    "id": "absent-medieval-beekeeping",
+    "category": "absent",
+    "query": "medieval Icelandic beekeeping techniques",
+    "expected_segment_ids": []
+  }
+]
