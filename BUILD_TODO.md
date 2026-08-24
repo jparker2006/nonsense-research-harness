@@ -1,6 +1,6 @@
 # Nonsense Research Harness — Build TODO
 
-Status: Phase 2 zero-spend hardening is in progress on 2026-08-23. Phase 1 passed and is recorded. Provider calls remain blocked until Jake approves the exact Phase 2 `$0.03` live cap and supplies a server-side OpenRouter key. Hosted databases, Vercel projects, and deployment remain unauthorized.
+Status: Phase 2 passed with recorded limitations on 2026-08-23. Luna/max passed structured output and a complete local-tool round-trip. Grok/medium native search passed with 18 citations; the final capture cost `$0.062078`, and approximate cumulative Phase 2 spend was `$0.128309` under Jake's revised `$1.00` approval. All live provider calls are disabled after proof. Hosted databases, Vercel projects, and deployment remain unauthorized.
 
 ## Intended v0 outcome
 
@@ -34,13 +34,13 @@ The product prepares conversation material. It does not choose the final stories
 
 ## Provisional stack
 
-The application/runtime stack passed Phase 1. Provider and model compatibility remain provisional until Phase 2.
+The application/runtime stack passed Phase 1. The pinned provider/model boundary passed Phase 2 with the limitations recorded in `docs/PHASE_2_RESULT.md`.
 
 - Application: Next.js and TypeScript
 - Agent UI: `assistant-ui`, adapted from the maintained Mastra UI examples
 - Agent/workflow runtime: Mastra
 - Model gateway: OpenRouter
-- Model: one pinned Grok model
+- Models: a deterministic two-tier pair — GPT-5.6 Luna/max for light structured/tool work and Grok 4.6/medium for heavy research and synthesis
 - Model tools: OpenRouter web search plus three local tools
 - Deployed persistence: remote libSQL/Turso
 - Deployment target: one Vercel application
@@ -124,31 +124,31 @@ This phase proves compatibility; it does not build the product.
 - [x] Mocked tool events stream correctly.
 - [x] Mastra passed; retain it and do not install the LangGraph.js fallback.
 
-## Phase 2 — Prove OpenRouter and Grok compatibility
+## Phase 2 — Prove the two OpenRouter model tiers
 
 ### Harden before running
 
-- [x] Verify `x-ai/grok-4.3` and current support for streaming, tool calling, structured output, and server-side web search.
+- [x] Verify `openai/gpt-5.6-luna` and `x-ai/grok-4.6` support the assigned streaming, tool, structured-output, reasoning, and server-side web-search roles.
 - [x] Keep the OpenRouter key server-only and out of logs, browser payloads, Git, and traces.
 - [x] Disable model/provider fallback.
 - [x] Set maximum provider requests, output tokens, server-tool uses, search results, timeout, and phase cost.
-- [x] Record four provider requests maximum and a `$0.03` hard phase cap in `docs/PHASE_2_PLAN.md` for approval.
+- [x] Record bounded provider requests and the revised `$1.00` approved phase budget in `docs/PHASE_2_PLAN.md`.
 - [x] Use synthetic input; do not send transcript data in this phase.
 
 ### Prove
 
-- [ ] Run one structured-output request.
-- [ ] Run one call to a harmless local test tool.
-- [ ] Run one bounded OpenRouter web-search request.
-- [ ] Stream all tool and completion events through the same API shape the UI will use.
-- [ ] Record latency, token usage, reported cost, citations, tool-call shape, and errors.
+- [x] Run one structured-output request.
+- [x] Run one call to a harmless local test tool.
+- [x] Run one bounded OpenRouter web-search request.
+- [x] Reassemble tool, citation, usage, and completion events through the server-side provider-stream boundary the UI integration will use.
+- [x] Record latency, token usage, reported cost, tool-call shape, citations, errors, and limitations in `docs/PHASE_2_RESULT.md`.
 
 ### Phase 2 gate — STOP
 
-- [ ] All required capabilities work with the pinned model and packages.
-- [ ] Citations and usage metadata survive the complete stream.
-- [ ] Actual spend remains within the approved cap.
-- [ ] Failures are typed and renderable; no raw provider error or secret reaches the client.
+- [x] All required capabilities work with the two pinned model tiers and packages.
+- [x] Citations and usage metadata survive the complete stream.
+- [x] Actual cumulative spend remains within Jake's revised `$1.00` approval.
+- [x] Failures are typed and renderable; no raw provider error or secret reaches the client.
 
 ## Phase 3 — Build deterministic transcript retrieval
 
@@ -208,7 +208,7 @@ No model or web calls are required in this phase.
 
 ### Harden before running
 
-- [ ] Freeze one agent, one model, four tools, and one evidence-repair loop.
+- [ ] Freeze one agent, the deterministic light/heavy model mapping, four tools, and one evidence-repair loop.
 - [ ] Define maximum turns, searches, URL reads, archive reads, tokens, time, and cost in code.
 - [ ] Define deterministic validation separately from model judgment.
 - [ ] Require source IDs on factual claims and real segment IDs on archive references.
@@ -218,7 +218,7 @@ No model or web calls are required in this phase.
 ### Build
 
 - [ ] Implement the graph: intake → research loop → evidence validation → optional single repair → structured composition → save result.
-- [ ] Use the same Grok model for research and composition.
+- [ ] Use Luna only for light structured/tool work and Grok only for heavy research/synthesis; do not let either model route itself.
 - [ ] Add Headlines and Big Story schemas without separate agents.
 - [ ] Emit sanitized activity events for every graph step and tool call.
 - [ ] Return a useful partial artifact when a non-critical source is unavailable.
@@ -349,11 +349,11 @@ Do not pull these into a phase unless the usefulness evaluation identifies a con
 - [ ] Speaker attribution
 - [ ] Audio download or transcription
 - [ ] Fine-tuning
-- [ ] Multiple models, routers, fallbacks, subagents, or critic agents
+- [ ] Any additional models, automatic routers, fallbacks, subagents, or critic agents
 - [ ] Durable background jobs or Vercel Workflow
 - [ ] Mobile-native application
 - [ ] Analytics dashboard
 
 ## First next action
 
-Approve or revise `docs/PHASE_2_PLAN.md`, then add `OPENROUTER_API_KEY` to ignored `.env.local`. Do not run the four live probes until both conditions are satisfied.
+Review and harden Phase 3's deterministic transcript-retrieval contract before implementation. Phase 3 requires no provider calls or model spend; do not begin it automatically.

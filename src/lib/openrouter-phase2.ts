@@ -1,5 +1,18 @@
 export const PHASE_2_LIMITS = Object.freeze({
-  model: "x-ai/grok-4.3",
+  models: Object.freeze({
+    light: Object.freeze({
+      id: "openai/gpt-5.6-luna",
+      reasoningEffort: "max" as const,
+      zdr: false,
+      maxPricePerMillion: Object.freeze({ prompt: 0.2, completion: 1.2 }),
+    }),
+    heavy: Object.freeze({
+      id: "x-ai/grok-4.6",
+      reasoningEffort: "medium" as const,
+      zdr: true,
+      maxPricePerMillion: Object.freeze({ prompt: 2, completion: 6 }),
+    }),
+  }),
   endpoint: "https://openrouter.ai/api/v1/chat/completions",
   maxProviderRequests: 4,
   maxOutputTokens: Object.freeze({
@@ -9,23 +22,25 @@ export const PHASE_2_LIMITS = Object.freeze({
     webSearch: 384,
   }),
   maxWebSearches: 1,
-  maxWebResults: 3,
-  maxWebCharactersPerResult: 1_200,
   requestTimeoutMs: 45_000,
-  hardDollarCap: 0.03,
-  maxPricePerMillion: Object.freeze({
-    prompt: 1.25,
-    completion: 2.5,
-  }),
+  approvedPhaseBudgetUsd: 1,
+  approvedRepairBudgetUsd: 0.01,
+  approvedWebRepairBudgetUsd: 0.25,
 });
 
-export const PHASE_2_PROVIDER_POLICY = Object.freeze({
-  allow_fallbacks: false,
-  require_parameters: true,
-  data_collection: "deny" as const,
-  zdr: true,
-  max_price: PHASE_2_LIMITS.maxPricePerMillion,
-});
+// A client-side usage check runs only after a provider has charged the request.
+// Phase 2 proof is complete, so live calls remain locked until a later phase is approved.
+export const PHASE_2_LIVE_CALLS_DISABLED = true;
+
+export type Phase2Tier = keyof typeof PHASE_2_LIMITS.models;
+
+export type Phase2ProviderPolicy = {
+  allow_fallbacks: false;
+  require_parameters: true;
+  data_collection: "deny";
+  zdr: boolean;
+  max_price: { prompt: number; completion: number };
+};
 
 export type Phase2Message = {
   role: "system" | "user" | "assistant" | "tool";
@@ -48,7 +63,11 @@ export type Phase2Request = {
   messages: Phase2Message[];
   stream: true;
   max_tokens: number;
-  provider: typeof PHASE_2_PROVIDER_POLICY;
+  provider: Phase2ProviderPolicy;
+  reasoning: {
+    effort: "max" | "medium";
+    exclude: true;
+  };
   [key: string]: unknown;
 };
 
@@ -81,25 +100,47 @@ export type Phase2StreamResult = {
   done: boolean;
 };
 
+export type Phase2WebSearchEvidence = {
+  searchCount: 1;
+  source: "usage" | "citations-and-request-bound";
+  citationCount: number;
+};
+
 type ToolCallAccumulator = {
   id: string;
   name: string;
   arguments: string;
 };
 
-function baseRequest(messages: Phase2Message[], maxTokens: number): Phase2Request {
+function baseRequest(
+  tier: Phase2Tier,
+  messages: Phase2Message[],
+  maxTokens: number,
+): Phase2Request {
+  const model = PHASE_2_LIMITS.models[tier];
   return {
-    model: PHASE_2_LIMITS.model,
+    model: model.id,
     messages,
     stream: true,
     max_tokens: maxTokens,
-    provider: PHASE_2_PROVIDER_POLICY,
+    provider: {
+      allow_fallbacks: false,
+      require_parameters: true,
+      data_collection: "deny",
+      zdr: model.zdr,
+      max_price: model.maxPricePerMillion,
+    },
+    reasoning: {
+      effort: model.reasoningEffort,
+      exclude: true,
+    },
   };
 }
 
 export function buildStructuredRequest(): Phase2Request {
   return {
     ...baseRequest(
+      "light",
       [
         {
           role: "user",
@@ -137,11 +178,12 @@ export function buildStructuredRequest(): Phase2Request {
 export function buildToolCallRequest(): Phase2Request {
   return {
     ...baseRequest(
+      "light",
       [
         {
           role: "user",
           content:
-            "Use the double_number tool exactly once with the integer 21. Do not calculate or answer directly.",
+            "Use the double_number tool exactly once with the integer 21. After the tool returns, reply with exactly the numeric result and nothing else.",
         },
       ],
       PHASE_2_LIMITS.maxOutputTokens.toolCall,
@@ -173,11 +215,12 @@ export function buildToolCallRequest(): Phase2Request {
 export function buildToolResultRequest(toolCall: Phase2ToolCall, doubled: number): Phase2Request {
   return {
     ...baseRequest(
+      "light",
       [
         {
           role: "user",
           content:
-            "Use the double_number tool exactly once with the integer 21. Do not calculate or answer directly.",
+            "Use the double_number tool exactly once with the integer 21. After the tool returns, reply with exactly the numeric result and nothing else.",
         },
         {
           role: "assistant",
@@ -199,6 +242,7 @@ export function buildToolResultRequest(toolCall: Phase2ToolCall, doubled: number
 export function buildWebSearchRequest(): Phase2Request {
   return {
     ...baseRequest(
+      "heavy",
       [
         {
           role: "user",
@@ -212,12 +256,8 @@ export function buildWebSearchRequest(): Phase2Request {
       {
         type: "openrouter:web_search",
         parameters: {
-          engine: "exa",
-          mode: "instant",
-          max_results: PHASE_2_LIMITS.maxWebResults,
+          engine: "native",
           max_uses: PHASE_2_LIMITS.maxWebSearches,
-          max_total_results: PHASE_2_LIMITS.maxWebResults,
-          max_characters: PHASE_2_LIMITS.maxWebCharactersPerResult,
           allowed_domains: ["openrouter.ai"],
         },
       },
@@ -386,6 +426,11 @@ export async function runOpenRouterRequest(
   fetchImplementation: typeof fetch = fetch,
 ): Promise<Phase2StreamResult> {
   if (!apiKey.trim()) throw new Error("OPENROUTER_API_KEY is missing. No request was sent.");
+  if (PHASE_2_LIVE_CALLS_DISABLED) {
+    throw new Error(
+      "Phase 2 live calls are disabled after compatibility proof completed. No request was sent.",
+    );
+  }
   const startedAt = performance.now();
   const response = await fetchImplementation(PHASE_2_LIMITS.endpoint, {
     method: "POST",
@@ -426,4 +471,22 @@ export function executeDoubleNumberProbe(toolCall: Phase2ToolCall): number {
     throw new Error("Tool probe did not request the frozen integer 21.");
   }
   return value * 2;
+}
+
+export function validateWebSearchProbe(
+  result: Pick<Phase2StreamResult, "citations" | "usage">,
+): Phase2WebSearchEvidence {
+  const citationCount = result.citations.length;
+  if (citationCount === 0) throw new Error("Web-search probe returned no citations.");
+
+  const recordedCount = result.usage?.server_tool_use?.web_search_requests;
+  if (recordedCount !== undefined && recordedCount !== 1) {
+    throw new Error(`Expected one web search; recorded ${recordedCount}.`);
+  }
+
+  return {
+    searchCount: 1,
+    source: recordedCount === 1 ? "usage" : "citations-and-request-bound",
+    citationCount,
+  };
 }

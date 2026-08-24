@@ -15,6 +15,8 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "phase2:probe": "node --env-file-if-exists=.env.local scripts/run-phase2-probes.ts",
+    "phase2:repair": "node --env-file-if-exists=.env.local scripts/run-phase2-probes.ts --repair",
+    "phase2:web-repair": "node --env-file-if-exists=.env.local scripts/run-phase2-probes.ts --web-only",
     "security:denylist": "node scripts/check-supply-chain.mjs",
     "gate": "pnpm security:denylist && pnpm lint && pnpm typecheck && pnpm test && pnpm build"
   },

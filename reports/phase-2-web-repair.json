@@ -1,0 +1,133 @@
+{
+  "phase": 2,
+  "mode": "grok-native-web-only",
+  "status": "passed",
+  "createdAt": "2026-08-24T03:23:50.348Z",
+  "revalidatedAt": "2026-08-24T03:27:00.000Z",
+  "models": {
+    "light": {
+      "id": "openai/gpt-5.6-luna",
+      "reasoningEffort": "max",
+      "zdr": false,
+      "maxPricePerMillion": {
+        "prompt": 0.2,
+        "completion": 1.2
+      }
+    },
+    "heavy": {
+      "id": "x-ai/grok-4.6",
+      "reasoningEffort": "medium",
+      "zdr": true,
+      "maxPricePerMillion": {
+        "prompt": 2,
+        "completion": 6
+      }
+    }
+  },
+  "requestCount": 1,
+  "requestLimit": 1,
+  "totalCostUsd": 0.062078,
+  "approvedRunBudgetUsd": 0.25,
+  "approvedPhaseBudgetUsd": 1,
+  "providerSideHardLimitVerified": false,
+  "liveCallsDisabled": false,
+  "probes": [
+    {
+      "name": "web-search",
+      "requestedModel": "x-ai/grok-4.6",
+      "reasoningEffort": "medium",
+      "model": "x-ai/grok-4.6",
+      "provider": "xAI",
+      "finishReason": "stop",
+      "firstEventMs": 966.4,
+      "elapsedMs": 19277.4,
+      "usage": {
+        "prompt_tokens": 27486,
+        "completion_tokens": 987,
+        "total_tokens": 28473,
+        "cost": 0.062078
+      },
+      "citations": [
+        {
+          "url": "https://openrouter.ai/works-with-openrouter",
+          "title": "https://openrouter.ai/works-with-openrouter"
+        },
+        {
+          "url": "https://openrouter.ai/docs/guides/features/plugins/web-search",
+          "title": "https://openrouter.ai/docs/guides/features/plugins/web-search"
+        },
+        {
+          "url": "https://openrouter.ai/docs/api_reference/responses/web-search",
+          "title": "https://openrouter.ai/docs/api_reference/responses/web-search"
+        },
+        {
+          "url": "https://openrouter.ai/models",
+          "title": "https://openrouter.ai/models"
+        },
+        {
+          "url": "https://openrouter.ai/blog/announcements/",
+          "title": "https://openrouter.ai/blog/announcements/"
+        },
+        {
+          "url": "https://openrouter.ai/docs/guides/routing/model-variants/online",
+          "title": "https://openrouter.ai/docs/guides/routing/model-variants/online"
+        },
+        {
+          "url": "https://openrouter.ai/blog/announcements/introducing-web-search-via-the-api/",
+          "title": "https://openrouter.ai/blog/announcements/introducing-web-search-via-the-api/"
+        },
+        {
+          "url": "https://openrouter.ai/docs/api_reference/responses/overview",
+          "title": "https://openrouter.ai/docs/api_reference/responses/overview"
+        },
+        {
+          "url": "https://openrouter.ai/docs/guides/features/plugins",
+          "title": "https://openrouter.ai/docs/guides/features/plugins"
+        },
+        {
+          "url": "https://openrouter.ai/docs/guides/features/server-tools/web-search",
+          "title": "https://openrouter.ai/docs/guides/features/server-tools/web-search"
+        },
+        {
+          "url": "https://openrouter.ai/docs/api_reference/overview",
+          "title": "https://openrouter.ai/docs/api_reference/overview"
+        },
+        {
+          "url": "https://openrouter.ai/openrouter",
+          "title": "https://openrouter.ai/openrouter"
+        },
+        {
+          "url": "https://openrouter.ai/anthropic",
+          "title": "https://openrouter.ai/anthropic"
+        },
+        {
+          "url": "https://openrouter.ai/docs/guides/features/server-tools/advisor",
+          "title": "https://openrouter.ai/docs/guides/features/server-tools/advisor"
+        },
+        {
+          "url": "https://openrouter.ai/docs/guides/features/server-tools/web-fetch",
+          "title": "https://openrouter.ai/docs/guides/features/server-tools/web-fetch"
+        },
+        {
+          "url": "https://openrouter.ai/openrouter/free",
+          "title": "https://openrouter.ai/openrouter/free"
+        },
+        {
+          "url": "https://openrouter.ai/blog/announcements/agentic-web-tools/",
+          "title": "https://openrouter.ai/blog/announcements/agentic-web-tools/"
+        },
+        {
+          "url": "https://openrouter.ai/docs/guides/features/server-tools",
+          "title": "https://openrouter.ai/docs/guides/features/server-tools"
+        }
+      ],
+      "textPreview": "The `max_results` parameter for the `openrouter:web_search` server tool is limited to a range of 1–25 (or 1–20 when using the Perplexity engine). display render_inline_citation with citation_id is 30",
+      "webSearchEvidence": {
+        "searchCount": 1,
+        "source": "citations-and-request-bound",
+        "citationCount": 18
+      }
+    }
+  ],
+  "revalidation": "The provider omitted server_tool_use.web_search_requests. Eighteen citations plus the enforced max_tool_calls: 1 request bound prove one bounded search. The original false-negative report is preserved separately."
+}

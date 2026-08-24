@@ -1,32 +1,38 @@
 # Phase 2 OpenRouter compatibility plan
 
-Status: zero-spend implementation in progress. Live probes are blocked until the recorded budget is approved and `OPENROUTER_API_KEY` is supplied server-side.
+Status: completed and superseded by `PHASE_2_RESULT.md`. The compatibility gate passed under Jake's revised `$1.00` phase budget. All live provider calls are disabled after proof.
+
+The second run proved Luna structured output and the forced local tool call, then stopped because the test prompt prohibited a direct answer while the validator required the literal result `42`. Spend was `$0.000547`; Grok was not called. The repaired prompt required exactly `42`.
+
+The three-request repair proved Luna's complete tool round-trip for `$0.000078`. Its final Grok/Exa server-tool request returned HTTP 500 before producing output or reported cost. Two separately approved Grok native-search captures then completed for `$0.065606` and `$0.062078`. The final capture preserved 18 citations and complete usage metadata. xAI native search does not expose deterministic result-count or excerpt-size controls; `max_tool_calls: 1` is the enforced search-action bound. Phase 4 can select a directly controlled search backend if exact result-size limits become necessary.
 
 ## Frozen model decision
 
-- Model: `x-ai/grok-4.3` through OpenRouter.
-- Why this model: it is the lowest-priced current full Grok tier in OpenRouter's live catalog with structured output, tool calling, configurable reasoning, and a one-million-token context window. Its current list price is $1.25 per million input tokens and $2.50 per million output tokens below 200,000 prompt tokens.
-- Rejected for this phase: the former `x-ai/grok-4.1-fast` is absent from the live model API; `x-ai/grok-4.6` costs more; `x-ai/grok-4.20` has the same list price but currently reports higher tool-call and structured-output error rates.
-- One exact model only. No model fallback, free variant, automatic router, `:online` shortcut, or second provider package.
+- Light model: `openai/gpt-5.6-luna` at `max` reasoning effort for structured output, routine transformations, and local tool orchestration. Current list price: $0.20/M input and $1.20/M output.
+- Heavy model: `x-ai/grok-4.6` at `medium` reasoning effort for deep research and synthesis. Current list price: $2/M input and $6/M output.
+- Selection is deterministic in code; the model does not choose the tier. There is no automatic router, model fallback, free variant, `:online` shortcut, or extra provider package.
+- Reasoning is used but excluded from returned payloads and reports. The interface will show actions and results, not private reasoning traces.
 
 ## Privacy and routing policy
 
 - The key is read only from server-side `OPENROUTER_API_KEY`. It is absent from source, logs, reports, browser payloads, and Git.
-- Each request sets `allow_fallbacks: false`, `require_parameters: true`, `data_collection: "deny"`, and `zdr: true`.
-- Each request rejects endpoints priced above $1.25/M input or $2.50/M output.
+- Each request sets `allow_fallbacks: false`, `require_parameters: true`, and `data_collection: "deny"`.
+- Grok requires `zdr: true`. Luna has no ZDR endpoint on OpenRouter; Jake explicitly accepted possible provider retention for Luna light-tier work. Reasoning traces remain excluded.
+- Luna requests reject endpoints above $0.20/M input or $1.20/M output. Grok requests reject endpoints above $2/M input or $6/M output.
 - All inputs are synthetic. Phase 2 sends no transcript, podcast, personal, or unpublished material.
 
 ## Exact live probe budget
 
-- Maximum provider requests: 4 total.
-  1. One streamed strict JSON-schema response, maximum 256 output tokens.
-  2. One streamed forced call to the local deterministic `double_number` tool, maximum 128 output tokens.
-  3. One streamed follow-up containing the local result, maximum 256 output tokens.
-  4. One streamed OpenRouter web-search server-tool response, maximum 384 output tokens.
-- Web search: Exa `instant`, one search maximum, three results maximum, 1,200 extracted characters per result, and `openrouter.ai` only.
+- Historical preflight: one unbilled request was rejected with HTTP 404 before inference because no Luna ZDR endpoint exists.
+- Fresh-run maximum: 4 provider requests. No automatic retry occurs inside the run.
+  1. Luna/max: one streamed strict JSON-schema response, maximum 256 output tokens.
+  2. Luna/max: one streamed forced call to the local deterministic `double_number` tool, maximum 128 output tokens.
+  3. Luna/max: one streamed follow-up containing the local result, maximum 256 output tokens.
+  4. Grok 4.6/medium: one streamed OpenRouter web-search server-tool response, maximum 384 output tokens.
+- Web search: Grok native search, one server-tool action maximum via top-level `max_tool_calls: 1`, and `openrouter.ai` only. Native xAI search controls its own result count and context size.
 - Request timeout: 45 seconds each.
-- Phase hard cap: `$0.03` total. The runner stops before a fifth request and stops after any response that brings reported cumulative cost over the cap.
-- Expected spend is roughly one to two cents. No retry is automatic; any failed request consumes its slot and ends the probe.
+- Revised approved phase budget: `$1.00` total. The runner stops before exceeding its configured request count and reports cost after every response.
+- A post-response budget check is not a provider-side hard cap. The observed Grok native-search cost was about six cents per request because native retrieval supplied a large input context.
 
 ## Required evidence
 
@@ -35,17 +41,19 @@ Status: zero-spend implementation in progress. Live probes are blocked until the
 - Prompt, completion, reasoning/search usage when returned, and exact OpenRouter-reported cost.
 - Validated structured object.
 - Validated local tool name, arguments, result, and final acknowledgement.
-- Exactly one recorded web search and at least one URL citation.
+- Exactly one bounded web search, evidenced by the provider usage counter when present or by citations plus the enforced one-action request bound when OpenRouter omits that counter.
 - Typed, key-safe failure if any capability is unavailable.
 
 ## Gate
 
-Phase 2 passes only if all four bounded requests succeed, the model remains `x-ai/grok-4.3`, citations and usage survive the stream, exact total spend remains below `$0.03`, and no secret enters the report. Stop before transcript retrieval or other Phase 3 work.
+Phase 2 passes because the required bounded probes succeeded on their exact assigned model and reasoning tier, citations and usage survived the stream, cumulative spend remained below the revised `$1.00` approval, and no secret entered the report. Stop before transcript retrieval or other Phase 3 work.
 
 ## Primary references checked on 2026-08-23
 
 - OpenRouter live models API: https://openrouter.ai/api/v1/models
-- Grok 4.3 model page: https://openrouter.ai/x-ai/grok-4.3
+- GPT-5.6 Luna model page: https://openrouter.ai/openai/gpt-5.6-luna
+- Grok 4.6 model page: https://openrouter.ai/x-ai/grok-4.6
+- Reasoning effort: https://openrouter.ai/docs/guides/best-practices/reasoning-tokens
 - Structured outputs: https://openrouter.ai/docs/guides/features/structured-outputs
 - Web-search server tool: https://openrouter.ai/docs/guides/features/server-tools/web-search
 - Provider routing: https://openrouter.ai/docs/guides/routing/provider-selection

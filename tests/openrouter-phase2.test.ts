@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import {
   PHASE_2_LIMITS,
+  PHASE_2_LIVE_CALLS_DISABLED,
   buildStructuredRequest,
   buildToolCallRequest,
   buildWebSearchRequest,
@@ -8,6 +9,7 @@ import {
   readOpenRouterStream,
   runOpenRouterRequest,
   validateStructuredProbe,
+  validateWebSearchProbe,
 } from "../src/lib/openrouter-phase2";
 
 function streamResponse(events: unknown[]): Response {
@@ -25,33 +27,53 @@ function streamResponse(events: unknown[]): Response {
 }
 
 describe("Phase 2 OpenRouter boundary", () => {
-  it("freezes one model, exact routing rules, and bounded requests", () => {
+  it("freezes the light/heavy split, exact routing rules, and bounded requests", () => {
     const structured = buildStructuredRequest();
     const tool = buildToolCallRequest();
     const web = buildWebSearchRequest();
 
-    expect(PHASE_2_LIMITS.model).toBe("x-ai/grok-4.3");
+    expect(PHASE_2_LIMITS.models.light).toMatchObject({
+      id: "openai/gpt-5.6-luna",
+      reasoningEffort: "max",
+      zdr: false,
+    });
+    expect(PHASE_2_LIMITS.models.heavy).toMatchObject({
+      id: "x-ai/grok-4.6",
+      reasoningEffort: "medium",
+      zdr: true,
+    });
     expect(PHASE_2_LIMITS.maxProviderRequests).toBe(4);
-    expect(PHASE_2_LIMITS.hardDollarCap).toBe(0.03);
+    expect(PHASE_2_LIMITS.approvedPhaseBudgetUsd).toBe(1);
+    expect(PHASE_2_LIMITS.approvedRepairBudgetUsd).toBe(0.01);
+    expect(PHASE_2_LIMITS.approvedWebRepairBudgetUsd).toBe(0.25);
+    expect(PHASE_2_LIVE_CALLS_DISABLED).toBe(true);
     expect(structured.provider).toMatchObject({
       allow_fallbacks: false,
       require_parameters: true,
       data_collection: "deny",
-      zdr: true,
-      max_price: { prompt: 1.25, completion: 2.5 },
+      zdr: false,
+      max_price: { prompt: 0.2, completion: 1.2 },
     });
+    expect(structured.model).toBe(PHASE_2_LIMITS.models.light.id);
+    expect(structured.reasoning).toEqual({ effort: "max", exclude: true });
     expect(structured.response_format).toBeDefined();
+    expect(tool.model).toBe(PHASE_2_LIMITS.models.light.id);
+    expect(JSON.stringify(tool.messages)).toContain("reply with exactly the numeric result");
     expect(tool.tool_choice).toEqual({ type: "function", function: { name: "double_number" } });
+    expect(web.model).toBe(PHASE_2_LIMITS.models.heavy.id);
+    expect(web.reasoning).toEqual({ effort: "medium", exclude: true });
+    expect(web.provider.zdr).toBe(true);
+    expect(web.provider.max_price).toEqual({ prompt: 2, completion: 6 });
     expect(web.max_tool_calls).toBe(1);
-    expect(JSON.stringify(web)).toContain('"max_total_results":3');
-    expect(JSON.stringify(web)).toContain('"max_characters":1200');
+    expect(JSON.stringify(web)).toContain('"engine":"native"');
+    expect(JSON.stringify(web)).toContain('"allowed_domains":["openrouter.ai"]');
   });
 
   it("reassembles streamed text, tool arguments, citations, usage, and completion", async () => {
     const response = streamResponse([
       {
         id: "generation-1",
-        model: PHASE_2_LIMITS.model,
+        model: PHASE_2_LIMITS.models.light.id,
         provider: "xAI",
         choices: [
           {
@@ -118,6 +140,26 @@ describe("Phase 2 OpenRouter boundary", () => {
     ).toBe(42);
   });
 
+  it("accepts cited web-search evidence when OpenRouter omits its usage counter", () => {
+    expect(
+      validateWebSearchProbe({
+        citations: [{ url: "https://openrouter.ai/docs/guides/features/server-tools/web-search" }],
+        usage: { prompt_tokens: 100 },
+      }),
+    ).toEqual({
+      searchCount: 1,
+      source: "citations-and-request-bound",
+      citationCount: 1,
+    });
+
+    expect(() =>
+      validateWebSearchProbe({
+        citations: [{ url: "https://openrouter.ai/docs/example" }],
+        usage: { server_tool_use: { web_search_requests: 2 } },
+      }),
+    ).toThrow("recorded 2");
+  });
+
   it("fails before fetch when the server-side key is absent", async () => {
     const fetchSpy = vi.fn<typeof fetch>();
     await expect(runOpenRouterRequest("", buildStructuredRequest(), fetchSpy)).rejects.toThrow(
@@ -125,4 +167,13 @@ describe("Phase 2 OpenRouter boundary", () => {
     );
     expect(fetchSpy).not.toHaveBeenCalled();
   });
+
+  it("keeps provider calls disabled after the proof", async () => {
+    const fetchSpy = vi.fn<typeof fetch>();
+    await expect(
+      runOpenRouterRequest("synthetic-test-key", buildStructuredRequest(), fetchSpy),
+    ).rejects.toThrow("compatibility proof completed");
+    expect(fetchSpy).not.toHaveBeenCalled();
+  });
+
 });

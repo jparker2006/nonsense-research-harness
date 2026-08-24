@@ -46,7 +46,7 @@ For a real Headline or Big Story topic, either host can create a workspace, watc
 - Speaker attribution in the archive
 - Audio download, transcription, or ASR
 - Embeddings, a vector database, or semantic RAG
-- Multiple models, fallback models, subagents, critic agents, or delegation
+- Any model beyond the fixed light/heavy pair, fallback models, subagents, critic agents, or delegation
 - Simultaneous multiplayer editing
 - Google Drive synchronization
 - Fine-tuning
@@ -224,7 +224,7 @@ Output: full stored segment text plus episode and segment metadata, or typed `no
 
 ## 10. Agent and workflow contract
 
-There is one agent using one pinned Grok model through OpenRouter.
+There is one agent using two pinned OpenRouter models selected deterministically by code: GPT-5.6 Luna at max effort for light structured/tool work and Grok 4.6 at medium effort for heavy research and synthesis. Neither model selects or falls back to the other.
 
 Graph:
 
@@ -289,6 +289,7 @@ The application uses a generated, server-only search index derived from processe
 ### Privacy
 
 - Supplied notes, retrieved article excerpts, and selected transcript excerpts are sent to OpenRouter when required for a run.
+- Grok requests require a ZDR endpoint. GPT-5.6 Luna has no ZDR endpoint on OpenRouter; Jake explicitly accepted possible provider retention for its light-tier work. The UI must disclose this distinction before first use.
 - The whole archive is never sent to the model in one request.
 - The UI must disclose the provider boundary before first use.
 - Logs and traces exclude secrets and should minimize raw user content.
@@ -296,11 +297,12 @@ The application uses a generated, server-only search index derived from processe
 ### Cost
 
 - No fallback model or provider.
-- Code-enforced turn, tool, search, token, timeout, and dollar policies.
+- Code-enforced turn, tool, search, token, and timeout policies.
+- A post-response usage check is not a hard dollar cap. Development probes require an explicit approved budget and bounded request count; every deployed key must also have a verified provider-side spending limit or guardrail.
 - One active paid run per workspace.
 - Duplicate submission protection.
 - Usage/cost receipt stored when available.
-- Live calls require a separately approved provider, purpose, call count, and hard cap during development.
+- Development live calls require a separately approved provider, purpose, call count, and dollar budget.
 
 ### Reliability
 

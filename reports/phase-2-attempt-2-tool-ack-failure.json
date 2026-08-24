@@ -1,0 +1,79 @@
+{
+  "phase": 2,
+  "status": "failed",
+  "createdAt": "2026-08-24T03:16:03.363Z",
+  "models": {
+    "light": {
+      "id": "openai/gpt-5.6-luna",
+      "reasoningEffort": "max",
+      "zdr": false,
+      "maxPricePerMillion": {
+        "prompt": 0.2,
+        "completion": 1.2
+      }
+    },
+    "heavy": {
+      "id": "x-ai/grok-4.6",
+      "reasoningEffort": "medium",
+      "zdr": true,
+      "maxPricePerMillion": {
+        "prompt": 2,
+        "completion": 6
+      }
+    }
+  },
+  "requestCount": 3,
+  "totalCostUsd": 0.000547,
+  "hardDollarCapUsd": 0.03,
+  "probes": [
+    {
+      "name": "structured-output",
+      "requestedModel": "openai/gpt-5.6-luna",
+      "reasoningEffort": "max",
+      "model": "openai/gpt-5.6-luna",
+      "provider": "OpenAI",
+      "finishReason": "stop",
+      "firstEventMs": 4368.9,
+      "elapsedMs": 6085.2,
+      "usage": {
+        "prompt_tokens": 75,
+        "completion_tokens": 182,
+        "total_tokens": 257,
+        "cost": 0.0002334
+      }
+    },
+    {
+      "name": "local-tool-call",
+      "requestedModel": "openai/gpt-5.6-luna",
+      "reasoningEffort": "max",
+      "model": "openai/gpt-5.6-luna",
+      "provider": "OpenAI",
+      "finishReason": "tool_calls",
+      "firstEventMs": 729.5,
+      "elapsedMs": 1084.2,
+      "usage": {
+        "prompt_tokens": 68,
+        "completion_tokens": 18,
+        "total_tokens": 86,
+        "cost": 0.0000352
+      }
+    },
+    {
+      "name": "local-tool-result",
+      "requestedModel": "openai/gpt-5.6-luna",
+      "reasoningEffort": "max",
+      "model": "openai/gpt-5.6-luna",
+      "provider": "OpenAI",
+      "finishReason": "stop",
+      "firstEventMs": 490.7,
+      "elapsedMs": 2987.7,
+      "usage": {
+        "prompt_tokens": 60,
+        "completion_tokens": 222,
+        "total_tokens": 282,
+        "cost": 0.0002784
+      }
+    }
+  ],
+  "error": "Tool-result probe did not acknowledge 42."
+}

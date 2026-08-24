@@ -1,0 +1,77 @@
+{
+  "phase": 2,
+  "mode": "repair-after-structured",
+  "status": "failed",
+  "createdAt": "2026-08-24T03:18:06.071Z",
+  "models": {
+    "light": {
+      "id": "openai/gpt-5.6-luna",
+      "reasoningEffort": "max",
+      "zdr": false,
+      "maxPricePerMillion": {
+        "prompt": 0.2,
+        "completion": 1.2
+      }
+    },
+    "heavy": {
+      "id": "x-ai/grok-4.6",
+      "reasoningEffort": "medium",
+      "zdr": true,
+      "maxPricePerMillion": {
+        "prompt": 2,
+        "completion": 6
+      }
+    }
+  },
+  "requestCount": 3,
+  "requestLimit": 3,
+  "totalCostUsd": 0.000078,
+  "runDollarCapUsd": 0.01,
+  "phaseCumulativeCapUsd": 0.03,
+  "probes": [
+    {
+      "name": "local-tool-call",
+      "requestedModel": "openai/gpt-5.6-luna",
+      "reasoningEffort": "max",
+      "model": "openai/gpt-5.6-luna",
+      "provider": "OpenAI",
+      "finishReason": "tool_calls",
+      "firstEventMs": 854.4,
+      "elapsedMs": 1246.9,
+      "usage": {
+        "prompt_tokens": 76,
+        "completion_tokens": 18,
+        "total_tokens": 94,
+        "cost": 0.0000368
+      },
+      "toolCalls": [
+        {
+          "id": "call_DiZPvkvFMmnY8Oc90TKOaW0r",
+          "type": "function",
+          "function": {
+            "name": "double_number",
+            "arguments": "{\"value\":21}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "local-tool-result",
+      "requestedModel": "openai/gpt-5.6-luna",
+      "reasoningEffort": "max",
+      "model": "openai/gpt-5.6-luna",
+      "provider": "OpenAI",
+      "finishReason": "stop",
+      "firstEventMs": 640.5,
+      "elapsedMs": 900.7,
+      "usage": {
+        "prompt_tokens": 68,
+        "completion_tokens": 23,
+        "total_tokens": 91,
+        "cost": 0.0000412
+      },
+      "textPreview": "42"
+    }
+  ],
+  "error": "OpenRouter request failed (500): {\"error\":{\"message\":\"Internal Server Error\",\"code\":500}}"
+}
