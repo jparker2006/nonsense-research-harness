@@ -1,0 +1,52 @@
+{
+  "phase": 4,
+  "status": "partial",
+  "created_at": "2026-08-24T06:53:04.392Z",
+  "query": "OpenRouter web search server tool documentation result limits",
+  "limits": {
+    "approved_budget_usd": 0.1,
+    "provider_requests": 1,
+    "searches": 1,
+    "search_results": 5,
+    "characters_per_result": 1200,
+    "output_tokens": 128,
+    "top_level_url_reads": 1,
+    "http_requests_including_redirects": 4,
+    "retries": 0
+  },
+  "usage": {
+    "provider_requests": 1,
+    "top_level_url_reads": 1,
+    "reported_cost_usd": null,
+    "conservative_cost_upper_bound_usd": 0.02,
+    "elapsed_ms": 2288.61
+  },
+  "search": {
+    "status": "unavailable",
+    "model": "x-ai/grok-4.6",
+    "provider": null,
+    "engine": "perplexity",
+    "result_count": 0,
+    "citations": [],
+    "receipt": {},
+    "failure": {
+      "code": "provider_unavailable",
+      "message": "The bounded web search did not complete with verified citations."
+    }
+  },
+  "read": {
+    "source_id": "web_fab8273491f5b738a6bf",
+    "availability": "complete",
+    "requested_url": "https://openrouter.ai/docs/guides/features/server-tools/web-search",
+    "final_url": "https://openrouter.ai/docs/guides/features/server-tools/web-search",
+    "title": "Web Search Server Tool - Real-Time Web Search for Any Model",
+    "evidence_usable": true,
+    "receipt": {
+      "http_status": 200,
+      "content_type": "text/html",
+      "redirects": 0,
+      "http_requests": 1,
+      "bytes": 834335
+    }
+  }
+}

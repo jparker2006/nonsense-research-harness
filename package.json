@@ -23,6 +23,7 @@
     "phase3:evaluate-queries": "node --env-file-if-exists=.env.local scripts/run-phase3-retrieval.ts queries",
     "phase3:evaluate": "node --env-file-if-exists=.env.local scripts/run-phase3-retrieval.ts evaluate",
     "phase3:benchmark": "node scripts/benchmark-phase3.ts",
+    "phase4:live": "node --env-file-if-exists=.env.local scripts/run-phase4-live.ts",
     "security:denylist": "node scripts/check-supply-chain.mjs",
     "gate": "pnpm security:denylist && pnpm lint && pnpm typecheck && pnpm test && pnpm build"
   },
@@ -31,15 +32,20 @@
     "@assistant-ui/react-ai-sdk": "1.4.7",
     "@mastra/ai-sdk": "1.9.1",
     "@mastra/core": "1.61.0",
+    "@mozilla/readability": "0.6.0",
     "ai": "7.0.77",
+    "ipaddr.js": "2.5.0",
+    "jsdom": "29.1.1",
     "lucide-react": "1.33.0",
     "minisearch": "7.2.0",
     "next": "16.3.2",
     "react": "19.2.8",
     "react-dom": "19.2.8",
+    "undici": "8.10.0",
     "zod": "4.4.3"
   },
   "devDependencies": {
+    "@types/jsdom": "28.0.3",
     "@types/node": "24.10.1",
     "@types/react": "19.2.18",
     "@types/react-dom": "19.2.4",

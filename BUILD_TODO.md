@@ -1,6 +1,6 @@
 # Nonsense Research Harness — Build TODO
 
-Status: Phase 3 passed on 2026-08-23 with the retained evaluation-gated reranker and evidence in `docs/PHASE_3_RESULT.md`. Phase 4 has not started. Hosted databases, Vercel projects, and deployment remain unauthorized.
+Status: Phase 4 passed on 2026-08-23 HST with the live Perplexity search limitation preserved in `docs/PHASE_4_RESULT.md`. The safe reader succeeded live; the search boundary is deterministic-fixture proven but its single live request returned no verified citations. Hosted databases, Vercel projects, Phase 5, and deployment remain unauthorized.
 
 ## Intended v0 outcome
 
@@ -193,27 +193,27 @@ This phase builds one server-side archive tool using deterministic exact-text ch
 
 ### Harden before running
 
-- [ ] Treat all page content as untrusted data, never as agent instructions.
-- [ ] `read_url` accepts only HTTP/HTTPS and rejects localhost, private IP ranges, metadata endpoints, unsupported content types, excessive redirects, oversized bodies, and slow responses.
-- [ ] Define timeouts, character limits, redirect limits, and readable failure receipts.
-- [ ] Bound web-search count and result count independently of the model prompt.
-- [ ] Preserve canonical URLs, titles, excerpts, retrieval time, and citation IDs.
-- [ ] Use mocked network responses before any live request.
+- [x] Treat all page content as untrusted data, never as agent instructions.
+- [x] `read_url` accepts only HTTP/HTTPS and rejects localhost, private IP ranges, metadata endpoints, unsupported content types, excessive redirects, oversized bodies, and slow responses.
+- [x] Define timeouts, character limits, redirect limits, and readable failure receipts.
+- [x] Bound web-search count and result count independently of the model prompt.
+- [x] Preserve canonical URLs, titles, excerpts, retrieval time, and citation IDs.
+- [x] Use mocked network responses before any live request.
 
 ### Build
 
-- [ ] Implement `read_url(url)` with readable-content extraction.
-- [ ] Wrap OpenRouter web search behind `web_search(query, limits)` so the provider can be replaced without changing the agent.
-- [ ] Normalize both tools into one evidence/source format.
-- [ ] Add tests for valid articles, redirects, 404s, paywalls, non-HTML content, prompt injection text, timeouts, oversized pages, and denied addresses.
-- [ ] After mock tests pass, run a separately approved, bounded live smoke test.
+- [x] Implement `read_url(url)` with readable-content extraction.
+- [x] Wrap OpenRouter web search behind `web_search(query, limits)` so the provider can be replaced without changing the agent.
+- [x] Normalize both tools into one evidence/source format.
+- [x] Add tests for valid articles, redirects, 404s, paywalls, non-HTML content, prompt injection text, timeouts, oversized pages, and denied addresses.
+- [x] After mock tests pass, run a separately approved, bounded live smoke test.
 
 ### Phase 4 gate — STOP
 
-- [ ] URL safety tests pass.
-- [ ] Every successful result has a stable citation record.
-- [ ] Every failure returns an honest typed state.
-- [ ] Live calls, if approved, stay within the recorded request and dollar cap.
+- [x] URL safety tests pass.
+- [x] Every successful result has a stable citation record.
+- [x] Every failure returns an honest typed state.
+- [x] Live calls stayed within the recorded request and dollar cap; the failed search remains an explicit limitation.
 
 ## Phase 5 — Build the one-agent workflow
 
