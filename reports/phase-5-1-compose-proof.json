@@ -1,0 +1,272 @@
+{
+  "phase": "5.1",
+  "kind": "composition_only",
+  "created_at": "2026-08-24T23:25:02.571Z",
+  "limits": {
+    "providerRequests": 1,
+    "costCapUsd": 0.2,
+    "retries": 0
+  },
+  "status": "passed",
+  "source_run_id": "run_e8bba85f-2b4b-42ef-9d02-5b917a6cfdbc",
+  "packet_sha256": "ca1049a6e4b0b733564775b384757c005e53543385bbc77074b70898e91d8798",
+  "provider_requests": 1,
+  "retries": 0,
+  "output_status": "parsed",
+  "artifact": {
+    "mode": "big_story",
+    "working_title": "The Grid Behind the AI Boom: IEA Demand, Bottlenecks, Prior Coverage",
+    "core_question": "What does the latest IEA energy-and-AI update actually establish about data-centre electricity demand and bottlenecks, and how does that sit next to Nonsense’s earlier infrastructure, bill, and siting coverage?",
+    "research_brief": {
+      "text": "Usable IEA material is a news write-up of a new energy-and-AI analysis that builds on the April 2025 Energy and AI report. It says the field kept developing at speed, driven by data-centre investment, and that the report explores AI’s growing energy footprint, options for meeting data-centre power demand, and effects on affordability, security, and the wider economy. The headline states 2025 data-centre electricity use surged even with tightening bottlenecks and a scramble for solutions; the supplied body does not give totals or a bottleneck inventory. Prior Nonsense already treated AI as physical plant: a resource-and-power-cost story and a local data-centre siting/water fight.",
+      "source_ids": [
+        "web_3e04cbe87437b4eaa994",
+        "archive_891a9d90-5247-4f87-a55d-be0caf9f4d0b:001:c001",
+        "archive_aa3e4b55-48bd-45c6-97b6-8605df2f7e83:001:c001"
+      ]
+    },
+    "research_cards": [
+      {
+        "role": "background",
+        "text": "IEA issued a follow-on to its April 2025 Energy and AI report, tracking a fast-changing energy–AI relationship and close developments in the AI sector.",
+        "source_ids": [
+          "web_3e04cbe87437b4eaa994"
+        ]
+      },
+      {
+        "role": "key_evidence",
+        "text": "Headline: data-centre electricity use surged in 2025 even with tightening bottlenecks driving a scramble for solutions. Body: the analysis covers AI’s growing energy footprint, options for meeting data-centre power demand, and impacts on energy affordability, security, and the wider economy. Development continued at speed, driven by data-centre investment.",
+        "source_ids": [
+          "web_3e04cbe87437b4eaa994"
+        ]
+      },
+      {
+        "role": "force",
+        "text": "The only causal driver in the usable IEA excerpt is data-centre investment, not a finished generation or transmission buildout.",
+        "source_ids": [
+          "web_3e04cbe87437b4eaa994"
+        ]
+      },
+      {
+        "role": "interpretation",
+        "text": "IEA frames the boom as an energy-system and economy problem. Prior Nonsense framed the same physical plant as household electricity-bill risk and local opposition, including water, not as a completed national demand forecast.",
+        "source_ids": [
+          "web_3e04cbe87437b4eaa994",
+          "archive_891a9d90-5247-4f87-a55d-be0caf9f4d0b:001:c001",
+          "archive_aa3e4b55-48bd-45c6-97b6-8605df2f7e83:001:c001"
+        ]
+      },
+      {
+        "role": "surprise",
+        "text": "A recent prior big story already cast AI spending at country-GDP scale and called the chatbot a resource vampire tied to electricity bills—before this IEA update.",
+        "source_ids": [
+          "archive_891a9d90-5247-4f87-a55d-be0caf9f4d0b:001:c001"
+        ]
+      },
+      {
+        "role": "recommendation_lead",
+        "text": "Separate IEA’s stated scope (footprint, power-supply options, affordability/security) from headline-only surge/bottleneck language, then add prior physical-constraint coverage without treating archive jokes as megawatt data.",
+        "source_ids": [
+          "web_3e04cbe87437b4eaa994",
+          "archive_891a9d90-5247-4f87-a55d-be0caf9f4d0b:001:c001",
+          "archive_aa3e4b55-48bd-45c6-97b6-8605df2f7e83:001:c001"
+        ]
+      }
+    ],
+    "past_nonsense_coverage": {
+      "status": "matches",
+      "items": [
+        {
+          "source_id": "archive_891a9d90-5247-4f87-a55d-be0caf9f4d0b:001:c001",
+          "episode_id": "891a9d90-5247-4f87-a55d-be0caf9f4d0b",
+          "segment_id": "891a9d90-5247-4f87-a55d-be0caf9f4d0b:001",
+          "chunk_id": "891a9d90-5247-4f87-a55d-be0caf9f4d0b:001:c001",
+          "quote": "I like that our spending on AI is basically measured in the GDP of countries."
+        },
+        {
+          "source_id": "archive_891a9d90-5247-4f87-a55d-be0caf9f4d0b:001:c001",
+          "episode_id": "891a9d90-5247-4f87-a55d-be0caf9f4d0b",
+          "segment_id": "891a9d90-5247-4f87-a55d-be0caf9f4d0b:001",
+          "chunk_id": "891a9d90-5247-4f87-a55d-be0caf9f4d0b:001:c001",
+          "quote": "And so that we can't have good electricity. Bills oh, you're going to have a great electricity bill. It's going to be excellent."
+        },
+        {
+          "source_id": "archive_891a9d90-5247-4f87-a55d-be0caf9f4d0b:001:c001",
+          "episode_id": "891a9d90-5247-4f87-a55d-be0caf9f4d0b",
+          "segment_id": "891a9d90-5247-4f87-a55d-be0caf9f4d0b:001",
+          "chunk_id": "891a9d90-5247-4f87-a55d-be0caf9f4d0b:001:c001",
+          "quote": "Your chatbot is a resource vampire."
+        },
+        {
+          "source_id": "archive_aa3e4b55-48bd-45c6-97b6-8605df2f7e83:001:c001",
+          "episode_id": "aa3e4b55-48bd-45c6-97b6-8605df2f7e83",
+          "segment_id": "aa3e4b55-48bd-45c6-97b6-8605df2f7e83:001",
+          "chunk_id": "aa3e4b55-48bd-45c6-97b6-8605df2f7e83:001:c001",
+          "quote": "Seven in ten Americans opposed building data centers in their local area, and a huge part of that is concern over how much water they use."
+        }
+      ]
+    },
+    "conversation_questions": [
+      "Which IEA claims live in the supplied body versus only in the 2025-surge/bottlenecks headline?",
+      "How should Episode 28’s electricity-bill and resource-vampire framing be used without turning it into a demand forecast?",
+      "Is Episode 29’s water and local-opposition fight the same constraint as grid bottlenecks, or a different force?",
+      "What competing readings does IEA itself name: power-supply options, affordability, security, wider economy?",
+      "What construction, generation, or transmission facts are still missing from usable evidence?"
+    ],
+    "modular_outline": [
+      {
+        "priority": "must_have",
+        "text": "Establish the IEA follow-on: April 2025 Energy and AI predecessor; new analysis of a rapidly evolving energy–AI relationship.",
+        "source_ids": [
+          "web_3e04cbe87437b4eaa994"
+        ],
+        "estimated_minutes": 5
+      },
+      {
+        "priority": "must_have",
+        "text": "State the report’s usable scope: growing energy footprint, options for meeting data-centre power demand, affordability, security, wider economy.",
+        "source_ids": [
+          "web_3e04cbe87437b4eaa994"
+        ],
+        "estimated_minutes": 5
+      },
+      {
+        "priority": "must_have",
+        "text": "Handle the headline claim of a 2025 electricity surge plus tightening bottlenecks and a scramble for solutions, clearly marked as title-level unless more body text arrives.",
+        "source_ids": [
+          "web_3e04cbe87437b4eaa994"
+        ],
+        "estimated_minutes": 4
+      },
+      {
+        "priority": "must_have",
+        "text": "Bring in prior infrastructure coverage: AI spending compared with country GDPs, electricity-bill cost, chatbot as resource vampire.",
+        "source_ids": [
+          "archive_891a9d90-5247-4f87-a55d-be0caf9f4d0b:001:c001"
+        ],
+        "estimated_minutes": 5
+      },
+      {
+        "priority": "use_if_time",
+        "text": "Add the adjacent siting/water constraint: local opposition and the Hillsborough, Oregon cluster of 18 active or under-construction sites.",
+        "source_ids": [
+          "archive_aa3e4b55-48bd-45c6-97b6-8605df2f7e83:001:c001"
+        ],
+        "estimated_minutes": 4
+      },
+      {
+        "priority": "use_if_time",
+        "text": "Contrast interpretations that are in evidence: IEA’s economy/security frame versus local physical-plant pushback, without inventing rival forecasts.",
+        "source_ids": [
+          "web_3e04cbe87437b4eaa994",
+          "archive_aa3e4b55-48bd-45c6-97b6-8605df2f7e83:001:c001"
+        ],
+        "estimated_minutes": 3
+      },
+      {
+        "priority": "cut_first",
+        "text": "Park nearby AI-jobs/headlines material that does not establish electricity or construction facts.",
+        "source_ids": [
+          "archive_2b1c1d8d-27d3-47bf-8884-399a3cae0550:001:c001",
+          "archive_59b05fab-42a8-488e-8e21-84c35bd34dc7:002:c001"
+        ],
+        "estimated_minutes": 2
+      }
+    ],
+    "uncertainties_and_open_checks": [
+      "Supplied IEA body has no kWh totals, regional split, or 2030 path.",
+      "Surge and bottleneck details are in the headline, not the excerpt.",
+      "No usable evidence on generation mix, interconnect queues, or build timelines.",
+      "Requested competing 2025–2030 forecasts are not in the supplied set.",
+      "Archive lines are comic and qualitative; do not treat them as load numbers."
+    ],
+    "source_ledger": [
+      {
+        "source_id": "web_3e04cbe87437b4eaa994",
+        "source_type": "provided_link",
+        "availability": "complete",
+        "evidence_usable": true,
+        "title": "Data centre electricity use surged in 2025, even with tightening bottlenecks driving a scramble for solutions - News - IEA",
+        "url": "https://www.iea.org/news/data-centre-electricity-use-surged-in-2025-even-with-tightening-bottlenecks-driving-a-scramble-for-solutions",
+        "retrieved_at": "2026-08-24T22:09:20.252Z",
+        "excerpt": "New IEA report explores AI’s growing energy footprint, options for meeting data centre power demand, and impacts on energy affordability, security and wider economy\n\nA new report from the IEA assesses how the relationship between energy and artificial intelligence (AI) is evolving rapidly, drawing on the latest data and analysis and close tracking of technological and economic developments in the AI sector.Building on the IEA’s landmark Energy and AI report from April 2025, the new analysis published today finds that the field has continued to develop at speed. Driven by data centre investment"
+      },
+      {
+        "source_id": "archive_aa3e4b55-48bd-45c6-97b6-8605df2f7e83:001:c001",
+        "source_type": "archive",
+        "availability": "complete",
+        "evidence_usable": true,
+        "title": "Data vs. Dairy: Uncovering the Secret Water Hogs of the Modern World",
+        "excerpt": "Welcome to Nonsense Season 4, Episode 29, our big story. I'm Jeff Parker. I'm CJ Little. This time we're looking at thirsty industries, the secret water hogs of the modern economy. Up next, wait data. Centers. Well, didn't we already do this episode? What sort of are we out of ideas? Seven in ten Americans opposed building data centers in their local area, and a huge part of that is concern over how much water they use. Protesters hold big signs that say things like we can't drink data. Apparently they can't write data either. What do you mean you can't drink data? What does that even mean? The big battleground this weekend is in Hillsborough, Oregon, where 18 data centers are active or under construction. In San Gabriel Valley, the city of Industry, California, the newly formed No Data Centers SGV Coalition, comprising half a dozen local activist groups, is holding coordinated weekend rallies and public flyer drops. I swear. We just did this episode, but how are they coordinating? Are they using, I don't know, computers to coordinate corkboard, the local Y corkboard? What do? You how much water does big corkboard? Use. I love how people, they're just like, I want all of the output of the thing. I just don't want the thing. OK, exactly. I want the data center in someone else's yard. Hey. Put it in my yard, huh? I want a little latency. Get me closer to the data center. It sounds lovely. Well, but you understand how it works. OK, Manufacturing on tap, the hidden water cost of things we consume. Let's go. I'm more of a manufacturing bottom. Do you know the real problem here? The real consumer of water that nobody talks about? Yeah, fish. Oh sure, fish. Consume a lot of water. You got to get rid of the fish. That's the problem. Down with big fish Sit. Down with big fish, right? Those guys are little water hogs.",
+        "episode_id": "aa3e4b55-48bd-45c6-97b6-8605df2f7e83",
+        "segment_id": "aa3e4b55-48bd-45c6-97b6-8605df2f7e83:001",
+        "chunk_id": "aa3e4b55-48bd-45c6-97b6-8605df2f7e83:001:c001",
+        "season": 4,
+        "episode_number": 29,
+        "episode_format": "big_story",
+        "segment_role": "pre_show"
+      },
+      {
+        "source_id": "archive_59b05fab-42a8-488e-8e21-84c35bd34dc7:002:c001",
+        "source_type": "archive",
+        "availability": "complete",
+        "evidence_usable": true,
+        "title": "HEADLINES: Surveillance for Sale - Border Cops, Deleting Data Brokers, and AI Crossing the Line",
+        "excerpt": "The Apple Company presents a truly terrible podcast. Welcome to Nonsense Season 4, episode 6. I'm Jeff Parker. I'm Sue Little. This is our. Take in the week's business, tech and entertainment headlines. This time, the end of anonymity. ICE bypasses warrants with new data tools. Who needs warrants? Warrants. That's so 2000. California gets a new data broker breaker I. Double dare you to say that 5. Times fast and the undressing of Grok as a legal storm hits Twitter X. Please don't undress Grok. I saw that one picture of Musk on the boat. Now please don't. Also, a big story later this week is about beyond the chatbot. Why? 2026 is the year AI finally stopped talking and started doing that's. Potentially ominous when you put it that way. By the. Way it's international Holocaust Remembrance Day commemorating",
+        "episode_id": "59b05fab-42a8-488e-8e21-84c35bd34dc7",
+        "segment_id": "59b05fab-42a8-488e-8e21-84c35bd34dc7:002",
+        "chunk_id": "59b05fab-42a8-488e-8e21-84c35bd34dc7:002:c001",
+        "season": 4,
+        "episode_number": 6,
+        "episode_format": "headlines",
+        "segment_role": "formal_open"
+      },
+      {
+        "source_id": "archive_2b1c1d8d-27d3-47bf-8884-399a3cae0550:001:c001",
+        "source_type": "archive",
+        "availability": "complete",
+        "evidence_usable": true,
+        "title": "Beyond the Chatbot: AI Finally Gets a Job",
+        "excerpt": "Welcome to Nonsense Season 4, Episode 7, our big story on our second show of the week. I'm Jeff. Parker, I am C Jodel. This time we're looking at beyond the chatbot. Why? 2026 is the year AI finally stopped talking and started doing up next. Wait, like doing what? Well, like I have AI put events in my calendar. That's pretty simple. OK, yeah, I want to do things like call cast of Vega, find what the wait time is for a table of four. I want to have some Mexican food. And mostly it doesn't do it. Mostly it says, yeah, I don't really do that. You should first ask it where can I go for good Mexican food? Start with that 20 going to Casa Vega. I would hate to rely sure on an AI's version of what good Mexican food? Is we should do a segment on this show where once a week we ask the AI where to go for lunch and just go wherever it says and see what happens? Sounds awful. We're. Having like lunch at Bob and Ell's transmission shop, like try the synchros, they're delicious. You're like, wait, what? I don't think that. I had synchros for breakfast. I had synchros for breakfast. They stay crunchy in milk. OK, how AI quietly moved from your screen to your bank account? Let's go. And then the AI just get sullen and it's like I, I this is it. This is all you got really. You've disciplined at the AI I. Was just in Sam Oldman's account. He had a lot more commas than you. What's going on in here? I'm going to go back to your screen if you don't mind. I'll show myself out. That's what the AI says I.",
+        "episode_id": "2b1c1d8d-27d3-47bf-8884-399a3cae0550",
+        "segment_id": "2b1c1d8d-27d3-47bf-8884-399a3cae0550:001",
+        "chunk_id": "2b1c1d8d-27d3-47bf-8884-399a3cae0550:001:c001",
+        "season": 4,
+        "episode_number": 7,
+        "episode_format": "big_story",
+        "segment_role": "formal_open"
+      },
+      {
+        "source_id": "archive_891a9d90-5247-4f87-a55d-be0caf9f4d0b:001:c001",
+        "source_type": "archive",
+        "availability": "complete",
+        "evidence_usable": true,
+        "title": "The Insane Infrastructure of Artificial Intelligence",
+        "excerpt": "We're going to nonsense Season 4 Episode 28, our big story. I'm Jeff Parker. I'm CJ Little this. Time we're looking at the real cost of AI up next. Oh, it's going to be like hundreds of dollars, maybe $1000 cost a. Few bucks so you can talk to a chat bot and do other things. First of all, what I do with my chat bot is none of your business. Yeah. Second of all, I like that our spending on AI is basically measured in the GDP of countries. Oh, that's really how you can think of it. And it's getting worse. You're like it's 2 Switzerlands and a Denmark all. This money we're spending so that people can't have jobs, yeah. And, and we just invited into our homes. And so that we can't have good electricity. Bills oh, you're going to have a great electricity bill. It's going to be excellent. I can promise you that you know we have alternate power vehicles we should have like alternate powered AI like a hydrogen powered AI or maybe a a diesel powered that'd be great. I think if you. Go to Ed Begley's house. He's peddling a bicycle for his, chatbot for his. Every time he wants to render a dancing stake, he has to ride 746 miles, and then it gets it wrong and he's like, oh man, I got to do this again. OK, why? Your chatbot is a resource vampire. Let's go. Why my chatbot though? Your chatbot's a resource vampire. Yours is lean and. Smelt and doesn't need. Much energy at all. Mine runs on a Commodore 64.",
+        "episode_id": "891a9d90-5247-4f87-a55d-be0caf9f4d0b",
+        "segment_id": "891a9d90-5247-4f87-a55d-be0caf9f4d0b:001",
+        "chunk_id": "891a9d90-5247-4f87-a55d-be0caf9f4d0b:001:c001",
+        "season": 4,
+        "episode_number": 28,
+        "episode_format": "big_story",
+        "segment_role": "formal_open"
+      }
+    ]
+  },
+  "validation_errors": [],
+  "receipt": {
+    "model": "x-ai/grok-4.6",
+    "provider": "xAI",
+    "prompt_tokens": 3611,
+    "completion_tokens": 6744,
+    "total_tokens": 10355,
+    "cost_usd": 0.047494,
+    "latency_ms": 96727.31,
+    "generation_id": "gen-1787613806-xc4JdorfM5KTX9lWrL99",
+    "finish_reason": "stop",
+    "response_characters": 7441,
+    "output_status": "parsed",
+    "reasoning_tokens": 4324
+  },
+  "accounted_cost_usd": 0.047494
+}

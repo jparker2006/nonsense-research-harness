@@ -81,6 +81,9 @@ export type Phase2Usage = {
   completion_tokens?: number;
   total_tokens?: number;
   cost?: number;
+  completion_tokens_details?: {
+    reasoning_tokens?: number;
+  };
   server_tool_use?: {
     web_search_requests?: number;
   };
@@ -285,11 +288,15 @@ function parseUsage(value: unknown): Phase2Usage | undefined {
   if (!usage) return undefined;
 
   const serverToolUse = objectValue(usage.server_tool_use);
+  const completionDetails = objectValue(usage.completion_tokens_details);
   return {
     prompt_tokens: numberValue(usage.prompt_tokens),
     completion_tokens: numberValue(usage.completion_tokens),
     total_tokens: numberValue(usage.total_tokens),
     cost: numberValue(usage.cost),
+    completion_tokens_details: completionDetails
+      ? { reasoning_tokens: numberValue(completionDetails.reasoning_tokens) }
+      : undefined,
     server_tool_use: serverToolUse
       ? { web_search_requests: numberValue(serverToolUse.web_search_requests) }
       : undefined,

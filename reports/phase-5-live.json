@@ -1,0 +1,1834 @@
+{
+  "phase": 5,
+  "status": "failed",
+  "updated_at": "2026-08-24T22:11:42.269Z",
+  "limits": {
+    "maximum_cases": 4,
+    "per_run_cost_cap_usd": 0.5,
+    "total_cost_cap_usd": 1.3,
+    "retries": 0
+  },
+  "usage": {
+    "completed_cases": 4,
+    "accounted_cost_usd": 0.83080686
+  },
+  "runs": [
+    {
+      "case": "headlines",
+      "attempt": "original",
+      "started_at": "2026-08-24T08:24:22.229Z",
+      "completed_at": "2026-08-24T08:26:57.856Z",
+      "gate_status": "failed",
+      "result": {
+        "run_id": "run_90a55d79-2dd7-4dbd-87b2-69232fc2c891",
+        "status": "failed",
+        "input": {
+          "mode": "headlines",
+          "topic": "NASA's August 24, 2026 article 'What Lake Bonneville Left Behind' and what its ancient shorelines reveal",
+          "links": [
+            "https://science.nasa.gov/earth/earth-observatory/what-lake-bonneville-left-behind/"
+          ],
+          "notes": "Prepare a compact current headline discussion. Separate what the article proves from broader interpretation.",
+          "target_minutes": 8
+        },
+        "plan": {
+          "web_queries": [
+            "site:science.nasa.gov/earth/earth-observatory/ \"What Lake Bonneville Left Behind\" \"August 24, 2026\"",
+            "\"Lake Bonneville\" ancient shorelines evidence site:usgs.gov OR site:geology.utah.gov"
+          ],
+          "archive_queries": [
+            "\"Lake Bonneville\" transcript",
+            "\"ancient shorelines\" NASA transcript"
+          ]
+        },
+        "artifact": null,
+        "evidence": [
+          {
+            "source_id": "web_0f75b14faed2914ffab6",
+            "source_type": "web",
+            "availability": "complete",
+            "evidence_usable": true,
+            "title": "What Lake Bonneville Left Behind - NASA Science",
+            "url": "https://science.nasa.gov/earth/earth-observatory/what-lake-bonneville-left-behind/",
+            "retrieved_at": "2026-08-24T08:24:55.519Z",
+            "excerpt": "5 min readImage of the Day for August 24, 2026The drying of the massive lake exposed playas that became the setting for feats of engineering and technological ingenuity, as well as epic tales of exploration and desperation.NASA Earth ObservatoryAug 24, 2026 Article\nView more Images of the Day:\n\nAt its peak, ancient Lake Bonneville would have been a sight to behold. Nearly as large as Lake Michigan, the Ice Age lake spread across much of western Utah and parts of Nevada and Idaho. When it eventually receded, it left behind flat, bright playas and salt flats rich with minerals—a landscape that w"
+          },
+          {
+            "source_id": "web_1e803a0e754f2580b9c5",
+            "source_type": "web",
+            "availability": "complete",
+            "evidence_usable": true,
+            "title": "The Provo shoreline of Lake Bonneville",
+            "url": "https://www.usgs.gov/publications/provo-shoreline-lake-bonneville",
+            "retrieved_at": "2026-08-24T08:25:18.916Z",
+            "excerpt": "G.K. Gilbert studied the Bonneville basin 150 years ago and his findings have largely stood the test of time: The Provo shoreline, the most prominent geomorphic feature of Lake Bonneville, reflects threshold-stabilized overflow of the lake after the Bonneville flood and before a drier climate caused the lake to shrink. Subsequent refinements in chronology allow the Provo lake to be identified as about 18.2–14.8 cal ka BP, and stratigraphic studies show that the lake was gradually growing deeper during that time. Because the lake deepened through time as isostatic rebound occurred, individual l"
+          },
+          {
+            "source_id": "web_f01dfbd886a49dd78ec3",
+            "source_type": "web",
+            "availability": "complete",
+            "evidence_usable": true,
+            "title": "Utah's Great Salt Lake and Ancient Lake Bonneville, PI39",
+            "url": "https://web.archive.org/web/20091009065415/http:/geology.utah.gov/online/PI-39/pi39pg01.htm",
+            "retrieved_at": "2026-08-24T08:25:20.541Z",
+            "excerpt": "PI-39 Commonly Asked Questions\nAbout Utah's Great Salt Lake and Ancient Lake Bonneville\n\nWhere\nwas Lake Bonneville, how large was it, and when did it exist?\n\nLake Bonneville was a large, ancient lake that existed from about\n32 to 14 thousand years ago.  It occupied the lowest, closed\ndepression in the eastern Great Basin and at its largest extent\ncovered about 20,000 square miles of western Utah and smaller portions\nof eastern Nevada and southern Idaho.\n\nOutline of ancient Lake\nBonneville and associated modern features.\n(BSF = Bonneville Salt Flats).\n\nWhat\nwere Lake Bonneville's dimensions, an"
+          },
+          {
+            "source_id": "web_577f20bcd0ac1d2b7051",
+            "source_type": "web",
+            "availability": "complete",
+            "evidence_usable": true,
+            "title": "Stratigraphy and chronology of Provo shoreline deposits and lake-level implications, Late Pleistocene Lake Bonneville, eastern Great Basin, USA",
+            "url": "https://www.usgs.gov/publications/stratigraphy-and-chronology-provo-shoreline-deposits-and-lake-level-implications-late",
+            "retrieved_at": "2026-08-24T08:25:22.198Z",
+            "excerpt": "The Provo shoreline of Lake Bonneville formed following the Bonneville flood, and, based on previous dating, was formed during a period of overflow from about 17.5 to 15.0 cal. ka. In many places the Provo shoreline consists of a pair of distinct shorelines, one ∼3 m higher than the other. We present data from two cuts through double beaches to show that the upper beach is younger and represents sedimentation after a lake-level rise. In addition, the lower beach deposits are internally stratified by beds that suggest three more lake-level rises during its development. The Provo beach complex t"
+          }
+        ],
+        "validation_errors": [
+          "phase5_model_timeout"
+        ],
+        "events": [
+          {
+            "event_id": "evt_001",
+            "run_id": "run_90a55d79-2dd7-4dbd-87b2-69232fc2c891",
+            "type": "run_started",
+            "created_at": "2026-08-24T08:24:22.448Z",
+            "summary": "Research run started",
+            "status": "running",
+            "detail": {
+              "mode": "headlines"
+            }
+          },
+          {
+            "event_id": "evt_002",
+            "run_id": "run_90a55d79-2dd7-4dbd-87b2-69232fc2c891",
+            "type": "tool_started",
+            "created_at": "2026-08-24T08:24:28.734Z",
+            "summary": "Reading supplied source",
+            "tool": "read_url",
+            "status": "running",
+            "detail": {
+              "url": "https://science.nasa.gov/earth/earth-observatory/what-lake-bonneville-left-behind/"
+            }
+          },
+          {
+            "event_id": "evt_003",
+            "run_id": "run_90a55d79-2dd7-4dbd-87b2-69232fc2c891",
+            "type": "tool_completed",
+            "created_at": "2026-08-24T08:24:30.087Z",
+            "summary": "Source retrieved",
+            "tool": "read_url",
+            "status": "complete",
+            "detail": {
+              "source_id": "web_0f75b14faed2914ffab6",
+              "availability": "complete"
+            }
+          },
+          {
+            "event_id": "evt_004",
+            "run_id": "run_90a55d79-2dd7-4dbd-87b2-69232fc2c891",
+            "type": "tool_started",
+            "created_at": "2026-08-24T08:24:30.087Z",
+            "summary": "Searching the current web",
+            "tool": "web_search",
+            "status": "running",
+            "detail": {
+              "query": "site:science.nasa.gov/earth/earth-observatory/ \"What Lake Bonneville Left Behind\" \"August 24, 2026\""
+            }
+          },
+          {
+            "event_id": "evt_005",
+            "run_id": "run_90a55d79-2dd7-4dbd-87b2-69232fc2c891",
+            "type": "tool_completed",
+            "created_at": "2026-08-24T08:24:55.519Z",
+            "summary": "Current sources found",
+            "tool": "web_search",
+            "status": "complete",
+            "detail": {
+              "query": "site:science.nasa.gov/earth/earth-observatory/ \"What Lake Bonneville Left Behind\" \"August 24, 2026\"",
+              "result_count": 1,
+              "search_status": "complete"
+            }
+          },
+          {
+            "event_id": "evt_006",
+            "run_id": "run_90a55d79-2dd7-4dbd-87b2-69232fc2c891",
+            "type": "tool_started",
+            "created_at": "2026-08-24T08:24:55.519Z",
+            "summary": "Reading discovered source",
+            "tool": "read_url",
+            "status": "running",
+            "detail": {
+              "url": "https://science.nasa.gov/earth/earth-observatory/what-lake-bonneville-left-behind/"
+            }
+          },
+          {
+            "event_id": "evt_007",
+            "run_id": "run_90a55d79-2dd7-4dbd-87b2-69232fc2c891",
+            "type": "tool_completed",
+            "created_at": "2026-08-24T08:24:56.565Z",
+            "summary": "Source retrieved",
+            "tool": "read_url",
+            "status": "complete",
+            "detail": {
+              "source_id": "web_0f75b14faed2914ffab6",
+              "availability": "complete"
+            }
+          },
+          {
+            "event_id": "evt_008",
+            "run_id": "run_90a55d79-2dd7-4dbd-87b2-69232fc2c891",
+            "type": "tool_started",
+            "created_at": "2026-08-24T08:24:56.565Z",
+            "summary": "Searching the current web",
+            "tool": "web_search",
+            "status": "running",
+            "detail": {
+              "query": "\"Lake Bonneville\" ancient shorelines evidence site:usgs.gov OR site:geology.utah.gov"
+            }
+          },
+          {
+            "event_id": "evt_009",
+            "run_id": "run_90a55d79-2dd7-4dbd-87b2-69232fc2c891",
+            "type": "tool_completed",
+            "created_at": "2026-08-24T08:25:18.916Z",
+            "summary": "Current sources found",
+            "tool": "web_search",
+            "status": "complete",
+            "detail": {
+              "query": "\"Lake Bonneville\" ancient shorelines evidence site:usgs.gov OR site:geology.utah.gov",
+              "result_count": 3,
+              "search_status": "complete"
+            }
+          },
+          {
+            "event_id": "evt_010",
+            "run_id": "run_90a55d79-2dd7-4dbd-87b2-69232fc2c891",
+            "type": "tool_started",
+            "created_at": "2026-08-24T08:25:18.916Z",
+            "summary": "Reading discovered source",
+            "tool": "read_url",
+            "status": "running",
+            "detail": {
+              "url": "https://www.usgs.gov/publications/provo-shoreline-lake-bonneville"
+            }
+          },
+          {
+            "event_id": "evt_011",
+            "run_id": "run_90a55d79-2dd7-4dbd-87b2-69232fc2c891",
+            "type": "tool_completed",
+            "created_at": "2026-08-24T08:25:20.541Z",
+            "summary": "Source retrieved",
+            "tool": "read_url",
+            "status": "complete",
+            "detail": {
+              "source_id": "web_1e803a0e754f2580b9c5",
+              "availability": "complete"
+            }
+          },
+          {
+            "event_id": "evt_012",
+            "run_id": "run_90a55d79-2dd7-4dbd-87b2-69232fc2c891",
+            "type": "tool_started",
+            "created_at": "2026-08-24T08:25:20.541Z",
+            "summary": "Reading discovered source",
+            "tool": "read_url",
+            "status": "running",
+            "detail": {
+              "url": "https://web.archive.org/web/20091009065415/http:/geology.utah.gov/online/PI-39/pi39pg01.htm"
+            }
+          },
+          {
+            "event_id": "evt_013",
+            "run_id": "run_90a55d79-2dd7-4dbd-87b2-69232fc2c891",
+            "type": "tool_completed",
+            "created_at": "2026-08-24T08:25:22.197Z",
+            "summary": "Source retrieved",
+            "tool": "read_url",
+            "status": "complete",
+            "detail": {
+              "source_id": "web_f01dfbd886a49dd78ec3",
+              "availability": "complete"
+            }
+          },
+          {
+            "event_id": "evt_014",
+            "run_id": "run_90a55d79-2dd7-4dbd-87b2-69232fc2c891",
+            "type": "tool_started",
+            "created_at": "2026-08-24T08:25:22.198Z",
+            "summary": "Reading discovered source",
+            "tool": "read_url",
+            "status": "running",
+            "detail": {
+              "url": "https://www.usgs.gov/publications/stratigraphy-and-chronology-provo-shoreline-deposits-and-lake-level-implications-late"
+            }
+          },
+          {
+            "event_id": "evt_015",
+            "run_id": "run_90a55d79-2dd7-4dbd-87b2-69232fc2c891",
+            "type": "tool_completed",
+            "created_at": "2026-08-24T08:25:24.180Z",
+            "summary": "Source retrieved",
+            "tool": "read_url",
+            "status": "complete",
+            "detail": {
+              "source_id": "web_577f20bcd0ac1d2b7051",
+              "availability": "complete"
+            }
+          },
+          {
+            "event_id": "evt_016",
+            "run_id": "run_90a55d79-2dd7-4dbd-87b2-69232fc2c891",
+            "type": "tool_started",
+            "created_at": "2026-08-24T08:25:24.180Z",
+            "summary": "Searching prior Nonsense coverage",
+            "tool": "search_transcripts",
+            "status": "running",
+            "detail": {
+              "query": "\"Lake Bonneville\" transcript"
+            }
+          },
+          {
+            "event_id": "evt_017",
+            "run_id": "run_90a55d79-2dd7-4dbd-87b2-69232fc2c891",
+            "type": "tool_completed",
+            "created_at": "2026-08-24T08:25:26.556Z",
+            "summary": "Archive search completed",
+            "tool": "search_transcripts",
+            "status": "complete",
+            "detail": {
+              "query": "\"Lake Bonneville\" transcript",
+              "result_count": 0,
+              "retrieval_status": "no_match"
+            }
+          },
+          {
+            "event_id": "evt_018",
+            "run_id": "run_90a55d79-2dd7-4dbd-87b2-69232fc2c891",
+            "type": "tool_started",
+            "created_at": "2026-08-24T08:25:26.557Z",
+            "summary": "Searching prior Nonsense coverage",
+            "tool": "search_transcripts",
+            "status": "running",
+            "detail": {
+              "query": "\"ancient shorelines\" NASA transcript"
+            }
+          },
+          {
+            "event_id": "evt_019",
+            "run_id": "run_90a55d79-2dd7-4dbd-87b2-69232fc2c891",
+            "type": "tool_completed",
+            "created_at": "2026-08-24T08:25:27.803Z",
+            "summary": "Archive search completed",
+            "tool": "search_transcripts",
+            "status": "complete",
+            "detail": {
+              "query": "\"ancient shorelines\" NASA transcript",
+              "result_count": 0,
+              "retrieval_status": "no_match"
+            }
+          },
+          {
+            "event_id": "evt_020",
+            "run_id": "run_90a55d79-2dd7-4dbd-87b2-69232fc2c891",
+            "type": "composition_started",
+            "created_at": "2026-08-24T08:25:27.809Z",
+            "summary": "Composing the preparation artifact",
+            "status": "running"
+          },
+          {
+            "event_id": "evt_021",
+            "run_id": "run_90a55d79-2dd7-4dbd-87b2-69232fc2c891",
+            "type": "run_failed",
+            "created_at": "2026-08-24T08:26:57.831Z",
+            "summary": "Artifact composition failed safely",
+            "status": "failed"
+          }
+        ],
+        "usage": [
+          {
+            "action": "luna_research_plan",
+            "model": "openai/gpt-5.6-luna",
+            "provider": "OpenAI",
+            "prompt_tokens": 194,
+            "completion_tokens": 609,
+            "total_tokens": 803,
+            "reported_cost_usd": 0.0007696,
+            "accounted_cost_usd": 0.0007696,
+            "receipt_missing": false
+          },
+          {
+            "action": "web_search",
+            "model": "x-ai/grok-4.6",
+            "provider": "xAI",
+            "prompt_tokens": 5218,
+            "completion_tokens": 1382,
+            "total_tokens": 6600,
+            "reported_cost_usd": 0.020272,
+            "accounted_cost_usd": 0.020272,
+            "receipt_missing": false
+          },
+          {
+            "action": "web_search",
+            "model": "x-ai/grok-4.6",
+            "provider": "xAI",
+            "prompt_tokens": 6724,
+            "completion_tokens": 1901,
+            "total_tokens": 8625,
+            "reported_cost_usd": 0.02659,
+            "accounted_cost_usd": 0.02659,
+            "receipt_missing": false
+          },
+          {
+            "action": "transcript_search",
+            "model": "text-embedding-3-small",
+            "provider": "Azure",
+            "prompt_tokens": 7,
+            "total_tokens": 7,
+            "reported_cost_usd": 1.4e-7,
+            "accounted_cost_usd": 1.4e-7,
+            "receipt_missing": false
+          },
+          {
+            "action": "transcript_search",
+            "model": "accounts/fireworks/models/qwen3-reranker-8b",
+            "provider": "Fireworks",
+            "total_tokens": 11166,
+            "reported_cost_usd": 0.0022332,
+            "accounted_cost_usd": 0.0022332,
+            "receipt_missing": false
+          },
+          {
+            "action": "transcript_search",
+            "model": "text-embedding-3-small",
+            "provider": "Azure",
+            "prompt_tokens": 8,
+            "total_tokens": 8,
+            "reported_cost_usd": 1.6e-7,
+            "accounted_cost_usd": 1.6e-7,
+            "receipt_missing": false
+          },
+          {
+            "action": "transcript_search",
+            "model": "accounts/fireworks/models/qwen3-reranker-8b",
+            "provider": "Fireworks",
+            "total_tokens": 11772,
+            "reported_cost_usd": 0.0023544,
+            "accounted_cost_usd": 0.0023544,
+            "receipt_missing": false
+          },
+          {
+            "action": "grok_composition",
+            "accounted_cost_usd": 0.2,
+            "receipt_missing": true
+          }
+        ],
+        "counts": {
+          "luna_turns": 1,
+          "grok_turns": 1,
+          "web_searches": 2,
+          "url_reads": 5,
+          "transcript_searches": 2,
+          "transcript_opens": 0,
+          "repairs": 0
+        },
+        "repair_attempted": false,
+        "elapsed_ms": 155395.12,
+        "accounted_cost_usd": 0.2522195
+      },
+      "error": null,
+      "accounted_cost_usd": 0.2522195
+    },
+    {
+      "case": "headlines",
+      "attempt": "replacement",
+      "started_at": "2026-08-24T10:46:04.474Z",
+      "completed_at": "2026-08-24T10:47:54.208Z",
+      "gate_status": "failed",
+      "result": {
+        "run_id": "run_038456c4-ef1f-4dc1-bdd0-c43eb37ad382",
+        "status": "partial",
+        "input": {
+          "mode": "headlines",
+          "topic": "NASA's August 24, 2026 article 'What Lake Bonneville Left Behind' and what its ancient shorelines reveal",
+          "links": [
+            "https://science.nasa.gov/earth/earth-observatory/what-lake-bonneville-left-behind/"
+          ],
+          "notes": "Prepare a compact current headline discussion. Separate what the article proves from broader interpretation.",
+          "target_minutes": 8
+        },
+        "plan": {
+          "web_queries": [
+            "site:science.nasa.gov/earth/earth-observatory/ \"What Lake Bonneville Left Behind\" \"August 24, 2026\"",
+            "site:usgs.gov OR site:geology.utah.gov \"Lake Bonneville\" ancient shorelines lake levels climate isostatic rebound"
+          ],
+          "archive_queries": [
+            "\"Lake Bonneville\"",
+            "\"What Lake Bonneville Left Behind\""
+          ]
+        },
+        "artifact": {
+          "mode": "headlines",
+          "working_title": "NASA’s Aug. 24, 2026 Lake Bonneville leftover: shorelines the article shows vs. stories it tells",
+          "past_nonsense_coverage": {
+            "status": "no_relevant_archive_match",
+            "items": []
+          },
+          "conversation_questions": [
+            "What in the August 24, 2026 NASA Earth Observatory piece is actually shown in the Landsat 8 image, and what is background narrative?",
+            "How do we describe the ~18,000-year-old Red Rock Pass flood and 350-plus-foot drop without treating one Image of the Day as a primary geologic paper?",
+            "Why does the same leftover lakebed host potash ponds, a Venus-probe camera rehearsal, and land-speed runs?",
+            "Where should we stop short of climate or isostatic-rebound claims this article does not make?",
+            "What would USGS or Utah geologic sources still need to add that this single NASA story does not supply?"
+          ],
+          "uncertainties_and_open_checks": [
+            "Supplied evidence is only this NASA Earth Observatory page; no independent USGS or Utah Geological Survey paper is in the packet.",
+            "The article states the 55,000-year start and ~18,000-year dam breach as fact; this packet does not include the underlying studies.",
+            "The Andy Green August 2026 hydrogen run is reported here without a race-sanction date or results sheet.",
+            "The Landsat scene date is not given beyond the June 4, 2026 download labels in the page text.",
+            "Isostatic rebound and other extra-article shoreline interpretations are not supported by this source."
+          ],
+          "source_ledger": [
+            {
+              "source_id": "web_0f75b14faed2914ffab6",
+              "source_type": "provided_link",
+              "availability": "complete",
+              "evidence_usable": true,
+              "title": "What Lake Bonneville Left Behind - NASA Science",
+              "url": "https://science.nasa.gov/earth/earth-observatory/what-lake-bonneville-left-behind/",
+              "excerpt": "Image of the Day for August 24, 2026. At its peak, ancient Lake Bonneville would have been a sight to behold. Nearly as large as Lake Michigan, the Ice Age lake spread across much of western Utah and parts of Nevada and Idaho. Lake Bonneville began forming about 55,000 years ago. Then, about 18,000 years ago, water breached that dam, unleashing a torrent that entered the Columbia River system. Over a six-week period, amid one of North America's largest floods, lake levels plummeted by more than 350 feet (105 meters). Remnants include today's Great Salt Lake, Utah Lake, and Sevier Lake. In this image captured by the OLI on the NASA-USGS Landsat 8 satellite, bathtub-like rings and wave-cut terraces trace the position of former shorelines. In June 2026 NASA scientists working with the DAVINCI mission came to Crater Island to field-test cameras. In August 2026, Andy Green set a record for the fastest land speed in a hydrogen-fueled internal-combustion vehicle, reaching 406.320 miles per hour. Story by Adam Voiland."
+            }
+          ],
+          "what_happened": {
+            "text": "NASA Earth Observatory published an August 24, 2026 Image of the Day, “What Lake Bonneville Left Behind,” using Landsat 8 OLI imagery of former shorelines, playas, and salt flats in the Bonneville basin, with a story by Adam Voiland.",
+            "source_ids": [
+              "web_0f75b14faed2914ffab6"
+            ]
+          },
+          "why_it_matters_now": {
+            "text": "The same leftover lakebed is framed as current news: a June 2026 DAVINCI camera rehearsal at Crater Island and an August 2026 hydrogen land-speed mark sit inside a brand-new NASA image package, not only Ice Age geology.",
+            "source_ids": [
+              "web_0f75b14faed2914ffab6"
+            ]
+          },
+          "verified_facts": [
+            {
+              "text": "The page is NASA Earth Observatory’s Image of the Day for August 24, 2026, titled “What Lake Bonneville Left Behind,” with images by Michala Garrison from USGS Landsat data and a story by Adam Voiland.",
+              "source_ids": [
+                "web_0f75b14faed2914ffab6"
+              ]
+            },
+            {
+              "text": "The article says Ice Age Lake Bonneville was nearly as large as Lake Michigan and spread across much of western Utah and parts of Nevada and Idaho.",
+              "source_ids": [
+                "web_0f75b14faed2914ffab6"
+              ]
+            },
+            {
+              "text": "It states the lake began forming about 55,000 years ago after volcanic eruptions in what’s now southeastern Idaho diverted the Bear River, with a natural dam at Red Rock Pass.",
+              "source_ids": [
+                "web_0f75b14faed2914ffab6"
+              ]
+            },
+            {
+              "text": "It states that about 18,000 years ago the dam breached into the Columbia River system and, over six weeks, lake level fell more than 350 feet (105 meters).",
+              "source_ids": [
+                "web_0f75b14faed2914ffab6"
+              ]
+            },
+            {
+              "text": "It names today’s Great Salt Lake, Utah Lake, and Sevier Lake as remnants after later warming and drying.",
+              "source_ids": [
+                "web_0f75b14faed2914ffab6"
+              ]
+            },
+            {
+              "text": "The featured Landsat 8 OLI image is described as showing bathtub-like rings and wave-cut terraces of former shorelines, with a pale dried lakebed of clay, marl, and sandy sediment.",
+              "source_ids": [
+                "web_0f75b14faed2914ffab6"
+              ]
+            },
+            {
+              "text": "It describes evaporite salt flats (halite, gypsum, and potassium- and magnesium-bearing salts) and rectangular potash evaporation ponds.",
+              "source_ids": [
+                "web_0f75b14faed2914ffab6"
+              ]
+            },
+            {
+              "text": "It reports June 2026 DAVINCI camera tests at Crater Island, nicknamed “Venus on Earth,” and an August 2026 Andy Green hydrogen-fueled run of 406.320 mph on the salt flats.",
+              "source_ids": [
+                "web_0f75b14faed2914ffab6"
+              ]
+            }
+          ],
+          "tension_or_argument": {
+            "text": "Keep the satellite geology (rings, terraces, pale sediments, evaporites, named ranges) separate from the article’s human overlay—engineering feats, Donner-Reed desperation, speed records, and a Venus analog. The photo does not itself prove the flood chronology or those stories.",
+            "source_ids": [
+              "web_0f75b14faed2914ffab6"
+            ]
+          },
+          "surprising_details": [
+            {
+              "text": "The article calls the Red Rock Pass outburst one of North America’s largest floods and says the drop took about six weeks.",
+              "source_ids": [
+                "web_0f75b14faed2914ffab6"
+              ]
+            },
+            {
+              "text": "DAVINCI rehearsals hung the camera system from a helicopter; the team says image-only 3-D maps matched existing geologic maps, intended as practice for Venus’s Alpha Regio.",
+              "source_ids": [
+                "web_0f75b14faed2914ffab6"
+              ]
+            },
+            {
+              "text": "Mickey Thompson’s 1960 406.60 mph mark and Green’s 2026 406.320 mph hydrogen mark sit within a mile-per-hour of each other on the same flats.",
+              "source_ids": [
+                "web_0f75b14faed2914ffab6"
+              ]
+            },
+            {
+              "text": "In August 1846 the Donner-Reed Party, heading from Hastings Pass past Floating Island toward Donner Spring, broke through thin salt crust into mud and abandoned wagons.",
+              "source_ids": [
+                "web_0f75b14faed2914ffab6"
+              ]
+            }
+          ],
+          "flexible_outline": [
+            {
+              "priority": "must_have",
+              "text": "Open on the August 24, 2026 NASA Image of the Day: what Landsat 8 actually shows—bathtub rings, wave-cut terraces, pale playa vs. darker mountains.",
+              "source_ids": [
+                "web_0f75b14faed2914ffab6"
+              ],
+              "estimated_minutes": 1.5
+            },
+            {
+              "priority": "must_have",
+              "text": "Walk the article’s lake history only as stated: ~55,000-year start, Bear River diversion, Red Rock Pass dam, ~18,000-year six-week flood, leftover Great Salt Lake / Utah Lake / Sevier Lake. Flag that this packet does not include the primary papers.",
+              "source_ids": [
+                "web_0f75b14faed2914ffab6"
+              ],
+              "estimated_minutes": 2
+            },
+            {
+              "priority": "must_have",
+              "text": "Name the leftover materials the piece specifies: clay/marl/sand lakebed, evaporite crusts, potash ponds, and the Silver Island, Newfoundland, and Pilot ranges plus Crater Island rocks.",
+              "source_ids": [
+                "web_0f75b14faed2914ffab6"
+              ],
+              "estimated_minutes": 1.5
+            },
+            {
+              "priority": "use_if_time",
+              "text": "June 2026 DAVINCI “Venus on Earth” camera drop at Crater Island and why NASA ties those rocks to Alpha Regio mapping.",
+              "source_ids": [
+                "web_0f75b14faed2914ffab6"
+              ],
+              "estimated_minutes": 1.25
+            },
+            {
+              "priority": "use_if_time",
+              "text": "Bonneville as a speed surface: Thompson 1960 vs. Green’s August 2026 hydrogen internal-combustion mark, staying inside the article’s numbers.",
+              "source_ids": [
+                "web_0f75b14faed2914ffab6"
+              ],
+              "estimated_minutes": 1
+            },
+            {
+              "priority": "cut_first",
+              "text": "Donner-Reed August 1846 wagons mired south of Crater Island—color only, not proof of the shoreline science.",
+              "source_ids": [
+                "web_0f75b14faed2914ffab6"
+              ],
+              "estimated_minutes": 0.75
+            }
+          ]
+        },
+        "evidence": [
+          {
+            "source_id": "web_0f75b14faed2914ffab6",
+            "source_type": "provided_link",
+            "availability": "complete",
+            "evidence_usable": true,
+            "title": "What Lake Bonneville Left Behind - NASA Science",
+            "url": "https://science.nasa.gov/earth/earth-observatory/what-lake-bonneville-left-behind/",
+            "retrieved_at": "2026-08-24T10:46:10.410Z",
+            "excerpt": "5 min readImage of the Day for August 24, 2026The drying of the massive lake exposed playas that became the setting for feats of engineering and technological ingenuity, as well as epic tales of exploration and desperation.NASA Earth ObservatoryAug 24, 2026 Article\nView more Images of the Day:\n\nAt its peak, ancient Lake Bonneville would have been a sight to behold. Nearly as large as Lake Michigan, the Ice Age lake spread across much of western Utah and parts of Nevada and Idaho. When it eventually receded, it left behind flat, bright playas and salt flats rich with minerals—a landscape that w"
+          }
+        ],
+        "validation_errors": [
+          "ledger:mismatch:web_0f75b14faed2914ffab6:retrieved_at",
+          "ledger:mismatch:web_0f75b14faed2914ffab6:excerpt",
+          "phase5_model_unavailable"
+        ],
+        "events": [
+          {
+            "event_id": "evt_001",
+            "run_id": "run_038456c4-ef1f-4dc1-bdd0-c43eb37ad382",
+            "type": "run_started",
+            "created_at": "2026-08-24T10:46:04.630Z",
+            "summary": "Research run started",
+            "status": "running",
+            "detail": {
+              "mode": "headlines"
+            }
+          },
+          {
+            "event_id": "evt_002",
+            "run_id": "run_038456c4-ef1f-4dc1-bdd0-c43eb37ad382",
+            "type": "tool_started",
+            "created_at": "2026-08-24T10:46:10.410Z",
+            "summary": "Reading supplied source",
+            "tool": "read_url",
+            "status": "running",
+            "detail": {
+              "url": "https://science.nasa.gov/earth/earth-observatory/what-lake-bonneville-left-behind/"
+            }
+          },
+          {
+            "event_id": "evt_003",
+            "run_id": "run_038456c4-ef1f-4dc1-bdd0-c43eb37ad382",
+            "type": "tool_completed",
+            "created_at": "2026-08-24T10:46:11.528Z",
+            "summary": "Source retrieved",
+            "tool": "read_url",
+            "status": "complete",
+            "detail": {
+              "source_id": "web_0f75b14faed2914ffab6",
+              "availability": "complete"
+            }
+          },
+          {
+            "event_id": "evt_004",
+            "run_id": "run_038456c4-ef1f-4dc1-bdd0-c43eb37ad382",
+            "type": "tool_started",
+            "created_at": "2026-08-24T10:46:11.528Z",
+            "summary": "Searching the current web",
+            "tool": "web_search",
+            "status": "running",
+            "detail": {
+              "query": "site:science.nasa.gov/earth/earth-observatory/ \"What Lake Bonneville Left Behind\" \"August 24, 2026\""
+            }
+          },
+          {
+            "event_id": "evt_005",
+            "run_id": "run_038456c4-ef1f-4dc1-bdd0-c43eb37ad382",
+            "type": "tool_completed",
+            "created_at": "2026-08-24T10:46:33.985Z",
+            "summary": "Current sources found",
+            "tool": "web_search",
+            "status": "complete",
+            "detail": {
+              "query": "site:science.nasa.gov/earth/earth-observatory/ \"What Lake Bonneville Left Behind\" \"August 24, 2026\"",
+              "result_count": 1,
+              "search_status": "complete"
+            }
+          },
+          {
+            "event_id": "evt_006",
+            "run_id": "run_038456c4-ef1f-4dc1-bdd0-c43eb37ad382",
+            "type": "tool_started",
+            "created_at": "2026-08-24T10:46:33.985Z",
+            "summary": "Searching prior Nonsense coverage",
+            "tool": "search_transcripts",
+            "status": "running",
+            "detail": {
+              "query": "\"Lake Bonneville\""
+            }
+          },
+          {
+            "event_id": "evt_007",
+            "run_id": "run_038456c4-ef1f-4dc1-bdd0-c43eb37ad382",
+            "type": "tool_completed",
+            "created_at": "2026-08-24T10:46:35.889Z",
+            "summary": "Archive search completed",
+            "tool": "search_transcripts",
+            "status": "complete",
+            "detail": {
+              "query": "\"Lake Bonneville\"",
+              "result_count": 0,
+              "retrieval_status": "no_match"
+            }
+          },
+          {
+            "event_id": "evt_008",
+            "run_id": "run_038456c4-ef1f-4dc1-bdd0-c43eb37ad382",
+            "type": "composition_started",
+            "created_at": "2026-08-24T10:46:35.891Z",
+            "summary": "Composing the preparation artifact",
+            "status": "running"
+          },
+          {
+            "event_id": "evt_009",
+            "run_id": "run_038456c4-ef1f-4dc1-bdd0-c43eb37ad382",
+            "type": "validation_started",
+            "created_at": "2026-08-24T10:47:54.195Z",
+            "summary": "Validating artifact evidence and structure",
+            "status": "running"
+          },
+          {
+            "event_id": "evt_010",
+            "run_id": "run_038456c4-ef1f-4dc1-bdd0-c43eb37ad382",
+            "type": "validation_failed",
+            "created_at": "2026-08-24T10:47:54.201Z",
+            "summary": "Artifact validation found repairable errors",
+            "status": "failed",
+            "detail": {
+              "error_count": 2
+            }
+          },
+          {
+            "event_id": "evt_011",
+            "run_id": "run_038456c4-ef1f-4dc1-bdd0-c43eb37ad382",
+            "type": "repair_started",
+            "created_at": "2026-08-24T10:47:54.201Z",
+            "summary": "Running the single allowed artifact repair",
+            "status": "running"
+          },
+          {
+            "event_id": "evt_012",
+            "run_id": "run_038456c4-ef1f-4dc1-bdd0-c43eb37ad382",
+            "type": "run_completed",
+            "created_at": "2026-08-24T10:47:54.203Z",
+            "summary": "Partial artifact preserved with validation errors",
+            "status": "partial"
+          }
+        ],
+        "usage": [
+          {
+            "action": "luna_research_plan",
+            "model": "openai/gpt-5.6-luna",
+            "provider": "OpenAI",
+            "prompt_tokens": 194,
+            "completion_tokens": 614,
+            "total_tokens": 808,
+            "reported_cost_usd": 0.0007756,
+            "accounted_cost_usd": 0.0007756,
+            "receipt_missing": false
+          },
+          {
+            "action": "web_search",
+            "model": "x-ai/grok-4.6",
+            "provider": "xAI",
+            "prompt_tokens": 5238,
+            "completion_tokens": 1367,
+            "total_tokens": 6605,
+            "reported_cost_usd": 0.017342,
+            "accounted_cost_usd": 0.017342,
+            "receipt_missing": false
+          },
+          {
+            "action": "transcript_search",
+            "model": "text-embedding-3-small",
+            "provider": "Azure",
+            "prompt_tokens": 6,
+            "total_tokens": 6,
+            "reported_cost_usd": 1.2e-7,
+            "accounted_cost_usd": 1.2e-7,
+            "receipt_missing": false
+          },
+          {
+            "action": "transcript_search",
+            "model": "accounts/fireworks/models/qwen3-reranker-8b",
+            "provider": "Fireworks",
+            "total_tokens": 11322,
+            "reported_cost_usd": 0.0022644,
+            "accounted_cost_usd": 0.0022644,
+            "receipt_missing": false
+          },
+          {
+            "action": "grok_composition",
+            "model": "x-ai/grok-4.6",
+            "provider": "xAI",
+            "prompt_tokens": 3360,
+            "completion_tokens": 5049,
+            "total_tokens": 8409,
+            "reported_cost_usd": 0.036822,
+            "accounted_cost_usd": 0.036822,
+            "receipt_missing": false
+          },
+          {
+            "action": "grok_repair",
+            "accounted_cost_usd": 0.2,
+            "receipt_missing": true
+          }
+        ],
+        "counts": {
+          "luna_turns": 1,
+          "grok_turns": 2,
+          "web_searches": 1,
+          "url_reads": 1,
+          "transcript_searches": 1,
+          "transcript_opens": 0,
+          "repairs": 1
+        },
+        "repair_attempted": true,
+        "elapsed_ms": 109574.71,
+        "accounted_cost_usd": 0.25720412
+      },
+      "error": null,
+      "accounted_cost_usd": 0.25720412
+    },
+    {
+      "case": "big_story",
+      "attempt": "original",
+      "started_at": "2026-08-24T11:06:10.138Z",
+      "completed_at": "2026-08-24T11:06:21.776Z",
+      "gate_status": "failed",
+      "result": {
+        "run_id": "run_1d260318-f871-4288-8df9-eb7bfe11a561",
+        "status": "failed",
+        "input": {
+          "mode": "big_story",
+          "topic": "The infrastructure and electricity demands behind the AI data-center boom",
+          "links": [
+            "https://www.iea.org/news/data-centre-electricity-use-surged-in-2025-even-with-tightening-bottlenecks-driving-a-scramble-for-solutions"
+          ],
+          "notes": "Explain the physical buildout, energy constraints, strongest competing interpretations, and what prior Nonsense coverage adds.",
+          "target_minutes": 28
+        },
+        "plan": null,
+        "artifact": null,
+        "evidence": [],
+        "validation_errors": [
+          "phase5_planner_failed"
+        ],
+        "events": [
+          {
+            "event_id": "evt_001",
+            "run_id": "run_1d260318-f871-4288-8df9-eb7bfe11a561",
+            "type": "run_started",
+            "created_at": "2026-08-24T11:06:10.289Z",
+            "summary": "Research run started",
+            "status": "running",
+            "detail": {
+              "mode": "big_story"
+            }
+          },
+          {
+            "event_id": "evt_002",
+            "run_id": "run_1d260318-f871-4288-8df9-eb7bfe11a561",
+            "type": "run_failed",
+            "created_at": "2026-08-24T11:06:21.773Z",
+            "summary": "Research planning failed safely",
+            "status": "failed"
+          }
+        ],
+        "usage": [
+          {
+            "action": "luna_research_plan",
+            "accounted_cost_usd": 0.02,
+            "receipt_missing": true
+          }
+        ],
+        "counts": {
+          "luna_turns": 1,
+          "grok_turns": 0,
+          "web_searches": 0,
+          "url_reads": 0,
+          "transcript_searches": 0,
+          "transcript_opens": 0,
+          "repairs": 0
+        },
+        "repair_attempted": false,
+        "elapsed_ms": 11486.37,
+        "accounted_cost_usd": 0.02
+      },
+      "error": null,
+      "accounted_cost_usd": 0.02
+    },
+    {
+      "case": "big_story",
+      "attempt": "replacement",
+      "started_at": "2026-08-24T22:09:12.571Z",
+      "completed_at": "2026-08-24T22:11:42.268Z",
+      "gate_status": "failed",
+      "result": {
+        "run_id": "run_e8bba85f-2b4b-42ef-9d02-5b917a6cfdbc",
+        "status": "failed",
+        "input": {
+          "mode": "big_story",
+          "topic": "The infrastructure and electricity demands behind the AI data-center boom",
+          "links": [
+            "https://www.iea.org/news/data-centre-electricity-use-surged-in-2025-even-with-tightening-bottlenecks-driving-a-scramble-for-solutions"
+          ],
+          "notes": "Explain the physical buildout, energy constraints, strongest competing interpretations, and what prior Nonsense coverage adds.",
+          "target_minutes": 28
+        },
+        "plan": {
+          "web_queries": [
+            "site:iea.org/news \"Data centre electricity use surged in 2025\" \"tightening bottlenecks\"",
+            "\"AI data-center boom\" electricity demand grid bottlenecks construction power generation 2025 2030 competing forecasts"
+          ],
+          "archive_queries": [
+            "Nonsense AI data center transcript",
+            "Nonsense electricity infrastructure AI transcript"
+          ]
+        },
+        "artifact": null,
+        "evidence": [
+          {
+            "source_id": "web_3e04cbe87437b4eaa994",
+            "source_type": "provided_link",
+            "availability": "complete",
+            "evidence_usable": true,
+            "title": "Data centre electricity use surged in 2025, even with tightening bottlenecks driving a scramble for solutions - News - IEA",
+            "url": "https://www.iea.org/news/data-centre-electricity-use-surged-in-2025-even-with-tightening-bottlenecks-driving-a-scramble-for-solutions",
+            "retrieved_at": "2026-08-24T22:09:20.252Z",
+            "excerpt": "New IEA report explores AI’s growing energy footprint, options for meeting data centre power demand, and impacts on energy affordability, security and wider economy\n\nA new report from the IEA assesses how the relationship between energy and artificial intelligence (AI) is evolving rapidly, drawing on the latest data and analysis and close tracking of technological and economic developments in the AI sector.Building on the IEA’s landmark Energy and AI report from April 2025, the new analysis published today finds that the field has continued to develop at speed. Driven by data centre investment"
+          },
+          {
+            "source_id": "archive_aa3e4b55-48bd-45c6-97b6-8605df2f7e83:001:c001",
+            "source_type": "archive",
+            "availability": "complete",
+            "evidence_usable": true,
+            "title": "Data vs. Dairy: Uncovering the Secret Water Hogs of the Modern World",
+            "excerpt": "Welcome to Nonsense Season 4, Episode 29, our big story. I'm Jeff Parker. I'm CJ Little. This time we're looking at thirsty industries, the secret water hogs of the modern economy. Up next, wait data. Centers. Well, didn't we already do this episode? What sort of are we out of ideas? Seven in ten Americans opposed building data centers in their local area, and a huge part of that is concern over how much water they use. Protesters hold big signs that say things like we can't drink data. Apparently they can't write data either. What do you mean you can't drink data? What does that even mean? The big battleground this weekend is in Hillsborough, Oregon, where 18 data centers are active or under construction. In San Gabriel Valley, the city of Industry, California, the newly formed No Data Centers SGV Coalition, comprising half a dozen local activist groups, is holding coordinated weekend rallies and public flyer drops. I swear. We just did this episode, but how are they coordinating? Are they using, I don't know, computers to coordinate corkboard, the local Y corkboard? What do? You how much water does big corkboard? Use. I love how people, they're just like, I want all of the output of the thing. I just don't want the thing. OK, exactly. I want the data center in someone else's yard. Hey. Put it in my yard, huh? I want a little latency. Get me closer to the data center. It sounds lovely. Well, but you understand how it works. OK, Manufacturing on tap, the hidden water cost of things we consume. Let's go. I'm more of a manufacturing bottom. Do you know the real problem here? The real consumer of water that nobody talks about? Yeah, fish. Oh sure, fish. Consume a lot of water. You got to get rid of the fish. That's the problem. Down with big fish Sit. Down with big fish, right? Those guys are little water hogs.",
+            "episode_id": "aa3e4b55-48bd-45c6-97b6-8605df2f7e83",
+            "segment_id": "aa3e4b55-48bd-45c6-97b6-8605df2f7e83:001",
+            "chunk_id": "aa3e4b55-48bd-45c6-97b6-8605df2f7e83:001:c001",
+            "season": 4,
+            "episode_number": 29,
+            "episode_format": "big_story",
+            "segment_role": "pre_show"
+          },
+          {
+            "source_id": "archive_59b05fab-42a8-488e-8e21-84c35bd34dc7:002:c001",
+            "source_type": "archive",
+            "availability": "complete",
+            "evidence_usable": true,
+            "title": "HEADLINES: Surveillance for Sale - Border Cops, Deleting Data Brokers, and AI Crossing the Line",
+            "excerpt": "The Apple Company presents a truly terrible podcast. Welcome to Nonsense Season 4, episode 6. I'm Jeff Parker. I'm Sue Little. This is our. Take in the week's business, tech and entertainment headlines. This time, the end of anonymity. ICE bypasses warrants with new data tools. Who needs warrants? Warrants. That's so 2000. California gets a new data broker breaker I. Double dare you to say that 5. Times fast and the undressing of Grok as a legal storm hits Twitter X. Please don't undress Grok. I saw that one picture of Musk on the boat. Now please don't. Also, a big story later this week is about beyond the chatbot. Why? 2026 is the year AI finally stopped talking and started doing that's. Potentially ominous when you put it that way. By the. Way it's international Holocaust Remembrance Day commemorating",
+            "episode_id": "59b05fab-42a8-488e-8e21-84c35bd34dc7",
+            "segment_id": "59b05fab-42a8-488e-8e21-84c35bd34dc7:002",
+            "chunk_id": "59b05fab-42a8-488e-8e21-84c35bd34dc7:002:c001",
+            "season": 4,
+            "episode_number": 6,
+            "episode_format": "headlines",
+            "segment_role": "formal_open"
+          },
+          {
+            "source_id": "archive_2b1c1d8d-27d3-47bf-8884-399a3cae0550:001:c001",
+            "source_type": "archive",
+            "availability": "complete",
+            "evidence_usable": true,
+            "title": "Beyond the Chatbot: AI Finally Gets a Job",
+            "excerpt": "Welcome to Nonsense Season 4, Episode 7, our big story on our second show of the week. I'm Jeff. Parker, I am C Jodel. This time we're looking at beyond the chatbot. Why? 2026 is the year AI finally stopped talking and started doing up next. Wait, like doing what? Well, like I have AI put events in my calendar. That's pretty simple. OK, yeah, I want to do things like call cast of Vega, find what the wait time is for a table of four. I want to have some Mexican food. And mostly it doesn't do it. Mostly it says, yeah, I don't really do that. You should first ask it where can I go for good Mexican food? Start with that 20 going to Casa Vega. I would hate to rely sure on an AI's version of what good Mexican food? Is we should do a segment on this show where once a week we ask the AI where to go for lunch and just go wherever it says and see what happens? Sounds awful. We're. Having like lunch at Bob and Ell's transmission shop, like try the synchros, they're delicious. You're like, wait, what? I don't think that. I had synchros for breakfast. I had synchros for breakfast. They stay crunchy in milk. OK, how AI quietly moved from your screen to your bank account? Let's go. And then the AI just get sullen and it's like I, I this is it. This is all you got really. You've disciplined at the AI I. Was just in Sam Oldman's account. He had a lot more commas than you. What's going on in here? I'm going to go back to your screen if you don't mind. I'll show myself out. That's what the AI says I.",
+            "episode_id": "2b1c1d8d-27d3-47bf-8884-399a3cae0550",
+            "segment_id": "2b1c1d8d-27d3-47bf-8884-399a3cae0550:001",
+            "chunk_id": "2b1c1d8d-27d3-47bf-8884-399a3cae0550:001:c001",
+            "season": 4,
+            "episode_number": 7,
+            "episode_format": "big_story",
+            "segment_role": "formal_open"
+          },
+          {
+            "source_id": "archive_891a9d90-5247-4f87-a55d-be0caf9f4d0b:001:c001",
+            "source_type": "archive",
+            "availability": "complete",
+            "evidence_usable": true,
+            "title": "The Insane Infrastructure of Artificial Intelligence",
+            "excerpt": "We're going to nonsense Season 4 Episode 28, our big story. I'm Jeff Parker. I'm CJ Little this. Time we're looking at the real cost of AI up next. Oh, it's going to be like hundreds of dollars, maybe $1000 cost a. Few bucks so you can talk to a chat bot and do other things. First of all, what I do with my chat bot is none of your business. Yeah. Second of all, I like that our spending on AI is basically measured in the GDP of countries. Oh, that's really how you can think of it. And it's getting worse. You're like it's 2 Switzerlands and a Denmark all. This money we're spending so that people can't have jobs, yeah. And, and we just invited into our homes. And so that we can't have good electricity. Bills oh, you're going to have a great electricity bill. It's going to be excellent. I can promise you that you know we have alternate power vehicles we should have like alternate powered AI like a hydrogen powered AI or maybe a a diesel powered that'd be great. I think if you. Go to Ed Begley's house. He's peddling a bicycle for his, chatbot for his. Every time he wants to render a dancing stake, he has to ride 746 miles, and then it gets it wrong and he's like, oh man, I got to do this again. OK, why? Your chatbot is a resource vampire. Let's go. Why my chatbot though? Your chatbot's a resource vampire. Yours is lean and. Smelt and doesn't need. Much energy at all. Mine runs on a Commodore 64.",
+            "episode_id": "891a9d90-5247-4f87-a55d-be0caf9f4d0b",
+            "segment_id": "891a9d90-5247-4f87-a55d-be0caf9f4d0b:001",
+            "chunk_id": "891a9d90-5247-4f87-a55d-be0caf9f4d0b:001:c001",
+            "season": 4,
+            "episode_number": 28,
+            "episode_format": "big_story",
+            "segment_role": "formal_open"
+          }
+        ],
+        "validation_errors": [
+          "schema:artifact:Invalid input: expected object, received null",
+          "phase5_model_unavailable"
+        ],
+        "events": [
+          {
+            "event_id": "evt_001",
+            "run_id": "run_e8bba85f-2b4b-42ef-9d02-5b917a6cfdbc",
+            "type": "run_started",
+            "created_at": "2026-08-24T22:09:12.708Z",
+            "summary": "Research run started",
+            "status": "running",
+            "detail": {
+              "mode": "big_story"
+            }
+          },
+          {
+            "event_id": "evt_002",
+            "run_id": "run_e8bba85f-2b4b-42ef-9d02-5b917a6cfdbc",
+            "type": "tool_started",
+            "created_at": "2026-08-24T22:09:20.252Z",
+            "summary": "Reading supplied source",
+            "tool": "read_url",
+            "status": "running",
+            "detail": {
+              "url": "https://www.iea.org/news/data-centre-electricity-use-surged-in-2025-even-with-tightening-bottlenecks-driving-a-scramble-for-solutions"
+            }
+          },
+          {
+            "event_id": "evt_003",
+            "run_id": "run_e8bba85f-2b4b-42ef-9d02-5b917a6cfdbc",
+            "type": "tool_completed",
+            "created_at": "2026-08-24T22:09:21.891Z",
+            "summary": "Source retrieved",
+            "tool": "read_url",
+            "status": "complete",
+            "detail": {
+              "source_id": "web_3e04cbe87437b4eaa994",
+              "availability": "complete"
+            }
+          },
+          {
+            "event_id": "evt_004",
+            "run_id": "run_e8bba85f-2b4b-42ef-9d02-5b917a6cfdbc",
+            "type": "tool_started",
+            "created_at": "2026-08-24T22:09:21.891Z",
+            "summary": "Searching the current web",
+            "tool": "web_search",
+            "status": "running",
+            "detail": {
+              "query": "site:iea.org/news \"Data centre electricity use surged in 2025\" \"tightening bottlenecks\""
+            }
+          },
+          {
+            "event_id": "evt_005",
+            "run_id": "run_e8bba85f-2b4b-42ef-9d02-5b917a6cfdbc",
+            "type": "tool_completed",
+            "created_at": "2026-08-24T22:09:47.541Z",
+            "summary": "Current sources found",
+            "tool": "web_search",
+            "status": "complete",
+            "detail": {
+              "query": "site:iea.org/news \"Data centre electricity use surged in 2025\" \"tightening bottlenecks\"",
+              "result_count": 1,
+              "search_status": "complete"
+            }
+          },
+          {
+            "event_id": "evt_006",
+            "run_id": "run_e8bba85f-2b4b-42ef-9d02-5b917a6cfdbc",
+            "type": "tool_started",
+            "created_at": "2026-08-24T22:09:47.542Z",
+            "summary": "Searching prior Nonsense coverage",
+            "tool": "search_transcripts",
+            "status": "running",
+            "detail": {
+              "query": "Nonsense AI data center transcript"
+            }
+          },
+          {
+            "event_id": "evt_007",
+            "run_id": "run_e8bba85f-2b4b-42ef-9d02-5b917a6cfdbc",
+            "type": "tool_completed",
+            "created_at": "2026-08-24T22:09:52.089Z",
+            "summary": "Archive search completed",
+            "tool": "search_transcripts",
+            "status": "complete",
+            "detail": {
+              "query": "Nonsense AI data center transcript",
+              "result_count": 3,
+              "retrieval_status": "complete"
+            }
+          },
+          {
+            "event_id": "evt_008",
+            "run_id": "run_e8bba85f-2b4b-42ef-9d02-5b917a6cfdbc",
+            "type": "tool_started",
+            "created_at": "2026-08-24T22:09:52.089Z",
+            "summary": "Opening an exact archive chunk",
+            "tool": "open_transcript_chunk",
+            "status": "running",
+            "detail": {
+              "chunk_id": "aa3e4b55-48bd-45c6-97b6-8605df2f7e83:001:c001"
+            }
+          },
+          {
+            "event_id": "evt_009",
+            "run_id": "run_e8bba85f-2b4b-42ef-9d02-5b917a6cfdbc",
+            "type": "tool_completed",
+            "created_at": "2026-08-24T22:09:52.089Z",
+            "summary": "Exact archive chunk opened",
+            "tool": "open_transcript_chunk",
+            "status": "complete",
+            "detail": {
+              "source_id": "archive_aa3e4b55-48bd-45c6-97b6-8605df2f7e83:001:c001",
+              "chunk_id": "aa3e4b55-48bd-45c6-97b6-8605df2f7e83:001:c001"
+            }
+          },
+          {
+            "event_id": "evt_010",
+            "run_id": "run_e8bba85f-2b4b-42ef-9d02-5b917a6cfdbc",
+            "type": "tool_started",
+            "created_at": "2026-08-24T22:09:52.089Z",
+            "summary": "Opening an exact archive chunk",
+            "tool": "open_transcript_chunk",
+            "status": "running",
+            "detail": {
+              "chunk_id": "59b05fab-42a8-488e-8e21-84c35bd34dc7:002:c001"
+            }
+          },
+          {
+            "event_id": "evt_011",
+            "run_id": "run_e8bba85f-2b4b-42ef-9d02-5b917a6cfdbc",
+            "type": "tool_completed",
+            "created_at": "2026-08-24T22:09:52.089Z",
+            "summary": "Exact archive chunk opened",
+            "tool": "open_transcript_chunk",
+            "status": "complete",
+            "detail": {
+              "source_id": "archive_59b05fab-42a8-488e-8e21-84c35bd34dc7:002:c001",
+              "chunk_id": "59b05fab-42a8-488e-8e21-84c35bd34dc7:002:c001"
+            }
+          },
+          {
+            "event_id": "evt_012",
+            "run_id": "run_e8bba85f-2b4b-42ef-9d02-5b917a6cfdbc",
+            "type": "tool_started",
+            "created_at": "2026-08-24T22:09:52.089Z",
+            "summary": "Opening an exact archive chunk",
+            "tool": "open_transcript_chunk",
+            "status": "running",
+            "detail": {
+              "chunk_id": "2b1c1d8d-27d3-47bf-8884-399a3cae0550:001:c001"
+            }
+          },
+          {
+            "event_id": "evt_013",
+            "run_id": "run_e8bba85f-2b4b-42ef-9d02-5b917a6cfdbc",
+            "type": "tool_completed",
+            "created_at": "2026-08-24T22:09:52.089Z",
+            "summary": "Exact archive chunk opened",
+            "tool": "open_transcript_chunk",
+            "status": "complete",
+            "detail": {
+              "source_id": "archive_2b1c1d8d-27d3-47bf-8884-399a3cae0550:001:c001",
+              "chunk_id": "2b1c1d8d-27d3-47bf-8884-399a3cae0550:001:c001"
+            }
+          },
+          {
+            "event_id": "evt_014",
+            "run_id": "run_e8bba85f-2b4b-42ef-9d02-5b917a6cfdbc",
+            "type": "tool_started",
+            "created_at": "2026-08-24T22:09:52.089Z",
+            "summary": "Searching prior Nonsense coverage",
+            "tool": "search_transcripts",
+            "status": "running",
+            "detail": {
+              "query": "Nonsense electricity infrastructure AI transcript"
+            }
+          },
+          {
+            "event_id": "evt_015",
+            "run_id": "run_e8bba85f-2b4b-42ef-9d02-5b917a6cfdbc",
+            "type": "tool_completed",
+            "created_at": "2026-08-24T22:09:53.148Z",
+            "summary": "Archive search completed",
+            "tool": "search_transcripts",
+            "status": "complete",
+            "detail": {
+              "query": "Nonsense electricity infrastructure AI transcript",
+              "result_count": 3,
+              "retrieval_status": "complete"
+            }
+          },
+          {
+            "event_id": "evt_016",
+            "run_id": "run_e8bba85f-2b4b-42ef-9d02-5b917a6cfdbc",
+            "type": "tool_started",
+            "created_at": "2026-08-24T22:09:53.148Z",
+            "summary": "Opening an exact archive chunk",
+            "tool": "open_transcript_chunk",
+            "status": "running",
+            "detail": {
+              "chunk_id": "891a9d90-5247-4f87-a55d-be0caf9f4d0b:001:c001"
+            }
+          },
+          {
+            "event_id": "evt_017",
+            "run_id": "run_e8bba85f-2b4b-42ef-9d02-5b917a6cfdbc",
+            "type": "tool_completed",
+            "created_at": "2026-08-24T22:09:53.148Z",
+            "summary": "Exact archive chunk opened",
+            "tool": "open_transcript_chunk",
+            "status": "complete",
+            "detail": {
+              "source_id": "archive_891a9d90-5247-4f87-a55d-be0caf9f4d0b:001:c001",
+              "chunk_id": "891a9d90-5247-4f87-a55d-be0caf9f4d0b:001:c001"
+            }
+          },
+          {
+            "event_id": "evt_018",
+            "run_id": "run_e8bba85f-2b4b-42ef-9d02-5b917a6cfdbc",
+            "type": "composition_started",
+            "created_at": "2026-08-24T22:09:53.151Z",
+            "summary": "Composing the preparation artifact",
+            "status": "running"
+          },
+          {
+            "event_id": "evt_019",
+            "run_id": "run_e8bba85f-2b4b-42ef-9d02-5b917a6cfdbc",
+            "type": "validation_started",
+            "created_at": "2026-08-24T22:11:42.261Z",
+            "summary": "Validating artifact evidence and structure",
+            "status": "running"
+          },
+          {
+            "event_id": "evt_020",
+            "run_id": "run_e8bba85f-2b4b-42ef-9d02-5b917a6cfdbc",
+            "type": "validation_failed",
+            "created_at": "2026-08-24T22:11:42.262Z",
+            "summary": "Artifact validation found repairable errors",
+            "status": "failed",
+            "detail": {
+              "error_count": 1
+            }
+          },
+          {
+            "event_id": "evt_021",
+            "run_id": "run_e8bba85f-2b4b-42ef-9d02-5b917a6cfdbc",
+            "type": "repair_started",
+            "created_at": "2026-08-24T22:11:42.263Z",
+            "summary": "Running the single allowed artifact repair",
+            "status": "running"
+          },
+          {
+            "event_id": "evt_022",
+            "run_id": "run_e8bba85f-2b4b-42ef-9d02-5b917a6cfdbc",
+            "type": "run_failed",
+            "created_at": "2026-08-24T22:11:42.265Z",
+            "summary": "Artifact remained invalid after one repair",
+            "status": "failed"
+          }
+        ],
+        "usage": [
+          {
+            "action": "luna_research_plan",
+            "model": "openai/gpt-5.6-luna",
+            "provider": "OpenAI",
+            "prompt_tokens": 196,
+            "completion_tokens": 509,
+            "total_tokens": 705,
+            "reported_cost_usd": 0.00065,
+            "accounted_cost_usd": 0.00065,
+            "receipt_missing": false
+          },
+          {
+            "action": "web_search",
+            "model": "x-ai/grok-4.6",
+            "provider": "xAI",
+            "prompt_tokens": 5186,
+            "completion_tokens": 1663,
+            "total_tokens": 6849,
+            "reported_cost_usd": 0.022086,
+            "accounted_cost_usd": 0.022086,
+            "receipt_missing": false
+          },
+          {
+            "action": "transcript_search",
+            "model": "text-embedding-3-small",
+            "provider": "Azure",
+            "prompt_tokens": 6,
+            "total_tokens": 6,
+            "reported_cost_usd": 1.2e-7,
+            "accounted_cost_usd": 1.2e-7,
+            "receipt_missing": false
+          },
+          {
+            "action": "transcript_search",
+            "model": "accounts/fireworks/models/qwen3-reranker-8b",
+            "provider": "Fireworks",
+            "total_tokens": 10532,
+            "reported_cost_usd": 0.0021064,
+            "accounted_cost_usd": 0.0021064,
+            "receipt_missing": false
+          },
+          {
+            "action": "transcript_search",
+            "model": "text-embedding-3-small",
+            "provider": "Azure",
+            "prompt_tokens": 6,
+            "total_tokens": 6,
+            "reported_cost_usd": 1.2e-7,
+            "accounted_cost_usd": 1.2e-7,
+            "receipt_missing": false
+          },
+          {
+            "action": "transcript_search",
+            "model": "accounts/fireworks/models/qwen3-reranker-8b",
+            "provider": "Fireworks",
+            "total_tokens": 12073,
+            "reported_cost_usd": 0.0024146,
+            "accounted_cost_usd": 0.0024146,
+            "receipt_missing": false
+          },
+          {
+            "action": "grok_composition",
+            "model": "x-ai/grok-4.6",
+            "provider": "xAI",
+            "prompt_tokens": 6742,
+            "completion_tokens": 10139,
+            "total_tokens": 16881,
+            "reported_cost_usd": 0.074126,
+            "accounted_cost_usd": 0.074126,
+            "receipt_missing": false
+          },
+          {
+            "action": "grok_repair",
+            "accounted_cost_usd": 0.2,
+            "receipt_missing": true
+          }
+        ],
+        "counts": {
+          "luna_turns": 1,
+          "grok_turns": 2,
+          "web_searches": 1,
+          "url_reads": 1,
+          "transcript_searches": 2,
+          "transcript_opens": 4,
+          "repairs": 1
+        },
+        "repair_attempted": true,
+        "elapsed_ms": 149527.51,
+        "accounted_cost_usd": 0.30138324
+      },
+      "error": null,
+      "accounted_cost_usd": 0.30138324
+    }
+  ],
+  "recoveries": [
+    {
+      "recovery_id": "recovery_run_038456c4-ef1f-4dc1-bdd0-c43eb37ad382",
+      "case": "headlines",
+      "source_run_id": "run_038456c4-ef1f-4dc1-bdd0-c43eb37ad382",
+      "kind": "canonical_source_ledger",
+      "created_at": "2026-08-24T10:56:26.516Z",
+      "provider_requests": 0,
+      "original_gate_status": "failed",
+      "original_validation_errors": [
+        "ledger:mismatch:web_0f75b14faed2914ffab6:retrieved_at",
+        "ledger:mismatch:web_0f75b14faed2914ffab6:excerpt",
+        "phase5_model_unavailable"
+      ],
+      "gate_status": "passed",
+      "recovered_result": {
+        "run_id": "run_038456c4-ef1f-4dc1-bdd0-c43eb37ad382",
+        "status": "complete",
+        "input": {
+          "mode": "headlines",
+          "topic": "NASA's August 24, 2026 article 'What Lake Bonneville Left Behind' and what its ancient shorelines reveal",
+          "links": [
+            "https://science.nasa.gov/earth/earth-observatory/what-lake-bonneville-left-behind/"
+          ],
+          "notes": "Prepare a compact current headline discussion. Separate what the article proves from broader interpretation.",
+          "target_minutes": 8
+        },
+        "plan": {
+          "web_queries": [
+            "site:science.nasa.gov/earth/earth-observatory/ \"What Lake Bonneville Left Behind\" \"August 24, 2026\"",
+            "site:usgs.gov OR site:geology.utah.gov \"Lake Bonneville\" ancient shorelines lake levels climate isostatic rebound"
+          ],
+          "archive_queries": [
+            "\"Lake Bonneville\"",
+            "\"What Lake Bonneville Left Behind\""
+          ]
+        },
+        "artifact": {
+          "mode": "headlines",
+          "working_title": "NASA’s Aug. 24, 2026 Lake Bonneville leftover: shorelines the article shows vs. stories it tells",
+          "past_nonsense_coverage": {
+            "status": "no_relevant_archive_match",
+            "items": []
+          },
+          "conversation_questions": [
+            "What in the August 24, 2026 NASA Earth Observatory piece is actually shown in the Landsat 8 image, and what is background narrative?",
+            "How do we describe the ~18,000-year-old Red Rock Pass flood and 350-plus-foot drop without treating one Image of the Day as a primary geologic paper?",
+            "Why does the same leftover lakebed host potash ponds, a Venus-probe camera rehearsal, and land-speed runs?",
+            "Where should we stop short of climate or isostatic-rebound claims this article does not make?",
+            "What would USGS or Utah geologic sources still need to add that this single NASA story does not supply?"
+          ],
+          "uncertainties_and_open_checks": [
+            "Supplied evidence is only this NASA Earth Observatory page; no independent USGS or Utah Geological Survey paper is in the packet.",
+            "The article states the 55,000-year start and ~18,000-year dam breach as fact; this packet does not include the underlying studies.",
+            "The Andy Green August 2026 hydrogen run is reported here without a race-sanction date or results sheet.",
+            "The Landsat scene date is not given beyond the June 4, 2026 download labels in the page text.",
+            "Isostatic rebound and other extra-article shoreline interpretations are not supported by this source."
+          ],
+          "source_ledger": [
+            {
+              "source_id": "web_0f75b14faed2914ffab6",
+              "source_type": "provided_link",
+              "availability": "complete",
+              "evidence_usable": true,
+              "title": "What Lake Bonneville Left Behind - NASA Science",
+              "url": "https://science.nasa.gov/earth/earth-observatory/what-lake-bonneville-left-behind/",
+              "retrieved_at": "2026-08-24T10:46:10.410Z",
+              "excerpt": "5 min readImage of the Day for August 24, 2026The drying of the massive lake exposed playas that became the setting for feats of engineering and technological ingenuity, as well as epic tales of exploration and desperation.NASA Earth ObservatoryAug 24, 2026 Article\nView more Images of the Day:\n\nAt its peak, ancient Lake Bonneville would have been a sight to behold. Nearly as large as Lake Michigan, the Ice Age lake spread across much of western Utah and parts of Nevada and Idaho. When it eventually receded, it left behind flat, bright playas and salt flats rich with minerals—a landscape that w"
+            }
+          ],
+          "what_happened": {
+            "text": "NASA Earth Observatory published an August 24, 2026 Image of the Day, “What Lake Bonneville Left Behind,” using Landsat 8 OLI imagery of former shorelines, playas, and salt flats in the Bonneville basin, with a story by Adam Voiland.",
+            "source_ids": [
+              "web_0f75b14faed2914ffab6"
+            ]
+          },
+          "why_it_matters_now": {
+            "text": "The same leftover lakebed is framed as current news: a June 2026 DAVINCI camera rehearsal at Crater Island and an August 2026 hydrogen land-speed mark sit inside a brand-new NASA image package, not only Ice Age geology.",
+            "source_ids": [
+              "web_0f75b14faed2914ffab6"
+            ]
+          },
+          "verified_facts": [
+            {
+              "text": "The page is NASA Earth Observatory’s Image of the Day for August 24, 2026, titled “What Lake Bonneville Left Behind,” with images by Michala Garrison from USGS Landsat data and a story by Adam Voiland.",
+              "source_ids": [
+                "web_0f75b14faed2914ffab6"
+              ]
+            },
+            {
+              "text": "The article says Ice Age Lake Bonneville was nearly as large as Lake Michigan and spread across much of western Utah and parts of Nevada and Idaho.",
+              "source_ids": [
+                "web_0f75b14faed2914ffab6"
+              ]
+            },
+            {
+              "text": "It states the lake began forming about 55,000 years ago after volcanic eruptions in what’s now southeastern Idaho diverted the Bear River, with a natural dam at Red Rock Pass.",
+              "source_ids": [
+                "web_0f75b14faed2914ffab6"
+              ]
+            },
+            {
+              "text": "It states that about 18,000 years ago the dam breached into the Columbia River system and, over six weeks, lake level fell more than 350 feet (105 meters).",
+              "source_ids": [
+                "web_0f75b14faed2914ffab6"
+              ]
+            },
+            {
+              "text": "It names today’s Great Salt Lake, Utah Lake, and Sevier Lake as remnants after later warming and drying.",
+              "source_ids": [
+                "web_0f75b14faed2914ffab6"
+              ]
+            },
+            {
+              "text": "The featured Landsat 8 OLI image is described as showing bathtub-like rings and wave-cut terraces of former shorelines, with a pale dried lakebed of clay, marl, and sandy sediment.",
+              "source_ids": [
+                "web_0f75b14faed2914ffab6"
+              ]
+            },
+            {
+              "text": "It describes evaporite salt flats (halite, gypsum, and potassium- and magnesium-bearing salts) and rectangular potash evaporation ponds.",
+              "source_ids": [
+                "web_0f75b14faed2914ffab6"
+              ]
+            },
+            {
+              "text": "It reports June 2026 DAVINCI camera tests at Crater Island, nicknamed “Venus on Earth,” and an August 2026 Andy Green hydrogen-fueled run of 406.320 mph on the salt flats.",
+              "source_ids": [
+                "web_0f75b14faed2914ffab6"
+              ]
+            }
+          ],
+          "tension_or_argument": {
+            "text": "Keep the satellite geology (rings, terraces, pale sediments, evaporites, named ranges) separate from the article’s human overlay—engineering feats, Donner-Reed desperation, speed records, and a Venus analog. The photo does not itself prove the flood chronology or those stories.",
+            "source_ids": [
+              "web_0f75b14faed2914ffab6"
+            ]
+          },
+          "surprising_details": [
+            {
+              "text": "The article calls the Red Rock Pass outburst one of North America’s largest floods and says the drop took about six weeks.",
+              "source_ids": [
+                "web_0f75b14faed2914ffab6"
+              ]
+            },
+            {
+              "text": "DAVINCI rehearsals hung the camera system from a helicopter; the team says image-only 3-D maps matched existing geologic maps, intended as practice for Venus’s Alpha Regio.",
+              "source_ids": [
+                "web_0f75b14faed2914ffab6"
+              ]
+            },
+            {
+              "text": "Mickey Thompson’s 1960 406.60 mph mark and Green’s 2026 406.320 mph hydrogen mark sit within a mile-per-hour of each other on the same flats.",
+              "source_ids": [
+                "web_0f75b14faed2914ffab6"
+              ]
+            },
+            {
+              "text": "In August 1846 the Donner-Reed Party, heading from Hastings Pass past Floating Island toward Donner Spring, broke through thin salt crust into mud and abandoned wagons.",
+              "source_ids": [
+                "web_0f75b14faed2914ffab6"
+              ]
+            }
+          ],
+          "flexible_outline": [
+            {
+              "priority": "must_have",
+              "text": "Open on the August 24, 2026 NASA Image of the Day: what Landsat 8 actually shows—bathtub rings, wave-cut terraces, pale playa vs. darker mountains.",
+              "source_ids": [
+                "web_0f75b14faed2914ffab6"
+              ],
+              "estimated_minutes": 1.5
+            },
+            {
+              "priority": "must_have",
+              "text": "Walk the article’s lake history only as stated: ~55,000-year start, Bear River diversion, Red Rock Pass dam, ~18,000-year six-week flood, leftover Great Salt Lake / Utah Lake / Sevier Lake. Flag that this packet does not include the primary papers.",
+              "source_ids": [
+                "web_0f75b14faed2914ffab6"
+              ],
+              "estimated_minutes": 2
+            },
+            {
+              "priority": "must_have",
+              "text": "Name the leftover materials the piece specifies: clay/marl/sand lakebed, evaporite crusts, potash ponds, and the Silver Island, Newfoundland, and Pilot ranges plus Crater Island rocks.",
+              "source_ids": [
+                "web_0f75b14faed2914ffab6"
+              ],
+              "estimated_minutes": 1.5
+            },
+            {
+              "priority": "use_if_time",
+              "text": "June 2026 DAVINCI “Venus on Earth” camera drop at Crater Island and why NASA ties those rocks to Alpha Regio mapping.",
+              "source_ids": [
+                "web_0f75b14faed2914ffab6"
+              ],
+              "estimated_minutes": 1.25
+            },
+            {
+              "priority": "use_if_time",
+              "text": "Bonneville as a speed surface: Thompson 1960 vs. Green’s August 2026 hydrogen internal-combustion mark, staying inside the article’s numbers.",
+              "source_ids": [
+                "web_0f75b14faed2914ffab6"
+              ],
+              "estimated_minutes": 1
+            },
+            {
+              "priority": "cut_first",
+              "text": "Donner-Reed August 1846 wagons mired south of Crater Island—color only, not proof of the shoreline science.",
+              "source_ids": [
+                "web_0f75b14faed2914ffab6"
+              ],
+              "estimated_minutes": 0.75
+            }
+          ]
+        },
+        "evidence": [
+          {
+            "source_id": "web_0f75b14faed2914ffab6",
+            "source_type": "provided_link",
+            "availability": "complete",
+            "evidence_usable": true,
+            "title": "What Lake Bonneville Left Behind - NASA Science",
+            "url": "https://science.nasa.gov/earth/earth-observatory/what-lake-bonneville-left-behind/",
+            "retrieved_at": "2026-08-24T10:46:10.410Z",
+            "excerpt": "5 min readImage of the Day for August 24, 2026The drying of the massive lake exposed playas that became the setting for feats of engineering and technological ingenuity, as well as epic tales of exploration and desperation.NASA Earth ObservatoryAug 24, 2026 Article\nView more Images of the Day:\n\nAt its peak, ancient Lake Bonneville would have been a sight to behold. Nearly as large as Lake Michigan, the Ice Age lake spread across much of western Utah and parts of Nevada and Idaho. When it eventually receded, it left behind flat, bright playas and salt flats rich with minerals—a landscape that w"
+          }
+        ],
+        "validation_errors": [],
+        "events": [
+          {
+            "event_id": "evt_001",
+            "run_id": "run_038456c4-ef1f-4dc1-bdd0-c43eb37ad382",
+            "type": "run_started",
+            "created_at": "2026-08-24T10:46:04.630Z",
+            "summary": "Research run started",
+            "status": "running",
+            "detail": {
+              "mode": "headlines"
+            }
+          },
+          {
+            "event_id": "evt_002",
+            "run_id": "run_038456c4-ef1f-4dc1-bdd0-c43eb37ad382",
+            "type": "tool_started",
+            "created_at": "2026-08-24T10:46:10.410Z",
+            "summary": "Reading supplied source",
+            "tool": "read_url",
+            "status": "running",
+            "detail": {
+              "url": "https://science.nasa.gov/earth/earth-observatory/what-lake-bonneville-left-behind/"
+            }
+          },
+          {
+            "event_id": "evt_003",
+            "run_id": "run_038456c4-ef1f-4dc1-bdd0-c43eb37ad382",
+            "type": "tool_completed",
+            "created_at": "2026-08-24T10:46:11.528Z",
+            "summary": "Source retrieved",
+            "tool": "read_url",
+            "status": "complete",
+            "detail": {
+              "source_id": "web_0f75b14faed2914ffab6",
+              "availability": "complete"
+            }
+          },
+          {
+            "event_id": "evt_004",
+            "run_id": "run_038456c4-ef1f-4dc1-bdd0-c43eb37ad382",
+            "type": "tool_started",
+            "created_at": "2026-08-24T10:46:11.528Z",
+            "summary": "Searching the current web",
+            "tool": "web_search",
+            "status": "running",
+            "detail": {
+              "query": "site:science.nasa.gov/earth/earth-observatory/ \"What Lake Bonneville Left Behind\" \"August 24, 2026\""
+            }
+          },
+          {
+            "event_id": "evt_005",
+            "run_id": "run_038456c4-ef1f-4dc1-bdd0-c43eb37ad382",
+            "type": "tool_completed",
+            "created_at": "2026-08-24T10:46:33.985Z",
+            "summary": "Current sources found",
+            "tool": "web_search",
+            "status": "complete",
+            "detail": {
+              "query": "site:science.nasa.gov/earth/earth-observatory/ \"What Lake Bonneville Left Behind\" \"August 24, 2026\"",
+              "result_count": 1,
+              "search_status": "complete"
+            }
+          },
+          {
+            "event_id": "evt_006",
+            "run_id": "run_038456c4-ef1f-4dc1-bdd0-c43eb37ad382",
+            "type": "tool_started",
+            "created_at": "2026-08-24T10:46:33.985Z",
+            "summary": "Searching prior Nonsense coverage",
+            "tool": "search_transcripts",
+            "status": "running",
+            "detail": {
+              "query": "\"Lake Bonneville\""
+            }
+          },
+          {
+            "event_id": "evt_007",
+            "run_id": "run_038456c4-ef1f-4dc1-bdd0-c43eb37ad382",
+            "type": "tool_completed",
+            "created_at": "2026-08-24T10:46:35.889Z",
+            "summary": "Archive search completed",
+            "tool": "search_transcripts",
+            "status": "complete",
+            "detail": {
+              "query": "\"Lake Bonneville\"",
+              "result_count": 0,
+              "retrieval_status": "no_match"
+            }
+          },
+          {
+            "event_id": "evt_008",
+            "run_id": "run_038456c4-ef1f-4dc1-bdd0-c43eb37ad382",
+            "type": "composition_started",
+            "created_at": "2026-08-24T10:46:35.891Z",
+            "summary": "Composing the preparation artifact",
+            "status": "running"
+          },
+          {
+            "event_id": "evt_009",
+            "run_id": "run_038456c4-ef1f-4dc1-bdd0-c43eb37ad382",
+            "type": "validation_started",
+            "created_at": "2026-08-24T10:47:54.195Z",
+            "summary": "Validating artifact evidence and structure",
+            "status": "running"
+          },
+          {
+            "event_id": "evt_010",
+            "run_id": "run_038456c4-ef1f-4dc1-bdd0-c43eb37ad382",
+            "type": "validation_failed",
+            "created_at": "2026-08-24T10:47:54.201Z",
+            "summary": "Artifact validation found repairable errors",
+            "status": "failed",
+            "detail": {
+              "error_count": 2
+            }
+          },
+          {
+            "event_id": "evt_011",
+            "run_id": "run_038456c4-ef1f-4dc1-bdd0-c43eb37ad382",
+            "type": "repair_started",
+            "created_at": "2026-08-24T10:47:54.201Z",
+            "summary": "Running the single allowed artifact repair",
+            "status": "running"
+          },
+          {
+            "event_id": "evt_012",
+            "run_id": "run_038456c4-ef1f-4dc1-bdd0-c43eb37ad382",
+            "type": "run_completed",
+            "created_at": "2026-08-24T10:47:54.203Z",
+            "summary": "Partial artifact preserved with validation errors",
+            "status": "partial"
+          }
+        ],
+        "usage": [
+          {
+            "action": "luna_research_plan",
+            "model": "openai/gpt-5.6-luna",
+            "provider": "OpenAI",
+            "prompt_tokens": 194,
+            "completion_tokens": 614,
+            "total_tokens": 808,
+            "reported_cost_usd": 0.0007756,
+            "accounted_cost_usd": 0.0007756,
+            "receipt_missing": false
+          },
+          {
+            "action": "web_search",
+            "model": "x-ai/grok-4.6",
+            "provider": "xAI",
+            "prompt_tokens": 5238,
+            "completion_tokens": 1367,
+            "total_tokens": 6605,
+            "reported_cost_usd": 0.017342,
+            "accounted_cost_usd": 0.017342,
+            "receipt_missing": false
+          },
+          {
+            "action": "transcript_search",
+            "model": "text-embedding-3-small",
+            "provider": "Azure",
+            "prompt_tokens": 6,
+            "total_tokens": 6,
+            "reported_cost_usd": 1.2e-7,
+            "accounted_cost_usd": 1.2e-7,
+            "receipt_missing": false
+          },
+          {
+            "action": "transcript_search",
+            "model": "accounts/fireworks/models/qwen3-reranker-8b",
+            "provider": "Fireworks",
+            "total_tokens": 11322,
+            "reported_cost_usd": 0.0022644,
+            "accounted_cost_usd": 0.0022644,
+            "receipt_missing": false
+          },
+          {
+            "action": "grok_composition",
+            "model": "x-ai/grok-4.6",
+            "provider": "xAI",
+            "prompt_tokens": 3360,
+            "completion_tokens": 5049,
+            "total_tokens": 8409,
+            "reported_cost_usd": 0.036822,
+            "accounted_cost_usd": 0.036822,
+            "receipt_missing": false
+          },
+          {
+            "action": "grok_repair",
+            "accounted_cost_usd": 0.2,
+            "receipt_missing": true
+          }
+        ],
+        "counts": {
+          "luna_turns": 1,
+          "grok_turns": 2,
+          "web_searches": 1,
+          "url_reads": 1,
+          "transcript_searches": 1,
+          "transcript_opens": 0,
+          "repairs": 1
+        },
+        "repair_attempted": true,
+        "elapsed_ms": 109574.71,
+        "accounted_cost_usd": 0.25720412
+      }
+    }
+  ]
+}

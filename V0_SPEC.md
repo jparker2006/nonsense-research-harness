@@ -126,7 +126,7 @@ Each event has a run ID, workspace ID, timestamp, display-safe summary, and type
 
 ## 7. Artifact contracts
 
-The model produces structured data validated by code. The application renders that structure as editable prose/Markdown. Every factual claim uses source IDs that resolve to the artifact's source ledger. Notes and hypotheses are visibly distinct from verified facts.
+The model produces structured editorial fields validated by code. The application renders that structure as editable prose/Markdown. Every factual claim uses source IDs, and code—not the model—constructs the artifact's source ledger from those cited IDs. Notes and hypotheses are visibly distinct from verified facts.
 
 ### Headlines artifact
 
@@ -145,18 +145,13 @@ The model produces structured data validated by code. The application renders th
 ### Big Story artifact
 
 1. **Working title and core question**
-2. **Story map** — a compact orientation to the subject
-3. **Background and timeline**
-4. **Verified evidence** — discrete claims with source IDs
-5. **People, organizations, and forces that matter**
-6. **Competing interpretations** — strongest credible explanations or positions without manufacturing false balance
-7. **Surprising details and useful examples**
-8. **Past Nonsense coverage** — exact archive excerpts with episode and segment references, or an explicit `no_relevant_archive_match`
-9. **Conversation tensions and questions**
-10. **Modular outline** — sections and beats labeled `must_have`, `use_if_time`, or `cut_first`; timing is proportional only when `target_minutes` was supplied
-11. **Recommendation leads** — optional sourced media or resources worth considering for the show's ending; never represented as CJ or Jeff's chosen recommendation
-12. **Uncertainties and open checks**
-13. **Source ledger**
+2. **Research brief** — a compact sourced orientation to the subject
+3. **Research cards** — discrete sourced cards typed as background, key evidence, force, interpretation, surprise, or optional recommendation lead
+4. **Past Nonsense coverage** — exact archive excerpts with episode and segment references, or an explicit `no_relevant_archive_match`
+5. **Conversation tensions and questions**
+6. **Modular outline** — sections and beats labeled `must_have`, `use_if_time`, or `cut_first`; timing is proportional only when `target_minutes` was supplied
+7. **Uncertainties and open checks**
+8. **Source ledger** — constructed deterministically from the evidence records cited above, never copied or invented by the model
 
 ## 8. Evidence and citation contract
 

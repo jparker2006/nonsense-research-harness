@@ -1,6 +1,7 @@
 import { searchBm25 } from "./bm25.ts";
 import { loadRetrievalArtifacts, type RetrievalArtifacts } from "./artifacts.ts";
 import { embedTexts, rerankDocuments } from "./providers.ts";
+import type { ProviderReceipt } from "./providers.ts";
 import { fuseCandidates, RANKING_POLICY, searchVectors } from "./ranking.ts";
 import type {
   FusedCandidate,
@@ -15,13 +16,20 @@ export type TranscriptProvider = {
   rerank(query: string, documents: string[]): Promise<Array<{ index: number; relevanceScore: number }>>;
 };
 
-export function createOpenRouterTranscriptProvider(apiKey: string): TranscriptProvider {
+export function createOpenRouterTranscriptProvider(
+  apiKey: string,
+  onReceipt?: (receipt: ProviderReceipt) => void,
+): TranscriptProvider {
   return {
     async embedQuery(query) {
-      return (await embedTexts(apiKey, [query])).vectors[0] ?? [];
+      const result = await embedTexts(apiKey, [query]);
+      onReceipt?.(result.receipt);
+      return result.vectors[0] ?? [];
     },
     async rerank(query, documents) {
-      return (await rerankDocuments(apiKey, query, documents, documents.length)).results;
+      const result = await rerankDocuments(apiKey, query, documents, documents.length);
+      onReceipt?.(result.receipt);
+      return result.results;
     },
   };
 }

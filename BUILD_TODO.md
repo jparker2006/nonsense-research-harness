@@ -1,6 +1,6 @@
 # Nonsense Research Harness — Build TODO
 
-Status: Phase 4.1 passed on 2026-08-23 HST. The original Phase 4 live-search limitation remains preserved in `docs/PHASE_4_RESULT.md`; `docs/PHASE_4_1_RESULT.md` records the repair and an hours-old live freshness proof. Hosted databases, Vercel projects, Phase 5, and deployment remain unauthorized.
+Status: Phase 5 and its Phase 5.1 Big Story repair **PASSED** on 2026-08-24 HST. The preserved live evidence now contains a validated recovered Headlines artifact and a validated composition-only Big Story artifact over the exact five-source packet collected by the replacement Big Story run. The proof used one Grok request, zero retries, and `$0.047494`; every live path is relocked. Phase 6, hosted infrastructure, and deployment have not started.
 
 ## Intended v0 outcome
 
@@ -228,30 +228,60 @@ This phase builds one server-side archive tool using deterministic exact-text ch
 
 ### Harden before running
 
-- [ ] Freeze one agent, the deterministic light/heavy model mapping, four tools, and one evidence-repair loop.
-- [ ] Define maximum turns, searches, URL reads, archive reads, tokens, time, and cost in code.
-- [ ] Define deterministic validation separately from model judgment.
-- [ ] Require source IDs on factual claims and real segment IDs on archive references.
-- [ ] Prohibit invented host dialogue, impersonation, final topic selection, and unsupported certainty.
-- [ ] Prepare recorded tool fixtures so the complete graph can run without provider spend.
+- [x] Freeze one agent, the deterministic light/heavy model mapping, four tools, and one evidence-repair loop.
+- [x] Define maximum turns, searches, URL reads, archive reads, tokens, time, and cost in code.
+- [x] Define deterministic validation separately from model judgment.
+- [x] Require source IDs on factual claims and real segment IDs on archive references.
+- [x] Prohibit invented host dialogue, impersonation, final topic selection, and unsupported certainty.
+- [x] Prepare recorded tool fixtures so the complete graph can run without provider spend.
 
 ### Build
 
-- [ ] Implement the graph: intake → research loop → evidence validation → optional single repair → structured composition → save result.
-- [ ] Use Luna only for light structured/tool work and Grok only for heavy research/synthesis; do not let either model route itself.
-- [ ] Add Headlines and Big Story schemas without separate agents.
-- [ ] Emit sanitized activity events for every graph step and tool call.
-- [ ] Return a useful partial artifact when a non-critical source is unavailable.
-- [ ] Add deterministic tests for graph routing, budget exhaustion, missing citations, bad archive IDs, malformed structured output, and repair-loop termination.
-- [ ] After fixture tests pass, run one separately approved live Headlines case and one Big Story case.
+- [x] Implement the graph: intake → Luna research plan → bounded tool execution → Grok composition → deterministic validation → optional single Grok repair → final result.
+- [x] Use Luna only for light structured/tool work and Grok only for heavy research/synthesis; do not let either model route itself.
+- [x] Add Headlines and Big Story schemas without separate agents.
+- [x] Emit sanitized activity events for every graph step and tool call.
+- [x] Return a useful partial artifact when a non-critical source is unavailable.
+- [x] Add deterministic tests for graph routing, budget exhaustion, missing citations, bad archive IDs, malformed structured output, and repair-loop termination.
+- [x] After fixture tests pass, execute the separately approved original/replacement Headlines and Big Story attempts; preserve every failure without automatic retry.
 
 ### Phase 5 gate — STOP
 
-- [ ] The graph always terminates within its coded limits.
-- [ ] The two output schemas validate.
-- [ ] Factual claims and archive excerpts resolve to stored evidence.
-- [ ] Partial and failed runs remain truthful and inspectable.
-- [ ] Live cases, if approved, remain within the recorded budget.
+- [x] The graph always terminates within its coded limits in deterministic and live evidence.
+- [x] Both output schemas validate in live evidence: the recovered Headlines artifact passes, and the Phase 5.1 Big Story proof passes against the exact frozen evidence packet from the replacement research run.
+- [x] Factual claims and archive excerpts resolve to stored evidence in deterministic coverage and both validated live artifacts.
+- [x] Partial and failed runs remain truthful and inspectable.
+- [x] All live attempts remained within `$0.50` each and `$1.30` aggregate, with missing receipts charged to conservative reservations.
+
+## Phase 5.1 — Harden Big Story composition
+
+### Provider-free repair
+
+- [x] Freeze the zero-spend scope and preserve the four-attempt live report.
+- [x] Record safe generation ID, finish reason, response size, parse status, and reasoning-token usage when supplied.
+- [x] Distinguish empty, invalid JSON, truncated, and incomplete output without storing failed raw model text.
+- [x] Do not spend the repair call when composition produced no parseable artifact.
+- [x] Remove `source_ledger` from both model-facing schemas and hydrate only cited evidence in code.
+- [x] Consolidate repeated Big Story sections into a compact research brief and typed research cards.
+- [x] Send each evidence body once, raise the Grok allowance to 12,000 combined reasoning/output tokens, and allow 300 seconds for the bounded run.
+- [x] Execute both Big Story web queries and split four unique archive opens across two story-section searches.
+- [x] Add deterministic maximum-shape, receipt, failure, hydration, retrieval-depth, and no-extra-repair coverage.
+- [x] Build a statically locked one-request composition-only launcher over the frozen five-source packet; keep it locked until separately authorized.
+
+### Phase 5.1 deterministic gate — STOP
+
+- [x] Full `pnpm gate`, dependency audit, corpus hashes, report hash, secret boundary, and static live locks pass.
+- [x] `docs/PHASE_5_1_RESULT.md` records exact evidence and remaining limitations.
+- [x] No provider call, commit, push, Phase 6 work, or deployment occurred.
+- [x] A composition-only live proof remains separately authorized with an exact request and dollar cap.
+
+### Phase 5.1 live gate — STOP
+
+- [x] Execute exactly one composition-only `x-ai/grok-4.6` request with no retry and no Luna, web, URL, embedding, rerank, or transcript-query provider calls.
+- [x] Return parsed output with zero validation errors, six research cards, four exact archive references, seven clocked outline beats totaling 28 minutes, and five code-owned source records.
+- [x] Preserve the receipt and artifact in `reports/phase-5-1-compose-proof.json`; actual and accounted spend is `$0.047494 / $0.20`.
+- [x] Relock the model boundary and composition launcher immediately after the request.
+- [x] Run the final full gate, record final hashes/security evidence, and push the exact passing Phase 5/5.1 commit to private `origin/main`.
 
 ## Phase 6 — Build the Claude Code-style interface
 
@@ -376,4 +406,4 @@ Do not pull these into a phase unless the usefulness evaluation identifies a con
 
 ## First next action
 
-Launch the approved goal in `docs/PHASE_3_GOAL_LAUNCHER.md`. Stop after the Phase 3 gate; do not begin Phase 4 automatically.
+Decide whether to authorize one composition-only Grok proof against a frozen local evidence packet. Do not repeat web/archive research or begin Phase 6 automatically.

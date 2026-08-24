@@ -114,10 +114,13 @@ function assertLiveAuthority(apiKey: string) {
   if (!apiKey.trim()) {
     throw new Phase3ProviderError("configuration", "OPENROUTER_API_KEY is missing. No request was sent.");
   }
-  if (process.env.PHASE3_EXECUTE_LIVE !== "approved") {
+  if (
+    process.env.PHASE3_EXECUTE_LIVE !== "approved" &&
+    process.env.PHASE5_EXECUTE_LIVE !== "approved"
+  ) {
     throw new Phase3ProviderError(
       "policy",
-      "PHASE3_EXECUTE_LIVE=approved is required. No request was sent.",
+      "Explicit live authority is required: PHASE3_EXECUTE_LIVE=approved or PHASE5_EXECUTE_LIVE=approved. No request was sent.",
     );
   }
 }
