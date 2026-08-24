@@ -42,3 +42,4 @@ Status: Phase 1 compatibility and security gate passed locally on 2026-08-23.
 - The production build emitted no application warnings. npm flags ESLint 9 as unsupported upstream; this reviewed compatibility pin remains the only known dependency warning.
 - Mastra passed the spike and remains the selected workflow runtime. The LangGraph.js fallback is not installed.
 - Provider spend was `$0`. No OpenRouter key, model request, hosted database, Vercel project, or deployment was created.
+- GitHub reports `jparker2006/nonsense-research-harness` as `PRIVATE`. Implementation commit `972bc24` was pushed to `main`; transcripts, processed corpus JSONL, raw downloads, caches, dependencies, environments, secrets, and build output were excluded.

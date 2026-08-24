@@ -14,6 +14,7 @@ The product prepares conversation material. It does not choose the final stories
 - Authoritative project root selected for Phase 0: `/Users/jakeparker/Desktop/Nonsense Podcast Project`
 - Both folders contain byte-identical copies of `WORKFLOW.md` as verified on 2026-08-23.
 - The Phase 1 application is installed and green in the authoritative Desktop root. It streams a deterministic zero-cost fixture through the real Next.js, AI SDK, assistant-ui, and Mastra boundaries.
+- Local `main` tracks the verified private repository `jparker2006/nonsense-research-harness`; the Phase 1 implementation commit is `972bc24`.
 - The processed corpus already lives in the authoritative Desktop project:
   - 59 episode records: `/Users/jakeparker/Desktop/Nonsense Podcast Project/data/processed/episodes.jsonl`
   - 441 segment records: `/Users/jakeparker/Desktop/Nonsense Podcast Project/data/processed/segments.jsonl`
