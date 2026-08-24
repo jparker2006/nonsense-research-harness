@@ -1,5 +1,7 @@
 # Phase 4 result — safe web research tools
 
+> Historical result: the live-search limitation recorded below was repaired in Phase 4.1. See `docs/PHASE_4_1_RESULT.md` for the current runtime and freshness proof.
+
 Status: **PASSED WITH A RECORDED LIVE-SEARCH LIMITATION** on 2026-08-23 HST. Phase 4 stops here. The tools are not wired into the agent or UI, and Phase 5, persistence, hosted infrastructure, and deployment were not started.
 
 ## Delivered

@@ -1,0 +1,162 @@
+{
+  "phase": "4.1",
+  "status": "passed",
+  "updated_at": "2026-08-24T07:51:03.312Z",
+  "limits": {
+    "provider_requests": 5,
+    "budget_usd": 0.2,
+    "retries_per_request": 0
+  },
+  "official_contract_checked_at": "2026-08-23T00:00:00-10:00",
+  "repair": {
+    "removed_unsupported_tool_choice": true,
+    "perplexity_live_failure": "HTTP 500 Internal Server Error",
+    "replacement_engine": "native",
+    "current_contract_url": "https://openrouter.ai/docs/guides/features/server-tools/web-search",
+    "search_requires_usage_or_native_citation_bound_proof": true,
+    "exa_live_failure": "HTTP 500 Internal Server Error",
+    "native_tradeoff": "Provider-side result-count and context-size controls are unavailable; returned candidates are still code-capped."
+  },
+  "canary": {
+    "observed_via": "https://www.nasa.gov/news-release/feed/",
+    "feed_last_build_at": "Mon, 24 Aug 2026 04:01:00 +0000",
+    "title": "What Lake Bonneville Left Behind",
+    "url": "https://science.nasa.gov/earth/earth-observatory/what-lake-bonneville-left-behind/",
+    "published_at": "Mon, 24 Aug 2026 04:01:00 +0000"
+  },
+  "usage": {
+    "provider_requests": 5,
+    "reported_cost_usd": 0.049614,
+    "receipts_missing_cost": 3,
+    "unreceipted_cost_upper_bound_usd": 0.092,
+    "total_cost_upper_bound_usd": 0.141614
+  },
+  "attempts": [
+    {
+      "name": "compatibility",
+      "created_at": "2026-08-24T07:38:56.159Z",
+      "query": "Search the live web for OpenRouter's current web-search server-tool documentation. Return the official OpenRouter documentation page.",
+      "search_status": "unavailable",
+      "latency_ms": 1529.84,
+      "result_count": 0,
+      "sources": [],
+      "receipt": {
+        "http_status": 500
+      },
+      "failure": {
+        "code": "provider_http_error",
+        "message": "The bounded web search did not complete with verified citations."
+      },
+      "diagnostic": {
+        "http_status": 500,
+        "provider_error_code": 500,
+        "provider_error_message": "Internal Server Error"
+      },
+      "engine": "perplexity"
+    },
+    {
+      "name": "compatibility",
+      "engine": "exa",
+      "created_at": "2026-08-24T07:40:14.630Z",
+      "query": "Search the live web for OpenRouter's current web-search server-tool documentation. Return the official OpenRouter documentation page.",
+      "search_status": "unavailable",
+      "latency_ms": 1475.48,
+      "result_count": 0,
+      "sources": [],
+      "receipt": {
+        "http_status": 500
+      },
+      "failure": {
+        "code": "provider_http_error",
+        "message": "The bounded web search did not complete with verified citations."
+      },
+      "diagnostic": {
+        "http_status": 500,
+        "provider_error_code": 500,
+        "provider_error_message": "Internal Server Error"
+      }
+    },
+    {
+      "name": "freshness",
+      "engine": "native",
+      "created_at": "2026-08-24T07:45:10.554Z",
+      "query": "Search the live web for NASA's newly published page titled \"What Lake Bonneville Left Behind\", published August 24, 2026. Return the official NASA Science page.",
+      "search_status": "unavailable",
+      "latency_ms": 17839.48,
+      "result_count": 0,
+      "sources": [],
+      "receipt": {},
+      "failure": {
+        "code": "search_not_proven",
+        "message": "The bounded web search did not complete with verified citations."
+      },
+      "freshness_canary_matched": false
+    },
+    {
+      "name": "freshness",
+      "engine": "native",
+      "created_at": "2026-08-24T07:49:03.571Z",
+      "query": "Find the single newest official NASA Science Earth Observatory page currently visible on science.nasa.gov. You cannot know the answer without using live web search. Return the newest page and no other result.",
+      "search_status": "complete",
+      "latency_ms": 36668.7,
+      "result_count": 1,
+      "sources": [
+        {
+          "source_id": "web_9414781288e9dffec848",
+          "url": "https://science.nasa.gov/earth/",
+          "title": "1"
+        }
+      ],
+      "receipt": {
+        "provider_model": "x-ai/grok-4.6",
+        "provider_name": "xAI",
+        "prompt_tokens": 6704,
+        "completion_tokens": 1750,
+        "total_tokens": 8454,
+        "cost_usd": 0.02622,
+        "web_search_proof": "citations_and_request_bound"
+      },
+      "freshness_canary_matched": false
+    },
+    {
+      "name": "freshness",
+      "engine": "native",
+      "created_at": "2026-08-24T07:50:59.249Z",
+      "query": "Use live web search now to find the exact official NASA Science page titled \"What Lake Bonneville Left Behind\", published August 24, 2026. Cite the article page itself, not a section landing page.",
+      "search_status": "complete",
+      "latency_ms": 23801.46,
+      "result_count": 1,
+      "sources": [
+        {
+          "source_id": "web_0f75b14faed2914ffab6",
+          "url": "https://science.nasa.gov/earth/earth-observatory/what-lake-bonneville-left-behind/",
+          "title": "1"
+        }
+      ],
+      "receipt": {
+        "provider_model": "x-ai/grok-4.6",
+        "provider_name": "xAI",
+        "prompt_tokens": 7124,
+        "completion_tokens": 1267,
+        "total_tokens": 8391,
+        "cost_usd": 0.023394,
+        "web_search_proof": "citations_and_request_bound"
+      },
+      "opened_source": {
+        "source_id": "web_0f75b14faed2914ffab6",
+        "availability": "complete",
+        "final_url": "https://science.nasa.gov/earth/earth-observatory/what-lake-bonneville-left-behind/",
+        "title": "What Lake Bonneville Left Behind - NASA Science",
+        "published_at": "2026-08-24T00:01:00-04:00",
+        "receipt": {
+          "http_status": 200,
+          "content_type": "text/html",
+          "redirects": 0,
+          "http_requests": 1,
+          "bytes": 321908
+        }
+      },
+      "freshness_canary_matched": true
+    }
+  ]
+}

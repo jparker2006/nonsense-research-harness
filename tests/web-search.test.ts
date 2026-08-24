@@ -36,7 +36,7 @@ function citationEvent(annotations: unknown[], overrides: Record<string, unknown
 }
 
 describe("Phase 4 bounded OpenRouter search", () => {
-  it("freezes Grok/Perplexity/ZDR routing and every request-side ceiling", () => {
+  it("freezes Grok native/ZDR routing and every enforceable request-side ceiling", () => {
     const validated = validateWebSearchInput({
       query: " OpenRouter web search docs ",
       limit: 3,
@@ -46,9 +46,8 @@ describe("Phase 4 bounded OpenRouter search", () => {
     expect(request).toMatchObject({
       model: "x-ai/grok-4.6",
       stream: true,
-      max_tokens: 128,
+      max_tokens: 384,
       max_tool_calls: 1,
-      tool_choice: "required",
       reasoning: { effort: "medium", exclude: true },
       provider: {
         allow_fallbacks: false,
@@ -58,15 +57,13 @@ describe("Phase 4 bounded OpenRouter search", () => {
         max_price: { prompt: 2, completion: 6 },
       },
     });
+    expect(request).not.toHaveProperty("tool_choice");
     expect(request.tools).toEqual([
       {
         type: "openrouter:web_search",
         parameters: {
-          engine: "perplexity",
+          engine: "native",
           max_uses: 1,
-          max_results: 3,
-          max_total_results: 3,
-          max_characters: 1_200,
           allowed_domains: ["openrouter.ai", "*.openrouter.ai"],
         },
       },
@@ -104,7 +101,7 @@ describe("Phase 4 bounded OpenRouter search", () => {
   it("returns normalized candidates, sanitized usage, and discards all model prose/reasoning", async () => {
     const fetchSpy = vi.fn<typeof fetch>(async (_url, init) => {
       const request = JSON.parse(String(init?.body));
-      expect(request.tools[0].parameters.max_results).toBe(2);
+      expect(request.tools[0].parameters).toEqual({ engine: "native", max_uses: 1 });
       return streamResponse([
         citationEvent([
           {
@@ -138,6 +135,7 @@ describe("Phase 4 bounded OpenRouter search", () => {
         total_tokens: 60,
         cost_usd: 0.0052,
         web_search_requests: 1,
+        web_search_proof: "usage",
       },
       sources: [
         {
@@ -154,6 +152,92 @@ describe("Phase 4 bounded OpenRouter search", () => {
     expect(JSON.stringify(result)).not.toContain("discard this prose");
     expect(JSON.stringify(result)).not.toContain("discard this too");
     expect(fetchSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it("accepts native citations plus the one-tool request bound when xAI omits the usage counter", async () => {
+    const result = await webSearch(
+      { query: "fresh native search" },
+      {
+        apiKey: "synthetic",
+        liveAuthorized: true,
+        fetchImpl: async () =>
+          streamResponse([
+            citationEvent(
+              [
+                {
+                  type: "url_citation",
+                  url_citation: { url: "https://example.com/fresh", title: "Fresh" },
+                },
+              ],
+              { usage: { prompt_tokens: 10, completion_tokens: 2, total_tokens: 12, cost: 0.01 } },
+            ),
+          ]),
+      },
+    );
+    expect(result).toMatchObject({
+      status: "complete",
+      sources: [{ url: "https://example.com/fresh" }],
+      receipt: { web_search_proof: "citations_and_request_bound" },
+    });
+  });
+
+  it("rejects a provider usage receipt proving more than one search", async () => {
+    const result = await webSearch(
+      { query: "too many searches" },
+      {
+        apiKey: "synthetic",
+        liveAuthorized: true,
+        fetchImpl: async () =>
+          streamResponse([
+            citationEvent(
+              [
+                {
+                  type: "url_citation",
+                  url_citation: { url: "https://example.com/excess", title: "Excess" },
+                },
+              ],
+              { usage: usage({ server_tool_use: { web_search_requests: 2 } }) },
+            ),
+          ]),
+      },
+    );
+    expect(result).toMatchObject({ status: "unavailable", failure: { code: "search_not_proven" } });
+  });
+
+  it("accepts the current input/output token usage aliases", async () => {
+    const result = await webSearch(
+      { query: "current usage aliases" },
+      {
+        apiKey: "synthetic",
+        liveAuthorized: true,
+        fetchImpl: async () =>
+          streamResponse([
+            citationEvent(
+              [
+                {
+                  type: "url_citation",
+                  url_citation: { url: "https://example.com/current", title: "Current" },
+                },
+              ],
+              {
+                usage: {
+                  input_tokens: 77,
+                  output_tokens: 12,
+                  total_tokens: 89,
+                  cost: 0.0054,
+                  server_tool_use: { web_search_requests: 1 },
+                },
+              },
+            ),
+          ]),
+      },
+    );
+    expect(result.receipt).toMatchObject({
+      prompt_tokens: 77,
+      completion_tokens: 12,
+      total_tokens: 89,
+      web_search_requests: 1,
+    });
   });
 
   it("deduplicates valid citations, keeps content-less candidates, and marks malformed neighbors partial", async () => {
@@ -204,6 +288,39 @@ describe("Phase 4 bounded OpenRouter search", () => {
     expect(result).toMatchObject({ status: "unavailable", failure: { code } });
     if (code === "provider_http_error") expect(result.receipt.http_status).toBe(500);
     expect(JSON.stringify(result)).not.toContain("SECRET provider body");
+  });
+
+  it("preserves sanitized provider usage when citation proof is unavailable", async () => {
+    const result = await webSearch(
+      { query: "provider diagnostic receipt" },
+      {
+        apiKey: "synthetic",
+        liveAuthorized: true,
+        fetchImpl: async () =>
+          streamResponse([
+            citationEvent([], {
+              usage: {
+                input_tokens: 101,
+                output_tokens: 4,
+                total_tokens: 105,
+                cost: 0.0123,
+              },
+            }),
+          ]),
+      },
+    );
+    expect(result).toMatchObject({
+      status: "unavailable",
+      receipt: {
+        provider_model: "x-ai/grok-4.6",
+        provider_name: "xAI",
+        prompt_tokens: 101,
+        completion_tokens: 4,
+        total_tokens: 105,
+        cost_usd: 0.0123,
+      },
+      failure: { code: "search_not_proven" },
+    });
   });
 
   it("fails before fetch when the key or explicit live authority is missing", async () => {

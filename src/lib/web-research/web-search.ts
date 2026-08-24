@@ -10,7 +10,7 @@ import type { WebSearchInput, WebSearchResult, WebSourceReceipt, WebSourceRecord
 export const WEB_SEARCH_PROVIDER = Object.freeze({
   endpoint: "https://openrouter.ai/api/v1/chat/completions",
   model: "x-ai/grok-4.6",
-  engine: "perplexity",
+  engine: "native",
   reasoningEffort: "medium" as const,
   maxPricePerMillion: Object.freeze({ prompt: 2, completion: 6 }),
 });
@@ -88,9 +88,6 @@ export function buildWebSearchRequest(input: ReturnType<typeof validateWebSearch
   const parameters: Record<string, unknown> = {
     engine: WEB_SEARCH_PROVIDER.engine,
     max_uses: 1,
-    max_results: input.limit,
-    max_total_results: input.limit,
-    max_characters: WEB_RESEARCH_LIMITS.searchMaxCharactersPerResult,
   };
   if (input.allowed_domains) parameters.allowed_domains = input.allowed_domains;
   if (input.excluded_domains) parameters.excluded_domains = input.excluded_domains;
@@ -105,7 +102,6 @@ export function buildWebSearchRequest(input: ReturnType<typeof validateWebSearch
     stream: true,
     max_tokens: WEB_RESEARCH_LIMITS.searchMaxOutputTokens,
     max_tool_calls: WEB_RESEARCH_LIMITS.searchMaxToolCalls,
-    tool_choice: "required",
     tools: [{ type: "openrouter:web_search", parameters }],
     provider: {
       allow_fallbacks: false,
@@ -123,8 +119,8 @@ function parseUsage(value: unknown): WebSourceReceipt | undefined {
   if (!usage) return undefined;
   const toolUse = objectValue(usage.server_tool_use);
   return {
-    prompt_tokens: numberValue(usage.prompt_tokens),
-    completion_tokens: numberValue(usage.completion_tokens),
+    prompt_tokens: numberValue(usage.prompt_tokens) ?? numberValue(usage.input_tokens),
+    completion_tokens: numberValue(usage.completion_tokens) ?? numberValue(usage.output_tokens),
     total_tokens: numberValue(usage.total_tokens),
     cost_usd: numberValue(usage.cost),
     web_search_requests: numberValue(toolUse?.web_search_requests),
@@ -280,6 +276,7 @@ export async function webSearch(
 
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), WEB_RESEARCH_LIMITS.searchTimeoutMs);
+  let observedReceipt: WebSourceReceipt = {};
   try {
     const response = await (options.fetchImpl ?? fetch)(WEB_SEARCH_PROVIDER.endpoint, {
       method: "POST",
@@ -291,10 +288,8 @@ export async function webSearch(
       signal: controller.signal,
     });
     const stream = await parseWebSearchStream(response);
+    observedReceipt = stream.receipt;
     if (!stream.done) throw new Error("malformed_stream");
-    if (stream.receipt.web_search_requests !== 1) {
-      throw new Error("search_not_proven");
-    }
     if (stream.receipt.provider_model && !stream.receipt.provider_model.startsWith(WEB_SEARCH_PROVIDER.model)) {
       throw new Error("route_mismatch");
     }
@@ -309,6 +304,16 @@ export async function webSearch(
       if (!candidates.some((existing) => existing.url === candidate.url)) candidates.push(candidate);
     }
     const sources = candidates.slice(0, validated.limit);
+    if (stream.receipt.web_search_requests !== undefined && stream.receipt.web_search_requests !== 1) {
+      throw new Error("search_not_proven");
+    }
+    if (stream.receipt.web_search_requests === 1) {
+      stream.receipt.web_search_proof = "usage";
+    } else if (WEB_SEARCH_PROVIDER.engine === "native" && sources.length > 0) {
+      stream.receipt.web_search_proof = "citations_and_request_bound";
+    } else {
+      throw new Error("search_not_proven");
+    }
     if (!sources.length) {
       return {
         status: "no_match",
@@ -338,7 +343,10 @@ export async function webSearch(
       query: validated.query,
       sources: [],
       retrieved_at: retrievedAt,
-      receipt: error instanceof SearchProviderHttpError ? { http_status: error.status } : {},
+      receipt:
+        error instanceof SearchProviderHttpError
+          ? { ...observedReceipt, http_status: error.status }
+          : observedReceipt,
       failure: sanitizedFailure(code, "The bounded web search did not complete with verified citations."),
     };
   } finally {

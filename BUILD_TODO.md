@@ -1,6 +1,6 @@
 # Nonsense Research Harness — Build TODO
 
-Status: Phase 4 passed on 2026-08-23 HST with the live Perplexity search limitation preserved in `docs/PHASE_4_RESULT.md`. The safe reader succeeded live; the search boundary is deterministic-fixture proven but its single live request returned no verified citations. Hosted databases, Vercel projects, Phase 5, and deployment remain unauthorized.
+Status: Phase 4.1 passed on 2026-08-23 HST. The original Phase 4 live-search limitation remains preserved in `docs/PHASE_4_RESULT.md`; `docs/PHASE_4_1_RESULT.md` records the repair and an hours-old live freshness proof. Hosted databases, Vercel projects, Phase 5, and deployment remain unauthorized.
 
 ## Intended v0 outcome
 
@@ -214,6 +214,15 @@ This phase builds one server-side archive tool using deterministic exact-text ch
 - [x] Every successful result has a stable citation record.
 - [x] Every failure returns an honest typed state.
 - [x] Live calls stayed within the recorded request and dollar cap; the failed search remains an explicit limitation.
+
+### Phase 4.1 — Repair live web search
+
+- [x] Rechecked the current OpenRouter server-tool contract and removed the unsupported forced-tool setting.
+- [x] Diagnosed identical HTTP 500 responses through Perplexity and Exa, then selected the already proven Grok-native route.
+- [x] Preserved provider receipts on proof failures and accepted xAI's documented citation-plus-request-bound evidence when its usage counter is absent.
+- [x] Proved an exact live search for an official NASA article published 3 hours 49 minutes earlier, then independently retrieved the page through `read_url`.
+- [x] Stayed within five approved provider requests, zero retries, and a `$0.20` conservative cap; locked the launcher after proof.
+- [x] Preserved Phase 3 corpus/retrieval hashes and stopped before Phase 5.
 
 ## Phase 5 — Build the one-agent workflow
 

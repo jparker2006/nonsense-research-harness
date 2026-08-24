@@ -24,6 +24,7 @@ export type WebSourceReceipt = {
   total_tokens?: number;
   cost_usd?: number;
   web_search_requests?: number;
+  web_search_proof?: "usage" | "citations_and_request_bound";
 };
 
 export type WebSourceRecord = {
