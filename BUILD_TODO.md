@@ -1,6 +1,6 @@
 # Nonsense Research Harness — Build TODO
 
-Status: Phase 1 passed locally on 2026-08-23. Jake approved `V0_SPEC.md`, dependency downloads, local implementation, and a private GitHub repository. Provider calls, hosted databases, Vercel projects, and deployment remain unauthorized.
+Status: Phase 2 zero-spend hardening is in progress on 2026-08-23. Phase 1 passed and is recorded. Provider calls remain blocked until Jake approves the exact Phase 2 `$0.03` live cap and supplies a server-side OpenRouter key. Hosted databases, Vercel projects, and deployment remain unauthorized.
 
 ## Intended v0 outcome
 
@@ -128,12 +128,12 @@ This phase proves compatibility; it does not build the product.
 
 ### Harden before running
 
-- [ ] Verify the exact OpenRouter model slug and current support for streaming, tool calling, structured output, and server-side web search.
-- [ ] Keep the OpenRouter key server-only and out of logs, browser payloads, Git, and traces.
-- [ ] Disable model/provider fallback.
-- [ ] Set maximum model turns, output tokens, server-tool uses, search results, timeout, and per-run cost.
-- [ ] Record the exact live-call count and dollar cap for approval.
-- [ ] Use synthetic input; do not send transcript data in this phase.
+- [x] Verify `x-ai/grok-4.3` and current support for streaming, tool calling, structured output, and server-side web search.
+- [x] Keep the OpenRouter key server-only and out of logs, browser payloads, Git, and traces.
+- [x] Disable model/provider fallback.
+- [x] Set maximum provider requests, output tokens, server-tool uses, search results, timeout, and phase cost.
+- [x] Record four provider requests maximum and a `$0.03` hard phase cap in `docs/PHASE_2_PLAN.md` for approval.
+- [x] Use synthetic input; do not send transcript data in this phase.
 
 ### Prove
 
@@ -356,4 +356,4 @@ Do not pull these into a phase unless the usefulness evaluation identifies a con
 
 ## First next action
 
-Review and harden Phase 2 before making any OpenRouter call. Do not spend provider money or begin Phase 2 until Jake approves the exact model, request count, limits, and dollar cap.
+Approve or revise `docs/PHASE_2_PLAN.md`, then add `OPENROUTER_API_KEY` to ignored `.env.local`. Do not run the four live probes until both conditions are satisfied.
