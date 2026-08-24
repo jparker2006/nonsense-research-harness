@@ -1,6 +1,6 @@
 # Nonsense Research Harness — Build TODO
 
-Status: Phase 2 passed with recorded limitations on 2026-08-23. Luna/max passed structured output and a complete local-tool round-trip. Grok/medium native search passed with 18 citations; the final capture cost `$0.062078`, and approximate cumulative Phase 2 spend was `$0.128309` under Jake's revised `$1.00` approval. All live provider calls are disabled after proof. Hosted databases, Vercel projects, and deployment remain unauthorized.
+Status: Phase 2 passed with recorded limitations on 2026-08-23. Phase 3's hybrid transcript-retrieval architecture and `$0.50` OpenRouter budget are approved and frozen in `docs/PHASE_3_PLAN.md`; implementation has not started. Hosted databases, Vercel projects, and deployment remain unauthorized.
 
 ## Intended v0 outcome
 
@@ -150,33 +150,43 @@ This phase proves compatibility; it does not build the product.
 - [x] Actual cumulative spend remains within Jake's revised `$1.00` approval.
 - [x] Failures are typed and renderable; no raw provider error or secret reaches the client.
 
-## Phase 3 — Build deterministic transcript retrieval
+## Phase 3 — Build hybrid transcript retrieval
 
-No model or web calls are required in this phase.
+This phase builds one server-side archive tool using deterministic exact-text chunks, local BM25, OpenRouter embeddings, deterministic rank fusion, and an evaluation-gated reranker. It does not use a generation model.
 
 ### Harden before running
 
-- [ ] Choose one authoritative copy of the 59 episodes and 441 segments.
+- [x] Choose the authoritative Desktop copy of the 59 episodes and 441 segments.
 - [ ] Verify counts and checksums before and after any copy or generated index.
 - [ ] Keep the corpus server-only; do not place it under `public/`.
-- [ ] Define stable archive IDs so returned references cannot point at the wrong episode or segment.
-- [ ] Define an honest empty-result response.
+- [x] Define stable segment/chunk IDs and exact-source offsets so returned references cannot point at the wrong text.
+- [x] Define `complete`, `hybrid_unreranked`, `keyword_only`, `no_match`, `unavailable`, and `not_found` states.
+- [x] Freeze the embedding/rerank provider policies, 40-request limit, and `$0.50` approved budget in `docs/PHASE_3_PLAN.md`.
+- [ ] Freeze 12 human-inspected retrieval cases before tuning ranking constants.
 
 ### Build
 
-- [ ] Add a lightweight full-text index over the 441 segments; do not add embeddings or a vector database.
+- [ ] Generate sentence-aware exact-text chunks with stable IDs, complete source coverage, and a provenance manifest.
+- [ ] Add a pinned MiniSearch BM25 index and provider-disabled keyword search.
+- [ ] Generate `openai/text-embedding-3-small` vectors through OpenRouter's ZDR Azure endpoint; do not add a vector database.
+- [ ] Add cosine vector retrieval and deterministic reciprocal-rank fusion.
+- [ ] Evaluate `qwen/qwen3-reranker-8b` through OpenRouter's ZDR Fireworks endpoint and retain it only if it meets the frozen rule.
 - [ ] Implement `search_transcripts(query, filters, limit)`.
-- [ ] Implement `open_transcript(segment_id)`.
+- [ ] Implement `open_transcript_chunk(chunk_id)`.
 - [ ] Return episode title, date, show type, segment label, excerpt, and stable source ID.
-- [ ] Add deterministic tests for exact matches, related terms, filters, limits, empty results, malformed records, and duplicate IDs.
+- [ ] Add deterministic tests for source integrity, exact matches, conceptual queries, filters, ranking, limits, empty results, malformed records, duplicate IDs, provider failures, and degraded search.
 
 ### Phase 3 gate — STOP
 
-- [ ] All 441 segments are accounted for exactly once.
-- [ ] Returned excerpts match the underlying corpus byte-for-byte.
-- [ ] Known queries from several episodes return useful results.
+- [ ] All 59 episodes and 441 segments validate, and every segment is represented with gap-free source coverage.
+- [ ] Every chunk and returned excerpt matches the underlying corpus byte-for-byte.
+- [ ] The frozen exact/filter and conceptual retrieval thresholds pass.
+- [ ] Reranking is retained only if it improves conceptual MRR without regressing exact/filter Recall@5.
+- [ ] Keyword-only degradation works with all provider access disabled.
 - [ ] No speaker attribution is invented.
-- [ ] Search performance is acceptable in a cold serverless process.
+- [ ] Search cold-start and provider latency are measured and recorded honestly.
+- [ ] Actual Phase 3 OpenRouter spend is at or below `$0.50`; live-call scripts are locked after proof.
+- [ ] `pnpm gate` passes, `docs/PHASE_3_RESULT.md` is complete, and the exact passing commit is pushed to private `origin/main`.
 
 ## Phase 4 — Build safe research tools
 
@@ -345,7 +355,7 @@ Do not pull these into a phase unless the usefulness evaluation identifies a con
 - [ ] Google Drive import/export or synchronization
 - [ ] Full 20-to-10-to-5-to-3 Headlines topic board
 - [ ] Topic ranking or automatic final selection
-- [ ] Embeddings, vector database, or semantic RAG
+- [ ] Hosted vector database or external retrieval service
 - [ ] Speaker attribution
 - [ ] Audio download or transcription
 - [ ] Fine-tuning
@@ -356,4 +366,4 @@ Do not pull these into a phase unless the usefulness evaluation identifies a con
 
 ## First next action
 
-Review and harden Phase 3's deterministic transcript-retrieval contract before implementation. Phase 3 requires no provider calls or model spend; do not begin it automatically.
+Launch the approved goal in `docs/PHASE_3_GOAL_LAUNCHER.md`. Stop after the Phase 3 gate; do not begin Phase 4 automatically.

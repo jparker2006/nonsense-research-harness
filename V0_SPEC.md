@@ -210,17 +210,17 @@ Purpose: find potentially relevant prior Nonsense discussions.
 
 Input: query, optional episode-format/role filters, and bounded result limit.
 
-Output: ranked matches with episode/segment metadata and bounded exact excerpts.
+Output: hybrid-ranked matches with chunk/episode/segment metadata, bounded exact excerpts, stable source IDs, and a typed retrieval status.
 
-Defaults: search core Headlines and Big Story episodes. Context-only special/short-notice records require an explicit inclusion flag. No speaker filter exists.
+Defaults: combine local BM25 and vector retrieval, then use the evaluation-approved rerank behavior. Search core Headlines and Big Story episodes. Context-only special/short-notice records require an explicit inclusion flag. If embedding or reranking is unavailable, return the strongest honest degraded result rather than inventing semantic certainty. No speaker filter exists.
 
-### `open_transcript`
+### `open_transcript_chunk`
 
-Purpose: retrieve authoritative text and metadata for a selected archive segment.
+Purpose: retrieve authoritative text and metadata for a selected archive retrieval chunk.
 
-Input: exact `segment_id`.
+Input: exact stable `chunk_id` returned by transcript search.
 
-Output: full stored segment text plus episode and segment metadata, or typed `not_found`.
+Output: full stored verbatim chunk text, exact source offsets, episode and segment metadata, or typed `not_found`.
 
 ## 10. Agent and workflow contract
 
@@ -288,7 +288,7 @@ The application uses a generated, server-only search index derived from processe
 
 ### Privacy
 
-- Supplied notes, retrieved article excerpts, and selected transcript excerpts are sent to OpenRouter when required for a run.
+- Supplied notes, retrieved article excerpts, and selected transcript excerpts are sent to OpenRouter when required for a run. Phase 3 also sends bounded transcript chunks for ZDR embedding generation and only fused top candidates for evaluation-approved ZDR reranking.
 - Grok requests require a ZDR endpoint. GPT-5.6 Luna has no ZDR endpoint on OpenRouter; Jake explicitly accepted possible provider retention for its light-tier work. The UI must disclose this distinction before first use.
 - The whole archive is never sent to the model in one request.
 - The UI must disclose the provider boundary before first use.
