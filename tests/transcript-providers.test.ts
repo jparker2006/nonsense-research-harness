@@ -44,6 +44,29 @@ describe("Phase 3 OpenRouter embedding and rerank boundary", () => {
     expect(String(call?.[1]?.headers)).not.toContain("test-key");
   });
 
+  it("authorizes Phase 7A transcript providers only in explicitly enabled local development", async () => {
+    vi.stubEnv("NODE_ENV", "development");
+    vi.stubEnv("PHASE7A_LOCAL_LIVE", "approved");
+    const fetchSpy = vi.fn<typeof fetch>().mockResolvedValue(new Response(JSON.stringify({
+      id: "embed-phase7a",
+      model: PHASE_3_PROVIDER_LIMITS.embedding.model,
+      provider: "Azure",
+      data: [{ index: 0, embedding: [0.5, 0.5] }],
+      usage: { total_tokens: 2, cost: 0.00000004 },
+    }), { status: 200 }));
+    await expect(embedTexts("test-key", ["phase 7a query"], fetchSpy)).resolves.toMatchObject({
+      vectors: [[0.5, 0.5]],
+    });
+    expect(fetchSpy).toHaveBeenCalledOnce();
+
+    vi.stubEnv("NODE_ENV", "production");
+    const productionFetch = vi.fn<typeof fetch>();
+    await expect(embedTexts("test-key", ["phase 7a query"], productionFetch)).rejects.toThrow(
+      "Explicit live authority",
+    );
+    expect(productionFetch).not.toHaveBeenCalled();
+  });
+
   it("accepts only the exact requested model or its provider-native alias", async () => {
     vi.stubEnv("PHASE3_EXECUTE_LIVE", "approved");
     const fetchSpy = vi.fn<typeof fetch>().mockResolvedValue(new Response(JSON.stringify({

@@ -4,8 +4,8 @@ import { PHASE_5_MODELS } from "../phase5/contracts.ts";
 import type { Phase5ModelReceipt, Phase5ModelResult } from "../phase5/model.ts";
 import {
   phase7aControllerOutputSchema,
-  phase7aControllerOutputToAction,
-  type Phase7AAction,
+  phase7aControllerOutputToDecision,
+  type Phase7AControllerDecision,
   type Phase7AWorkspace,
 } from "./contracts.ts";
 import { PHASE_7A_SYSTEM_PROMPT, phase7aDecisionPrompt } from "./prompts.ts";
@@ -19,7 +19,7 @@ export type Phase7AModelAdapter = {
     currentMessage: string;
     remaining: Record<string, number>;
     lastObservation?: string;
-  }, options?: { timeoutMs?: number; signal?: AbortSignal }): Promise<Phase5ModelResult<Phase7AAction>>;
+  }, options?: { timeoutMs?: number; signal?: AbortSignal }): Promise<Phase5ModelResult<Phase7AControllerDecision>>;
 };
 
 function controllerRequest(prompt: string): Phase2Request {
@@ -94,10 +94,10 @@ export function createOpenRouterPhase7AModel(options: {
         const outputStatus: Phase5ModelReceipt["output_status"] = result.finishReason && result.finishReason !== "stop"
           ? result.finishReason === "length" ? "truncated" : "incomplete"
           : result.text.length === 0 ? "empty" : "parsed";
-        let parsed: Phase7AAction;
+        let parsed: Phase7AControllerDecision;
         try {
           if (outputStatus !== "parsed") throw new Error("not_parsed");
-          parsed = phase7aControllerOutputToAction(phase7aControllerOutputSchema.parse(JSON.parse(result.text)));
+          parsed = phase7aControllerOutputToDecision(phase7aControllerOutputSchema.parse(JSON.parse(result.text)));
         } catch {
           throw new Error(outputStatus === "truncated" ? "phase7a_model_truncated_output" : "phase7a_controller_invalid");
         }

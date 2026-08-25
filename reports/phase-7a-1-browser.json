@@ -1,0 +1,42 @@
+{
+  "phase": "7A.1",
+  "date_hst": "2026-08-24",
+  "route": "http://127.0.0.1:3210/",
+  "provider_requests": 0,
+  "accounted_cost_usd": 0,
+  "desktop": {
+    "observed_css_viewport": {
+      "width": 1440,
+      "height": 1000
+    },
+    "horizontal_overflow_elements": 0,
+    "legacy_session_rail_elements": 0,
+    "legacy_activity_rail_elements": 0,
+    "legacy_mobile_switch_elements": 0,
+    "console_warnings_or_errors": 0
+  },
+  "phone": {
+    "observed_css_viewport": {
+      "width": 389,
+      "height": 900
+    },
+    "horizontal_overflow_elements": 0,
+    "new_research_target_px_rounded": {
+      "width": 44,
+      "height": 44
+    },
+    "send_target_px_rounded": {
+      "width": 44,
+      "height": 44
+    }
+  },
+  "interactions": {
+    "starter_populates_composer_without_submit": true,
+    "new_research_has_accessible_name": true,
+    "new_research_focus_outline": "solid #315cff"
+  },
+  "limitations": [
+    "No paid live turn was started during the visual pass.",
+    "Current activity, source, and artifact states were not visually regenerated with paid providers in this phase; deterministic integration coverage and prior Phase 7A browser evidence remain authoritative."
+  ]
+}

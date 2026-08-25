@@ -1,6 +1,6 @@
 # Nonsense Research Harness — Build TODO
 
-Status: Phases 1–6 and Phase 7A **PASSED**. Phase 7A is the first reusable local product: a blank chat connects to a bounded adaptive Luna controller, the real safe web/archive tools, an ephemeral evidence workspace, and optional validated Grok Headlines/Big Story artifacts. Final live proof produced both modes for `$0.19281185`; a saved-evidence browser follow-up then used one controller request and displayed `$0.0022`. Persistence, auth, deployment, subagents, and visual redesign remain deferred. See `docs/PHASE_7A_RESULT.md`.
+Status: Phases 1–6, Phase 7A, and Phase 7A.1 **PASSED**. Phase 7A is the first reusable local product: a blank chat connects to a bounded adaptive Luna controller, the real safe web/archive tools, an ephemeral evidence workspace, and optional validated Grok Headlines/Big Story artifacts. Phase 7A.1 repaired live hybrid transcript authorization, added a structured research notebook, bounded parallel reads, sanitized run traces, and replaced the two-rail shell with one restrained Glox-inspired workspace. Persistence, auth, deployment, subagents, and final visual polish remain deferred. See `docs/PHASE_7A_RESULT.md` and `docs/PHASE_7A_1_RESULT.md`.
 
 ## Intended v0 outcome
 
@@ -22,6 +22,7 @@ The product prepares conversation material. It does not choose the final stories
 - Phase 3 produced 1,259 exact-source retrieval chunks, local BM25, 1,536-dimensional document vectors, reciprocal-rank fusion, and two server-only transcript tools. The frozen reranked evaluation reached 100% Recall@5 across exact, conceptual, and filter cases.
 - Phase 6 streams the real bounded Phase 5 workflow through the browser workbench. Its corrected live Headlines proof completed with a validated artifact using five of six provider requests, zero retries, and `$0.05391264` of its `$0.50` cap. The interface and Big Story path also pass deterministic fixtures; no deployed persistence exists yet.
 - Phase 7A replaces the form/fixture default with a live-only chat route, a typed observe-decide-act loop, genuine follow-ups, in-memory evidence reuse, and optional artifact creation. Deterministic fixtures are test injection only; missing provider authorization is explicitly unavailable.
+- Phase 7A.1 keeps that architecture but makes it sturdier and easier to inspect: the controller carries a bounded public research notebook, code can read up to three already-authorized web or archive targets concurrently, and the workspace retains up to eight sanitized run traces. The UI is now one light research workspace with inline activity, chat/artifact views, and a source drawer instead of permanent side rails.
 
 ## Phase rules
 
@@ -342,6 +343,27 @@ The frozen scope and evidence are in `docs/PHASE_7A_PLAN.md` and `docs/PHASE_7A_
 - [x] Missing authorization, provider/tool degradation, stop, invalid action, and failed composition are honest and do not start automatic retries.
 - [x] No persistence, auth, deployment, subagents, general shell, GBrain/LLMwiki, or visual redesign was added.
 
+## Phase 7A.1 — Runtime hardening and frontend first pass — PASSED
+
+The frozen scope and evidence are in `docs/PHASE_7A_1_PLAN.md` and `docs/PHASE_7A_1_RESULT.md`.
+
+- [x] Repair the Phase 7A local-development authority boundary so query embeddings and the accepted transcript reranker can run under the existing ZDR provider policy without weakening production refusal.
+- [x] Add a bounded structured research notebook containing the objective, completed steps, evidence gaps, and next step; never expose private reasoning.
+- [x] Add typed `read_urls` and `open_transcript_chunks` actions for up to three already-authorized targets, execute independent targets concurrently, count every target against the original limits, and preserve partial failures.
+- [x] Retain at most eight sanitized run traces containing public summaries, safe targets/observations, status, counts, cost, source IDs, artifact revision, and limitations.
+- [x] Replace the permanent session/activity rails with one workspace, inline progressive activity, chat/artifact views, and an on-demand source drawer.
+- [x] Apply the first Glox Brain Lab-inspired visual system: light canvas, Geist type, restrained blue accent, compact chrome, readable document surfaces, accessible focus, reduced motion, and phone tap targets.
+- [x] Prove the backend deterministically, exercise the real chat route with injected providers, and browser-check desktop/phone layout, starter interaction, overflow, semantics, and console health.
+- [x] Make zero paid provider calls during this phase; live semantic retrieval remains truthfully not re-proven in this phase.
+
+### Phase 7A.1 gate — STOP
+
+- [x] Runtime tests cover notebook continuity, bounded concurrency, partial failure, target allowlists, trace sanitization, local/production provider authority, and unchanged artifact/citation behavior.
+- [x] The normal route remains connected and live-only; fixtures remain test injection and no demo mode was added.
+- [x] The first-pass UI has no permanent side rail, no hidden mobile-only feature, and no horizontal overflow at the checked desktop and phone widths.
+- [x] Full supply-chain, lint, typecheck, test, and production-build gate passes on the final tree.
+- [x] No deployment, persistence, authentication, subagent, new model, corpus mutation, or additional paid call was added.
+
 ## Phase 7B — Durable private workspaces — NOT STARTED
 
 - [ ] Decide whether persistence/auth is worth building only after Phase 8 usefulness testing.
@@ -420,4 +442,4 @@ Do not pull these into a phase unless the usefulness evaluation identifies a con
 
 ## First next action
 
-Run Phase 8 usefulness comparisons before adding persistence or polishing the interface. Compare Phase 7A against the frozen Phase 5 workflow and plain Gemini/Grok on identical inputs; do not deploy automatically.
+Have Jake review the connected first-pass interface visually, then run Phase 8 usefulness comparisons before adding persistence or deployment. Compare Phase 7A.1 against the frozen Phase 5 workflow and plain Gemini/Grok on identical inputs; do not deploy automatically.

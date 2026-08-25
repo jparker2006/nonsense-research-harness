@@ -22,6 +22,8 @@ export function createPhase7AWorkspace(sessionId: string, now = Date.now()): Pha
     transcript_matches: [],
     web_queries: [],
     archive_queries: [],
+    research_state: null,
+    run_traces: [],
     artifact: null,
     artifact_revision: 0,
     updated_at_ms: now,

@@ -1,6 +1,6 @@
 # Nonsense Research Harness — v0 Specification
 
-Status: Approved by Jake on 2026-08-23 and amended on 2026-08-24 after Phase 7A. The local chat-first adaptive agent is implemented and proven. Durable storage, authentication, deployment, subagents, and visual redesign remain outside the completed scope.
+Status: Approved by Jake on 2026-08-23 and amended on 2026-08-24 after Phase 7A.1. The local chat-first adaptive agent and its first single-workspace visual pass are implemented and proven. Durable storage, authentication, deployment, subagents, and final visual polish remain outside the completed scope.
 
 Authoritative project root: `/Users/jakeparker/Desktop/Nonsense Podcast Project`
 
@@ -77,11 +77,12 @@ The route body is capped at 24 KB. Extra keys, malformed requests, unknown actio
 
 ### Desktop layout
 
-- Left: ephemeral session identity, archive boundary, new-research action, and last-turn receipt
-- Center: visible agent decisions and streaming tool activity
-- Main workspace: chat by default; optional artifact and source detail when created
+- One compact header contains product identity, current research context, last-turn receipt, view toggle, new-research, status, and stop controls.
+- One primary workspace shows chat by default and the preparation artifact when requested.
+- Agent activity appears as a compact inline panel with progressive disclosure; it is not a permanent rail.
+- Source detail opens in an on-demand drawer and does not compete with the reading surface until selected.
 
-On narrow screens, the same three areas may become tabs or drawers. No feature may exist only in a developer console.
+On narrow screens, the same workspace stacks without horizontal overflow; activity remains inline and source detail becomes a full-width drawer. No feature may exist only in a developer console.
 
 ### Visible activity
 
@@ -205,16 +206,20 @@ Graph:
 
 `chat message → load bounded in-memory workspace → Mastra turn workflow → Luna loop [observe → choose one typed action → execute in code → save observation → reassess] → cited response OR optional Grok artifact → deterministic validation → optional one repair → stream and retain local workspace`
 
-The controller may choose exactly one of these typed actions per turn:
+The controller may choose exactly one of these typed actions per decision:
 
 - `web_search`
 - `read_url`
+- `read_urls` for one to three already-authorized candidates
 - `search_transcripts`
 - `open_transcript_chunk`
+- `open_transcript_chunks` for one to three previously returned chunk IDs
 - `create_artifact`
 - `respond`
 
-The model-visible workspace is explicit product state, not hidden chain-of-thought. It contains at most 24 recent user/assistant turns, 24 evidence sources, 18 unread web candidates, 18 transcript matches, recent query history, current artifact metadata, and exact remaining limits. It never contains reasoning tokens. Full page bodies remain server-only; the client receives bounded source metadata/excerpts and sanitized activity.
+The model-visible workspace is explicit product state, not hidden chain-of-thought. It contains at most 24 recent user/assistant turns, 24 evidence sources, 18 unread web candidates, 18 transcript matches, recent query history, current artifact metadata, exact remaining limits, and a bounded research notebook with the objective, completed steps, evidence gaps, and next step. It never contains reasoning tokens. Full page bodies remain server-only; the client receives bounded source metadata/excerpts and sanitized activity.
+
+Each workspace also retains at most eight sanitized run traces. A trace records public action summaries, safe target labels, bounded observations, statuses, counts, accounted cost, source IDs, artifact revision, and limitations. It does not retain raw page bodies, provider prompts, secrets, private reasoning, or unrestricted model payloads.
 
 Instruction layers are small and explicit:
 
@@ -225,9 +230,9 @@ Instruction layers are small and explicit:
 Rules:
 
 - Perform at least one transcript search for every initial artifact run.
-- Execute only the controller's single validated action; model-authored code is never executed.
+- Execute only the controller's single validated action; model-authored code is never executed. A batch action may contain at most three independent authorized targets and is still one decision.
 - Rebuild each controller turn from bounded conversation/evidence state, tool observations, current artifact metadata, and remaining budget.
-- Permit `read_url` only for a user-supplied or search-discovered public URL and `open_transcript_chunk` only for a returned match.
+- Permit URL reads only for user-supplied or search-discovered public URLs and archive opens only for returned matches. Validate every batch target before starting work, count each target against the original per-tool ceilings, and preserve per-target unavailable states.
 - Treat search candidates as leads rather than evidence until `read_url` succeeds; permit citations only to usable saved source IDs.
 - Terminate on `respond`, successful `create_artifact`, stop, deadline, controller/tool/provider/cost ceiling, or typed unrecoverable failure. Automatic retry is zero.
 - Deterministic validation checks artifact schema, required fields, resolvable citations, exact archive IDs/excerpts, source ledger, and clock.

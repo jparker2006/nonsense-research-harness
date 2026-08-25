@@ -1,6 +1,10 @@
 import type { Phase5ModelReceipt } from "../phase5/model.ts";
 import { createPhase6FixtureDependencies } from "../phase6/fixture.ts";
-import { phase7aActionSchema, type Phase7AAction } from "./contracts.ts";
+import {
+  phase7aActionSchema,
+  phase7aControllerDecisionSchema,
+  type Phase7AAction,
+} from "./contracts.ts";
 import type { Phase7AAgentDependencies } from "./agent.ts";
 
 function receipt(): Phase5ModelReceipt {
@@ -29,7 +33,20 @@ export function createPhase7AFixtureDependencies(
       async decide() {
         const action = actions[index++];
         if (!action) throw new Error("phase7a_fixture_exhausted");
-        return { value: phase7aActionSchema.parse(action), receipt: receipt(), output_status: "parsed" };
+        const parsedAction = phase7aActionSchema.parse(action);
+        return {
+          value: phase7aControllerDecisionSchema.parse({
+            action: parsedAction,
+            research_state: {
+              objective: "Complete the current fixture research request.",
+              completed_steps: actions.slice(0, Math.max(0, index - 1)).map((item) => item.public_summary).slice(-12),
+              evidence_gaps: parsedAction.action === "respond" ? [] : ["The next fixture observation has not been collected yet."],
+              next_step: parsedAction.public_summary,
+            },
+          }),
+          receipt: receipt(),
+          output_status: "parsed",
+        };
       },
     },
     composer: fixture.model,

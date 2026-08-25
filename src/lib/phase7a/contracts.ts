@@ -25,6 +25,10 @@ export const PHASE_7A_LIMITS = Object.freeze({
   maxTranscriptMatches: 18,
   maxConversationTurns: 24,
   maxActivityEvents: 100,
+  maxBatchTargets: 3,
+  maxNotebookCompletedSteps: 12,
+  maxNotebookEvidenceGaps: 8,
+  maxRunTraces: 8,
   maxSessions: 8,
   sessionTtlMs: 6 * 60 * 60 * 1_000,
   wholeTurnTimeoutMs: 300_000,
@@ -53,6 +57,11 @@ export const phase7aActionSchema = z.discriminatedUnion("action", [
     url: z.string().url().max(2_000),
   }).strict(),
   z.object({
+    action: z.literal("read_urls"),
+    public_summary: publicSummary,
+    urls: z.array(z.string().url().max(2_000)).min(1).max(PHASE_7A_LIMITS.maxBatchTargets),
+  }).strict(),
+  z.object({
     action: z.literal("search_transcripts"),
     public_summary: publicSummary,
     query: z.string().trim().min(2).max(500),
@@ -61,6 +70,11 @@ export const phase7aActionSchema = z.discriminatedUnion("action", [
     action: z.literal("open_transcript_chunk"),
     public_summary: publicSummary,
     chunk_id: z.string().trim().min(3).max(160),
+  }).strict(),
+  z.object({
+    action: z.literal("open_transcript_chunks"),
+    public_summary: publicSummary,
+    chunk_ids: z.array(z.string().trim().min(3).max(160)).min(1).max(PHASE_7A_LIMITS.maxBatchTargets),
   }).strict(),
   z.object({
     action: z.literal("create_artifact"),
@@ -78,36 +92,58 @@ export const phase7aActionSchema = z.discriminatedUnion("action", [
   }).strict(),
 ]);
 
+export const phase7aResearchStateSchema = z.object({
+  objective: z.string().trim().min(1).max(500),
+  completed_steps: z.array(z.string().trim().min(1).max(240)).max(PHASE_7A_LIMITS.maxNotebookCompletedSteps),
+  evidence_gaps: z.array(z.string().trim().min(1).max(240)).max(PHASE_7A_LIMITS.maxNotebookEvidenceGaps),
+  next_step: z.string().trim().min(1).max(300),
+}).strict();
+
 // Provider structured-output schemas are most portable when the root is one
 // strict object with every key present. The conditional action contract is
 // enforced after parsing this transport shape.
 export const phase7aControllerOutputSchema = z.object({
-  action: z.enum(["web_search", "read_url", "search_transcripts", "open_transcript_chunk", "create_artifact", "respond"]),
+  action: z.enum(["web_search", "read_url", "read_urls", "search_transcripts", "open_transcript_chunk", "open_transcript_chunks", "create_artifact", "respond"]),
   public_summary: publicSummary,
   argument: z.string().trim().min(1).max(5_000),
+  arguments: z.array(z.string().trim().min(1).max(2_000)).max(PHASE_7A_LIMITS.maxBatchTargets),
   mode: z.enum(["headlines", "big_story"]).nullable(),
   target_minutes: z.number().min(1).max(120).nullable(),
   instruction: z.string().max(1_200),
   source_ids: z.array(z.string().max(180)).max(8),
+  research_state: phase7aResearchStateSchema,
 }).strict();
 
-export function phase7aControllerOutputToAction(value: z.infer<typeof phase7aControllerOutputSchema>): Phase7AAction {
+export const phase7aControllerDecisionSchema = z.object({
+  action: phase7aActionSchema,
+  research_state: phase7aResearchStateSchema,
+}).strict();
+
+export function phase7aControllerOutputToDecision(value: z.infer<typeof phase7aControllerOutputSchema>): Phase7AControllerDecision {
   const common = { action: value.action, public_summary: value.public_summary };
+  let action: Phase7AAction;
   if (value.action === "web_search" || value.action === "search_transcripts") {
-    return phase7aActionSchema.parse({ ...common, query: value.argument });
-  }
-  if (value.action === "read_url") return phase7aActionSchema.parse({ ...common, url: value.argument });
-  if (value.action === "open_transcript_chunk") return phase7aActionSchema.parse({ ...common, chunk_id: value.argument });
-  if (value.action === "create_artifact") {
-    return phase7aActionSchema.parse({
+    action = phase7aActionSchema.parse({ ...common, query: value.argument });
+  } else if (value.action === "read_url") {
+    action = phase7aActionSchema.parse({ ...common, url: value.argument });
+  } else if (value.action === "read_urls") {
+    action = phase7aActionSchema.parse({ ...common, urls: value.arguments });
+  } else if (value.action === "open_transcript_chunk") {
+    action = phase7aActionSchema.parse({ ...common, chunk_id: value.argument });
+  } else if (value.action === "open_transcript_chunks") {
+    action = phase7aActionSchema.parse({ ...common, chunk_ids: value.arguments });
+  } else if (value.action === "create_artifact") {
+    action = phase7aActionSchema.parse({
       ...common,
       mode: value.mode,
       topic: value.argument,
       ...(value.target_minutes === null ? {} : { target_minutes: value.target_minutes }),
       instruction: value.instruction,
     });
+  } else {
+    action = phase7aActionSchema.parse({ ...common, message: value.argument, source_ids: value.source_ids });
   }
-  return phase7aActionSchema.parse({ ...common, message: value.argument, source_ids: value.source_ids });
+  return phase7aControllerDecisionSchema.parse({ action, research_state: value.research_state });
 }
 
 export const phase7aConversationTurnSchema = z.object({
@@ -160,6 +196,28 @@ export const phase7aActivitySchema = z.object({
   created_at: z.string(),
 });
 
+export const phase7aTraceStepSchema = z.object({
+  sequence: z.number().int().positive(),
+  action: z.enum(["web_search", "read_url", "read_urls", "search_transcripts", "open_transcript_chunk", "open_transcript_chunks", "create_artifact", "respond"]),
+  public_summary: publicSummary,
+  target: z.string().max(500),
+  observation: z.string().max(500),
+  status: z.enum(["complete", "partial", "failed"]),
+}).strict();
+
+export const phase7aRunTraceSchema = z.object({
+  run_id: z.string().max(160),
+  started_at: z.string(),
+  completed_at: z.string(),
+  status: z.enum(["complete", "partial", "stopped", "failed"]),
+  steps: z.array(phase7aTraceStepSchema).max(PHASE_7A_LIMITS.maxControllerTurns),
+  counts: phase7aCountsSchema,
+  accounted_cost_usd: z.number().min(0).max(PHASE_7A_LIMITS.costCapUsd),
+  source_ids: z.array(z.string().max(180)).max(PHASE_7A_LIMITS.maxEvidenceSources),
+  artifact_revision: z.number().int().nonnegative(),
+  limitations: z.array(z.string().max(240)).max(20),
+}).strict();
+
 export const phase7aWorkspaceSchema = z.object({
   session_id: z.string().min(8).max(PHASE_7A_LIMITS.maxSessionIdCharacters),
   turns: z.array(phase7aConversationTurnSchema).max(PHASE_7A_LIMITS.maxConversationTurns),
@@ -168,6 +226,8 @@ export const phase7aWorkspaceSchema = z.object({
   transcript_matches: z.array(phase7aTranscriptMatchSchema).max(PHASE_7A_LIMITS.maxTranscriptMatches),
   web_queries: z.array(z.string().max(300)).max(12),
   archive_queries: z.array(z.string().max(500)).max(8),
+  research_state: phase7aResearchStateSchema.nullable(),
+  run_traces: z.array(phase7aRunTraceSchema).max(PHASE_7A_LIMITS.maxRunTraces),
   artifact: phase5ArtifactSchema.nullable(),
   artifact_revision: z.number().int().nonnegative(),
   updated_at_ms: z.number().nonnegative(),
@@ -224,16 +284,20 @@ export const phase7aTurnResultSchema = z.object({
   accounted_cost_usd: z.number().min(0).max(PHASE_7A_LIMITS.costCapUsd),
   elapsed_ms: z.number().nonnegative(),
   limitations: z.array(z.string().max(240)).max(20),
+  trace: phase7aRunTraceSchema,
   workspace: phase7aWorkspaceSchema,
 });
 
 export type Phase7ARequest = z.infer<typeof phase7aRequestSchema>;
 export type Phase7AAction = z.infer<typeof phase7aActionSchema>;
+export type Phase7AResearchState = z.infer<typeof phase7aResearchStateSchema>;
+export type Phase7AControllerDecision = z.infer<typeof phase7aControllerDecisionSchema>;
 export type Phase7AConversationTurn = z.infer<typeof phase7aConversationTurnSchema>;
 export type Phase7ACandidate = z.infer<typeof phase7aCandidateSchema>;
 export type Phase7ATranscriptMatch = z.infer<typeof phase7aTranscriptMatchSchema>;
 export type Phase7ACounts = z.infer<typeof phase7aCountsSchema>;
 export type Phase7AActivity = z.infer<typeof phase7aActivitySchema>;
+export type Phase7ARunTrace = z.infer<typeof phase7aRunTraceSchema>;
 export type Phase7AWorkspace = z.infer<typeof phase7aWorkspaceSchema>;
 export type Phase7AAssistantMessage = z.infer<typeof phase7aAssistantMessageSchema>;
 export type Phase7ASource = z.infer<typeof phase7aSourceSchema>;

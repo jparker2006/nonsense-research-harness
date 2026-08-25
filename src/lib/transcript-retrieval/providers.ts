@@ -114,14 +114,17 @@ function assertLiveAuthority(apiKey: string) {
   if (!apiKey.trim()) {
     throw new Phase3ProviderError("configuration", "OPENROUTER_API_KEY is missing. No request was sent.");
   }
+  const phase7aLocalAuthorized = process.env.NODE_ENV !== "production" &&
+    process.env.PHASE7A_LOCAL_LIVE === "approved";
   if (
     process.env.PHASE3_EXECUTE_LIVE !== "approved" &&
     process.env.PHASE5_EXECUTE_LIVE !== "approved" &&
-    process.env.PHASE6_EXECUTE_LIVE !== "approved"
+    process.env.PHASE6_EXECUTE_LIVE !== "approved" &&
+    !phase7aLocalAuthorized
   ) {
     throw new Phase3ProviderError(
       "policy",
-      "Explicit live authority is required: PHASE3_EXECUTE_LIVE=approved, PHASE5_EXECUTE_LIVE=approved, or PHASE6_EXECUTE_LIVE=approved. No request was sent.",
+      "Explicit live authority is required: PHASE3_EXECUTE_LIVE=approved, PHASE5_EXECUTE_LIVE=approved, PHASE6_EXECUTE_LIVE=approved, or local non-production PHASE7A_LOCAL_LIVE=approved. No request was sent.",
     );
   }
 }

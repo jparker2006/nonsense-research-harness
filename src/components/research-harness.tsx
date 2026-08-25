@@ -3,7 +3,6 @@
 import { AssistantRuntimeProvider } from "@assistant-ui/react";
 import { AssistantChatTransport, useChatRuntime } from "@assistant-ui/react-ai-sdk";
 import {
-  Archive,
   ArrowLeft,
   ArrowRight,
   Bot,
@@ -14,9 +13,6 @@ import {
   ExternalLink,
   FileText,
   LoaderCircle,
-  Plus,
-  Radio,
-  Search,
   Square,
   UserRound,
   X,
@@ -79,24 +75,34 @@ function ActivityIcon({ status }: { status: Phase7AActivity["status"] }) {
   return <Check aria-hidden="true" />;
 }
 
-function ActivityRail({ activities, run }: { activities: Phase7AActivity[]; run: Phase7ARun | null }) {
+function ActivityPanel({ activities, run, receipt }: { activities: Phase7AActivity[]; run: Phase7ARun | null; receipt: Phase7AReceipt | null }) {
+  if (!run && activities.length === 0) return null;
+  const current = activities.at(-1);
+  const currentStatus: Phase7AActivity["status"] = current?.status ?? (run?.state === "running" ? "running" : run?.state ?? "complete");
   return (
-    <section className="activity-rail" aria-label="Agent activity">
-      <header className="rail-header">
-        <div><span className="eyebrow">AGENT RUN</span><h2>Research tape</h2></div>
-        <span className={`run-light run-light--${run?.state ?? "idle"}`} aria-hidden="true" />
+    <section className="activity-panel" aria-label="Agent activity" aria-live="polite">
+      <header className="activity-current">
+        <span className={`activity-current-icon activity-current-icon--${currentStatus}`}><ActivityIcon status={currentStatus} /></span>
+        <div>
+          <strong>{current?.label ?? run?.summary ?? "Research ready"}</strong>
+          <span>{current?.detail ?? run?.summary ?? "The agent will show observable work here."}</span>
+        </div>
+        <div className="activity-receipt">
+          <span>{statusLabel(run)}</span>
+          <small>{receipt ? `${receipt.counts.provider_requests} requests · $${receipt.accounted_cost_usd.toFixed(4)}` : `${activities.length} ${activities.length === 1 ? "step" : "steps"}`}</small>
+        </div>
       </header>
-      <div className="tape-status" aria-live="polite"><span>{statusLabel(run)}</span><p>{run?.summary ?? "Tool calls and agent decisions appear here."}</p></div>
-      <ol className="activity-list">
-        {activities.length ? activities.map((activity) => (
-          <li className={`activity-item activity-item--${activity.status}`} key={activity.id}>
-            <span className="activity-node"><ActivityIcon status={activity.status} /></span>
-            <div><span className="activity-kind">{toolLabel(activity)}</span><strong>{activity.label}</strong><p>{activity.detail}</p><time>{new Date(activity.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" })}</time></div>
-          </li>
-        )) : (
-          <li className="activity-empty"><Search aria-hidden="true" /><strong>No turn yet</strong><p>Talk to the agent normally. It decides whether it needs a tool.</p></li>
-        )}
-      </ol>
+      {activities.length ? <details className="activity-details" open={run?.state === "running" || undefined}>
+        <summary>{activities.length} observable research {activities.length === 1 ? "step" : "steps"}</summary>
+        <ol className="activity-list">
+          {activities.map((activity) => (
+            <li className={`activity-item activity-item--${activity.status}`} key={activity.id}>
+              <span className="activity-node"><ActivityIcon status={activity.status} /></span>
+              <div><span className="activity-kind">{toolLabel(activity)}</span><strong>{activity.label}</strong><p>{activity.detail}</p><time>{new Date(activity.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" })}</time></div>
+            </li>
+          ))}
+        </ol>
+      </details> : null}
     </section>
   );
 }
@@ -134,9 +140,8 @@ function Conversation({
       <div className="conversation-scroll">
         {!turns.length ? (
           <div className="chat-empty">
-            <span><Radio aria-hidden="true" /></span>
             <h1>What are we looking into?</h1>
-            <p>Drop a topic, links, rough notes, or a half-formed question. The agent can research, search old episodes, answer follow-ups, and make a prep packet when you ask.</p>
+            <p>Bring a topic, links, rough notes, or a half-formed question. The agent can research the current web, search old episodes, and make a prep packet when you ask.</p>
             <div className="starter-list">{STARTERS.map((starter) => <button type="button" key={starter} onClick={() => setDraft(starter)}>{starter}<ArrowRight aria-hidden="true" /></button>)}</div>
           </div>
         ) : (
@@ -194,10 +199,6 @@ function SourceDrawer({ source, close }: { source: BrowserSource; close: () => v
   return <aside className="source-drawer" aria-label="Source detail"><header><div><span className="eyebrow">SOURCE</span><strong>{source.source_id}</strong></div><button type="button" onClick={close} aria-label="Close source"><X /></button></header><h2>{source.title ?? source.source_type}</h2><dl><div><dt>Type</dt><dd>{source.source_type.replaceAll("_", " ")}</dd></div><div><dt>Status</dt><dd>{source.availability}</dd></div>{source.season ? <div><dt>Archive</dt><dd>Season {source.season}, episode {source.episode_number}</dd></div> : null}</dl>{source.excerpt ? <blockquote>{source.excerpt}</blockquote> : <p>No bounded excerpt is available for this source.</p>}{source.url ? <a href={source.url} target="_blank" rel="noreferrer">Open original <ExternalLink /></a> : null}</aside>;
 }
 
-function SessionRail({ run, receipt, artifact, newResearch }: { run: Phase7ARun | null; receipt: Phase7AReceipt | null; artifact: BrowserArtifact | null; newResearch: () => void }) {
-  return <aside className="session-rail" aria-label="Local session"><div className="brand"><span><Radio /></span><div><strong>NONSENSE</strong><small>RESEARCH AGENT</small></div></div><button className="new-research" type="button" onClick={newResearch}><Plus /> New research</button><nav><span className="nav-label">ON THE DESK</span><button className="session-row" type="button"><FileText /><span><strong>{artifact?.working_title ?? "Research conversation"}</strong><small>Ephemeral local session · {statusLabel(run).toLowerCase()}</small></span></button></nav><div className="session-contract"><Archive /><div><strong>Past conversations</strong><p>Searches S3–4. Transcript text has no reliable speaker labels.</p></div></div><div className="cost-receipt"><span>LAST TURN</span><strong>${(receipt?.accounted_cost_usd ?? 0).toFixed(4)}</strong><small>{receipt ? `${receipt.counts.provider_requests} provider · ${receipt.counts.controller_turns} decisions` : "No provider spend"}</small></div></aside>;
-}
-
 export function ResearchHarness() {
   const [sessionId, setSessionId] = useState("session_phase7a_local");
   const [turns, setTurns] = useState<ChatTurn[]>([]);
@@ -210,7 +211,6 @@ export function ResearchHarness() {
   const [draft, setDraft] = useState("");
   const [view, setView] = useState<"chat" | "artifact">("chat");
   const [sourceId, setSourceId] = useState<string | null>(null);
-  const [mobilePanel, setMobilePanel] = useState<"activity" | "workspace">("workspace");
 
   const handleData = (part: { type: string; data: unknown }) => {
     if (part.type === "data-activity") {
@@ -269,12 +269,18 @@ export function ResearchHarness() {
   return (
     <AssistantRuntimeProvider runtime={runtime}>
       <div className="workbench">
-        <SessionRail run={run} receipt={receipt} artifact={artifact} newResearch={newResearch} />
-        <div className="mobile-switch" role="tablist" aria-label="Workbench panel"><button role="tab" aria-selected={mobilePanel === "activity"} onClick={() => setMobilePanel("activity")}>Activity <span>{activities.length}</span></button><button role="tab" aria-selected={mobilePanel === "workspace"} onClick={() => setMobilePanel("workspace")}>Workspace</button></div>
-        <div className={mobilePanel === "activity" ? "mobile-active" : "mobile-hidden"}><ActivityRail activities={activities} run={run} /></div>
-        <main className={mobilePanel === "workspace" ? "workspace-main mobile-active" : "workspace-main mobile-hidden"}>
-          <header className="workbench-header"><div><span className="eyebrow">RESEARCH CONVERSATION</span><strong>{artifact?.working_title ?? "One agent, a live web, and the Nonsense archive"}</strong></div><div className="header-controls">{artifact ? <button className="artifact-toggle" type="button" onClick={() => setView(view === "chat" ? "artifact" : "chat")}>{view === "chat" ? <FileText /> : <ArrowLeft />}{view === "chat" ? "Artifact" : "Chat"}</button> : null}<span className={`status-chip status-chip--${run?.state ?? "idle"}`}>{statusLabel(run)}</span>{running ? <button className="stop-button" type="button" onClick={stop}><Square /> Stop</button> : null}</div></header>
-          <div className="run-tape" aria-hidden="true"><span /><i className={running ? "is-running" : activities.length ? "is-done" : ""} /><span /></div>
+        <header className="workbench-header">
+          <div className="brand-lockup"><span className="brand-mark" aria-hidden="true">N</span><div><strong>Nonsense</strong><small>Research desk</small></div></div>
+          <div className="desk-title"><strong>{artifact?.working_title ?? "Research conversation"}</strong><span>{run?.summary ?? "Current web and the S3–4 archive"}</span></div>
+          <div className="header-controls">
+            {receipt ? <span className="turn-receipt">${receipt.accounted_cost_usd.toFixed(4)} <small>{receipt.counts.provider_requests} req</small></span> : null}
+            {artifact ? <button className="artifact-toggle" type="button" onClick={() => setView(view === "chat" ? "artifact" : "chat")}>{view === "chat" ? <FileText /> : <ArrowLeft />}{view === "chat" ? "Prep packet" : "Conversation"}</button> : null}
+            <button className="new-research" type="button" onClick={newResearch} disabled={running} aria-label="New research"><span className="new-research-icon" aria-hidden="true">+</span><span className="new-research-label">New research</span></button>
+            {running ? <button className="stop-button" type="button" onClick={stop}><Square /> Stop</button> : <span className={`status-chip status-chip--${run?.state ?? "idle"}`}>{statusLabel(run)}</span>}
+          </div>
+        </header>
+        <main className="workspace-main">
+          <ActivityPanel activities={activities} run={run} receipt={receipt} />
           {view === "artifact" && artifact ? <ArtifactView artifact={artifact} receipt={receipt} open={setSourceId} back={() => setView("chat")} /> : <Conversation turns={turns} draft={draft} setDraft={setDraft} send={send} running={running} error={error} openSource={setSourceId} />}
           {selectedSource ? <SourceDrawer source={selectedSource} close={() => setSourceId(null)} /> : null}
         </main>

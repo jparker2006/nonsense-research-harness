@@ -79,6 +79,148 @@ describe("Phase 7A chat-first agent", () => {
     expect(result.accounted_cost_usd).toBe(0);
   });
 
+  it("keeps a structured research notebook and a sanitized replayable trace", async () => {
+    const first = await runPhase7AWorkflow({
+      workspace: createPhase7AWorkspace("session_notebook_trace"),
+      message: "What can you help us do?",
+      runId: "run_notebook_first",
+    }, createPhase7AFixtureDependencies([
+      action({ action: "respond", public_summary: "Explain the desk", message: "I can research and prepare sourced material.", source_ids: [] }),
+    ]));
+    expect(first.workspace.research_state).toMatchObject({
+      objective: "Complete the current fixture research request.",
+      next_step: "Explain the desk",
+    });
+    expect(first.trace).toMatchObject({
+      run_id: "run_notebook_first",
+      status: "complete",
+      steps: [{ action: "respond", public_summary: "Explain the desk", status: "complete" }],
+    });
+    expect(first.workspace.run_traces).toHaveLength(1);
+
+    const nextDependencies = createPhase7AFixtureDependencies([
+      action({ action: "respond", public_summary: "Continue from the notebook", message: "The prior objective is still available.", source_ids: [] }),
+    ]);
+    const originalDecide = nextDependencies.controller.decide;
+    let observedObjective: string | undefined;
+    nextDependencies.controller.decide = async (input, options) => {
+      observedObjective = input.workspace.research_state?.objective;
+      return originalDecide(input, options);
+    };
+    const second = await runPhase7AWorkflow({ workspace: first.workspace, message: "Continue." }, nextDependencies);
+    expect(observedObjective).toBe("Complete the current fixture research request.");
+    expect(second.workspace.run_traces).toHaveLength(2);
+    expect(JSON.stringify(second.trace)).not.toContain("OPENROUTER_API_KEY");
+  });
+
+  it("reads independent allowed URLs concurrently and preserves a partial batch honestly", async () => {
+    const urls = ["https://one.example/article", "https://two.example/article"];
+    const sourceIds = ["web_batch_one", "web_batch_two"];
+    const dependencies = createPhase7AFixtureDependencies([
+      action({ action: "read_urls", public_summary: "Read both supplied sources", urls }),
+      action({ action: "respond", public_summary: "Answer from the usable source", message: "One source was usable and one was unavailable.", source_ids: [sourceIds[0]!] }),
+    ]);
+    let active = 0;
+    let maximumActive = 0;
+    dependencies.tools.readUrl = async ({ url }) => {
+      active += 1;
+      maximumActive = Math.max(maximumActive, active);
+      await new Promise((resolveDelay) => setTimeout(resolveDelay, 25));
+      active -= 1;
+      const index = urls.indexOf(url);
+      if (index === 1) {
+        return {
+          source_id: sourceIds[index]!,
+          source_kind: "retrieved_page",
+          availability: "unavailable",
+          url,
+          requested_url: url,
+          title: "Unavailable source",
+          excerpt: null,
+          retrieved_at: "2026-08-24T00:00:00.000Z",
+          trust: "untrusted_external_content",
+          evidence_usable: false,
+          receipt: {},
+          failure: { code: "fixture_unavailable", message: "Fixture failure." },
+        };
+      }
+      return {
+        source_id: sourceIds[index]!,
+        source_kind: "retrieved_page",
+        availability: "complete",
+        url,
+        requested_url: url,
+        final_url: url,
+        title: "Usable source",
+        excerpt: "A bounded excerpt.",
+        text: "SECRET_PAGE_BODY_TOKEN should stay out of the sanitized trace.",
+        retrieved_at: "2026-08-24T00:00:00.000Z",
+        trust: "untrusted_external_content",
+        evidence_usable: true,
+        receipt: {},
+      };
+    };
+    const result = await runPhase7AWorkflow({
+      workspace: createPhase7AWorkspace("session_parallel_urls"),
+      message: `Read ${urls[0]} and ${urls[1]}`,
+    }, dependencies);
+    expect(maximumActive).toBe(2);
+    expect(result.counts.url_reads).toBe(2);
+    expect(result.status).toBe("partial");
+    expect(result.limitations).toContain("read_url:fixture_unavailable");
+    expect(result.trace.steps[0]).toMatchObject({ action: "read_urls", status: "partial" });
+    expect(JSON.stringify(result.trace)).not.toContain("SECRET_PAGE_BODY_TOKEN");
+  });
+
+  it("opens a bounded batch of returned archive chunks in one controller step", async () => {
+    const chunkIds = ["chunk_batch_one", "chunk_batch_two"];
+    const dependencies = createPhase7AFixtureDependencies([
+      action({ action: "open_transcript_chunks", public_summary: "Open two archive passages", chunk_ids: chunkIds }),
+      action({ action: "respond", public_summary: "Summarize the passages", message: "Both archive passages are ready.", source_ids: chunkIds.map((id) => `archive_${id}`) }),
+    ]);
+    dependencies.tools.openTranscriptChunk = ({ chunk_id }) => ({
+      status: "complete",
+      chunk: {
+        schema_version: "1.0",
+        chunk_id,
+        chunk_index: 0,
+        segment_id: `segment_${chunk_id}`,
+        episode_id: `episode_${chunk_id}`,
+        title: `Archive ${chunk_id}`,
+        published_at: "2025-01-01T00:00:00.000Z",
+        season: 4,
+        episode_number: 1,
+        episode_format: "big_story",
+        corpus_role: "episode_content",
+        segment_role: "topic",
+        chapter_label_raw: "Topic",
+        start_seconds: 0,
+        end_seconds: 30,
+        start_char: 0,
+        end_char: 48,
+        word_count: 6,
+        text: `Exact transcript text for ${chunk_id}.`,
+      },
+    });
+    const workspace = createPhase7AWorkspace("session_parallel_chunks");
+    workspace.transcript_matches = chunkIds.map((id) => ({
+      chunk_id: id,
+      episode_id: `episode_${id}`,
+      segment_id: `segment_${id}`,
+      title: `Archive ${id}`,
+      season: 4,
+      episode_number: 1,
+      excerpt: `Excerpt ${id}`,
+      query: "batch archive test",
+    }));
+    const result = await runPhase7AWorkflow({ workspace, message: "Open both returned passages." }, dependencies);
+    expect(result.status).toBe("complete");
+    expect(result.counts.transcript_opens).toBe(2);
+    expect(result.counts.controller_turns).toBe(2);
+    expect(result.trace.steps[0]).toMatchObject({ action: "open_transcript_chunks", status: "complete" });
+    expect(result.workspace.evidence.map((item) => item.chunk_id)).toEqual(chunkIds);
+  });
+
   it("adapts through supplied-page retrieval, archive search, exact chunk opening, and a cited response", async () => {
     const events: string[] = [];
     const result = await runPhase7AWorkflow({
@@ -233,14 +375,30 @@ describe("Phase 7A chat-first agent", () => {
         id: "gen_phase7a_test",
         model: "openai/gpt-5.6-luna",
         provider: "OpenAI",
-        choices: [{ delta: { content: JSON.stringify({ action: "respond", public_summary: "Answer directly", argument: "Hello.", mode: null, target_minutes: null, instruction: "", source_ids: [] }) }, finish_reason: "stop" }],
+        choices: [{ delta: { content: JSON.stringify({
+          action: "respond",
+          public_summary: "Answer directly",
+          argument: "Hello.",
+          arguments: [],
+          mode: null,
+          target_minutes: null,
+          instruction: "",
+          source_ids: [],
+          research_state: {
+            objective: "Answer the greeting.",
+            completed_steps: [],
+            evidence_gaps: [],
+            next_step: "Respond directly.",
+          },
+        }) }, finish_reason: "stop" }],
         usage: { prompt_tokens: 100, completion_tokens: 20, total_tokens: 120, cost: 0.0001 },
       });
       return new Response(`data: ${payload}\n\ndata: [DONE]\n\n`, { status: 200, headers: { "content-type": "text/event-stream" } });
     };
     const model = createOpenRouterPhase7AModel({ apiKey: "test-key", liveAuthorized: true, fetchImpl });
     const result = await model.decide({ workspace: createPhase7AWorkspace("session_model_policy"), currentMessage: "hello", remaining: {}, lastObservation: undefined });
-    expect(result.value.action).toBe("respond");
+    expect(result.value.action.action).toBe("respond");
+    expect(result.value.research_state.objective).toBe("Answer the greeting.");
     const request = observed as { messages: Array<{ role: string; content: string }>; provider: Record<string, unknown>; response_format: unknown; model: string };
     expect(request.model).toBe("openai/gpt-5.6-luna");
     expect(request.messages[0]?.content).toBe(PHASE_7A_SYSTEM_PROMPT);
@@ -314,6 +472,11 @@ describe("Phase 7A chat-first agent", () => {
     expect(componentSource).not.toContain("Lake Bonneville");
     expect(componentSource).not.toContain("Demo/Live");
     expect(componentSource).not.toContain("OPENROUTER_API_KEY");
+    expect(componentSource).not.toContain("session-rail");
+    expect(componentSource).not.toContain("activity-rail");
+    expect(componentSource).not.toContain("mobile-switch");
+    expect(componentSource).toContain("activity-panel");
+    expect(componentSource).toContain("workspace-main");
   });
 
   it("accepts the final live Headlines and Big Story evidence within the frozen caps", async () => {

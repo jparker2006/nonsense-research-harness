@@ -28,12 +28,15 @@ import {
   phase7aActivitySchema,
   phase7aAssistantMessageSchema,
   phase7aCountsSchema,
+  phase7aRunTraceSchema,
+  phase7aTraceStepSchema,
   phase7aTurnResultSchema,
   phase7aWorkspaceSchema,
   type Phase7AAction,
   type Phase7AActivity,
   type Phase7AAssistantMessage,
   type Phase7ACounts,
+  type Phase7ARunTrace,
   type Phase7ATurnResult,
   type Phase7AWorkspace,
 } from "./contracts.ts";
@@ -62,6 +65,8 @@ type AgentState = {
   limitations: string[];
   assistantMessage: Phase7AAssistantMessage | null;
   startedAtMs: number;
+  startedAtIso: string;
+  traceSteps: Phase7ARunTrace["steps"];
   costCapUsd: number;
 };
 
@@ -296,7 +301,9 @@ function remaining(state: AgentState): Record<string, number> {
 function actionArgument(action: Phase7AAction): string {
   if (action.action === "web_search" || action.action === "search_transcripts") return action.query;
   if (action.action === "read_url") return new URL(action.url).hostname;
+  if (action.action === "read_urls") return action.urls.map((url) => new URL(url).hostname).join(", ");
   if (action.action === "open_transcript_chunk") return action.chunk_id;
+  if (action.action === "open_transcript_chunks") return action.chunk_ids.join(", ");
   if (action.action === "create_artifact") return `${action.mode}: ${action.topic}`;
   return action.source_ids.join(", ");
 }
@@ -393,6 +400,109 @@ async function createArtifact(
   }
 }
 
+async function readUrls(
+  state: AgentState,
+  deps: Phase7AAgentDependencies,
+  rawUrls: string[],
+): Promise<{ done: false; observation: string }> {
+  const allowed = rawUrls.map((url) => allowedReadUrl(state, url));
+  const normalized = allowed.map((item) => item.url);
+  if (new Set(normalized).size !== normalized.length) throw new Error("phase7a_repeated_action");
+  if (state.counts.url_reads + allowed.length > PHASE_7A_LIMITS.maxUrlReads) throw new Error("phase7a_url_read_limit");
+  if (state.workspace.evidence.length + allowed.length > PHASE_7A_LIMITS.maxEvidenceSources) throw new Error("phase7a_evidence_limit");
+  if (allowed.some((item) => state.workspace.evidence.some((source) => source.url && normalizeWebUrl(source.url) === item.url))) {
+    throw new Error("phase7a_repeated_action");
+  }
+
+  const pending = allowed.map((item, index) => {
+    const ordinal = state.counts.url_reads + index + 1;
+    const eventId = `evt_${state.runId}_read_${ordinal}`;
+    emit(state, deps, { id: eventId, kind: "tool", label: "Read source", detail: new URL(item.url).hostname, status: "running", tool: "read_url" });
+    return { item, eventId, promise: Promise.resolve().then(() => deps.tools.readUrl({ url: item.url })) };
+  });
+  state.counts.url_reads += allowed.length;
+  const settled = await Promise.allSettled(pending.map((item) => item.promise));
+  let usableCount = 0;
+  let unavailableCount = 0;
+  for (const [index, result] of settled.entries()) {
+    const pendingItem = pending[index]!;
+    if (result.status === "rejected") {
+      unavailableCount += 1;
+      addLimitation(state, "read_url:tool_error");
+      emit(state, deps, { id: pendingItem.eventId, kind: "tool", label: "Source unavailable", detail: `${new URL(pendingItem.item.url).hostname} · tool_error`, status: "unavailable", tool: "read_url" });
+      continue;
+    }
+    const page = result.value;
+    const evidence = pageEvidence(page, pendingItem.item.sourceType);
+    upsertEvidence(state, evidence);
+    if (page.evidence_usable) usableCount += 1;
+    else {
+      unavailableCount += 1;
+      addLimitation(state, `read_url:${page.failure?.code ?? page.availability}`);
+    }
+    emit(state, deps, {
+      id: pendingItem.eventId,
+      kind: "tool",
+      label: page.evidence_usable ? "Source retrieved" : "Source unavailable",
+      detail: `${page.title ?? new URL(pendingItem.item.url).hostname} · ${page.availability}`.slice(0, 300),
+      status: page.evidence_usable ? "complete" : "unavailable",
+      tool: "read_url",
+    });
+  }
+  return {
+    done: false,
+    observation: `${usableCount} source${usableCount === 1 ? "" : "s"} became usable evidence; ${unavailableCount} unavailable.`,
+  };
+}
+
+async function openTranscriptChunks(
+  state: AgentState,
+  deps: Phase7AAgentDependencies,
+  chunkIds: string[],
+): Promise<{ done: false; observation: string }> {
+  if (new Set(chunkIds).size !== chunkIds.length) throw new Error("phase7a_repeated_action");
+  if (state.counts.transcript_opens + chunkIds.length > PHASE_7A_LIMITS.maxTranscriptOpens) throw new Error("phase7a_transcript_open_limit");
+  if (state.workspace.evidence.length + chunkIds.length > PHASE_7A_LIMITS.maxEvidenceSources) throw new Error("phase7a_evidence_limit");
+  if (chunkIds.some((chunkId) => !state.workspace.transcript_matches.some((match) => match.chunk_id === chunkId))) {
+    throw new Error("phase7a_chunk_not_allowed");
+  }
+  if (chunkIds.some((chunkId) => state.workspace.evidence.some((item) => item.chunk_id === chunkId))) {
+    throw new Error("phase7a_repeated_action");
+  }
+
+  const pending = chunkIds.map((chunkId, index) => {
+    const ordinal = state.counts.transcript_opens + index + 1;
+    const eventId = `evt_${state.runId}_chunk_${ordinal}`;
+    emit(state, deps, { id: eventId, kind: "tool", label: "Open archive passage", detail: chunkId, status: "running", tool: "open_transcript_chunk" });
+    return {
+      chunkId,
+      eventId,
+      promise: Promise.resolve().then(() => deps.tools.openTranscriptChunk({ chunk_id: chunkId })),
+    };
+  });
+  state.counts.transcript_opens += chunkIds.length;
+  const settled = await Promise.allSettled(pending.map((item) => item.promise));
+  let openedCount = 0;
+  let unavailableCount = 0;
+  for (const [index, result] of settled.entries()) {
+    const pendingItem = pending[index]!;
+    const evidence = result.status === "fulfilled" ? archiveEvidence(result.value) : null;
+    if (!evidence) {
+      unavailableCount += 1;
+      addLimitation(state, "archive:chunk_not_found");
+      emit(state, deps, { id: pendingItem.eventId, kind: "tool", label: "Archive passage unavailable", detail: pendingItem.chunkId, status: "unavailable", tool: "open_transcript_chunk" });
+      continue;
+    }
+    openedCount += 1;
+    upsertEvidence(state, evidence);
+    emit(state, deps, { id: pendingItem.eventId, kind: "tool", label: "Archive passage opened", detail: `${evidence.title ?? pendingItem.chunkId} · ${evidence.source_id}`.slice(0, 300), status: "complete", tool: "open_transcript_chunk" });
+  }
+  return {
+    done: false,
+    observation: `${openedCount} archive passage${openedCount === 1 ? "" : "s"} became usable evidence; ${unavailableCount} unavailable. No speaker labels were inferred.`,
+  };
+}
+
 async function executeAction(state: AgentState, deps: Phase7AAgentDependencies, action: Phase7AAction): Promise<{ done: boolean; observation: string }> {
   assertActive(state, deps);
   const detail = actionArgument(action).slice(0, 300);
@@ -456,20 +566,8 @@ async function executeAction(state: AgentState, deps: Phase7AAgentDependencies, 
     }
   }
 
-  if (action.action === "read_url") {
-    if (state.counts.url_reads >= PHASE_7A_LIMITS.maxUrlReads) throw new Error("phase7a_url_read_limit");
-    const allowed = allowedReadUrl(state, action.url);
-    if (state.workspace.evidence.some((item) => item.url && normalizeWebUrl(item.url) === allowed.url)) throw new Error("phase7a_repeated_action");
-    state.counts.url_reads += 1;
-    const eventId = `evt_${state.runId}_read_${state.counts.url_reads}`;
-    emit(state, deps, { id: eventId, kind: "tool", label: "Read source", detail: new URL(allowed.url).hostname, status: "running", tool: "read_url" });
-    const page = await deps.tools.readUrl({ url: allowed.url });
-    const evidence = pageEvidence(page, allowed.sourceType);
-    upsertEvidence(state, evidence);
-    if (!page.evidence_usable) addLimitation(state, `read_url:${page.failure?.code ?? page.availability}`);
-    emit(state, deps, { id: eventId, kind: "tool", label: page.evidence_usable ? "Source retrieved" : "Source unavailable", detail: `${page.title ?? new URL(allowed.url).hostname} · ${page.availability}`.slice(0, 300), status: page.evidence_usable ? "complete" : "unavailable", tool: "read_url" });
-    return { done: false, observation: `Source ${evidence.source_id} is ${page.evidence_usable ? "usable evidence" : `unavailable (${page.failure?.code ?? page.availability})`}.` };
-  }
+  if (action.action === "read_url") return readUrls(state, deps, [action.url]);
+  if (action.action === "read_urls") return readUrls(state, deps, action.urls);
 
   if (action.action === "search_transcripts") {
     if (state.counts.transcript_searches >= PHASE_7A_LIMITS.maxTranscriptSearches) throw new Error("phase7a_transcript_search_limit");
@@ -509,24 +607,8 @@ async function executeAction(state: AgentState, deps: Phase7AAgentDependencies, 
     }
   }
 
-  if (action.action === "open_transcript_chunk") {
-    if (state.counts.transcript_opens >= PHASE_7A_LIMITS.maxTranscriptOpens) throw new Error("phase7a_transcript_open_limit");
-    if (!state.workspace.transcript_matches.some((match) => match.chunk_id === action.chunk_id)) throw new Error("phase7a_chunk_not_allowed");
-    if (state.workspace.evidence.some((item) => item.chunk_id === action.chunk_id)) throw new Error("phase7a_repeated_action");
-    state.counts.transcript_opens += 1;
-    const eventId = `evt_${state.runId}_chunk_${state.counts.transcript_opens}`;
-    emit(state, deps, { id: eventId, kind: "tool", label: "Open archive passage", detail, status: "running", tool: "open_transcript_chunk" });
-    const opened = await deps.tools.openTranscriptChunk({ chunk_id: action.chunk_id });
-    const evidence = archiveEvidence(opened);
-    if (!evidence) {
-      addLimitation(state, "archive:chunk_not_found");
-      emit(state, deps, { id: eventId, kind: "tool", label: "Archive passage unavailable", detail, status: "unavailable", tool: "open_transcript_chunk" });
-      return { done: false, observation: `Archive chunk ${action.chunk_id} was not found.` };
-    }
-    upsertEvidence(state, evidence);
-    emit(state, deps, { id: eventId, kind: "tool", label: "Archive passage opened", detail: `${evidence.title ?? action.chunk_id} · ${evidence.source_id}`.slice(0, 300), status: "complete", tool: "open_transcript_chunk" });
-    return { done: false, observation: `Archive source ${evidence.source_id} is usable evidence without speaker labels.` };
-  }
+  if (action.action === "open_transcript_chunk") return openTranscriptChunks(state, deps, [action.chunk_id]);
+  if (action.action === "open_transcript_chunks") return openTranscriptChunks(state, deps, action.chunk_ids);
 
   const priorRevision = state.workspace.artifact_revision;
   const observation = await createArtifact(state, deps, action);
@@ -565,6 +647,7 @@ export async function runPhase7AAgentTurn(options: {
   message: string;
   runId?: string;
 }, deps: Phase7AAgentDependencies): Promise<Phase7ATurnResult> {
+  const startedAtIso = nowIso(deps);
   const state: AgentState = {
     runId: options.runId ?? `run_${randomUUID()}`,
     workspace: structuredClone(phase7aWorkspaceSchema.parse(options.workspace)),
@@ -577,6 +660,8 @@ export async function runPhase7AAgentTurn(options: {
     limitations: [],
     assistantMessage: null,
     startedAtMs: deps.clockMs?.() ?? performance.now(),
+    startedAtIso,
+    traceSteps: [],
     costCapUsd: Math.min(PHASE_7A_LIMITS.costCapUsd, Math.max(0, deps.costCapUsd ?? PHASE_7A_LIMITS.costCapUsd)),
   };
   appendTurn(state, "user", state.currentMessage, [], deps);
@@ -605,10 +690,33 @@ export async function runPhase7AAgentTurn(options: {
         if (!usageRecorded) addUsage(state, "luna_controller", RESERVATIONS.controller);
         throw error;
       }
-      emit(state, deps, { id: decisionId, kind: "agent", label: "Next step chosen", detail: decision.value.public_summary, status: "complete" });
-      const outcome = await executeAction(state, deps, decision.value);
-      lastObservation = outcome.observation;
-      if (outcome.done) break;
+      state.workspace.research_state = decision.value.research_state;
+      const action = decision.value.action;
+      emit(state, deps, { id: decisionId, kind: "agent", label: "Next step chosen", detail: action.public_summary, status: "complete" });
+      const limitationCount = state.limitations.length;
+      try {
+        const outcome = await executeAction(state, deps, action);
+        lastObservation = outcome.observation;
+        state.traceSteps.push(phase7aTraceStepSchema.parse({
+          sequence: state.traceSteps.length + 1,
+          action: action.action,
+          public_summary: action.public_summary,
+          target: actionArgument(action).slice(0, 500),
+          observation: outcome.observation.slice(0, 500),
+          status: state.limitations.length > limitationCount ? "partial" : "complete",
+        }));
+        if (outcome.done) break;
+      } catch (error) {
+        state.traceSteps.push(phase7aTraceStepSchema.parse({
+          sequence: state.traceSteps.length + 1,
+          action: action.action,
+          public_summary: action.public_summary,
+          target: actionArgument(action).slice(0, 500),
+          observation: safeCode(error, "phase7a_action_failed"),
+          status: "failed",
+        }));
+        throw error;
+      }
     }
     if (state.status === "running") {
       addLimitation(state, "phase7a_controller_turn_limit");
@@ -629,6 +737,21 @@ export async function runPhase7AAgentTurn(options: {
     }
   }
 
+  const terminalStatus = state.status;
+  const trace = phase7aRunTraceSchema.parse({
+    run_id: state.runId,
+    started_at: state.startedAtIso,
+    completed_at: nowIso(deps),
+    status: terminalStatus,
+    steps: state.traceSteps,
+    counts: state.counts,
+    accounted_cost_usd: state.accountedCostUsd,
+    source_ids: state.workspace.evidence.map((item) => item.source_id),
+    artifact_revision: state.workspace.artifact_revision,
+    limitations: state.limitations,
+  });
+  state.workspace.run_traces.push(trace);
+  state.workspace.run_traces = state.workspace.run_traces.slice(-PHASE_7A_LIMITS.maxRunTraces);
   state.workspace.updated_at_ms = Date.now();
   return phase7aTurnResultSchema.parse({
     run_id: state.runId,
@@ -642,6 +765,7 @@ export async function runPhase7AAgentTurn(options: {
     accounted_cost_usd: state.accountedCostUsd,
     elapsed_ms: Number(elapsed(state, deps).toFixed(2)),
     limitations: state.limitations,
+    trace,
     workspace: state.workspace,
   });
 }
