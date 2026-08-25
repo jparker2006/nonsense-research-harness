@@ -737,6 +737,7 @@ describe("Phase 7A chat-first agent", () => {
     expect(stream).toContain('"type":"data-message"');
     expect(stream).toContain('"type":"data-source"');
     expect(stream).toContain('"type":"data-receipt"');
+    expect(stream.indexOf('"type":"data-source"')).toBeLessThan(stream.indexOf('"type":"data-message"'));
     expect(stream).not.toContain("preserving evidence of vanished water levels");
     expect(stream).not.toContain("OPENROUTER_API_KEY");
 
@@ -745,6 +746,25 @@ describe("Phase 7A chat-first agent", () => {
     await expect(invalid.json()).resolves.toMatchObject({ code: "phase7a_invalid_request" });
     const oversized = await route(requestFor({ phase7a: { action: "message", session_id: "session_oversized", message: "x".repeat(24_000) } }));
     expect(oversized.status).toBe(413);
+  });
+
+  it("streams an artifact only from the run that actually created a new revision", async () => {
+    let requestNumber = 0;
+    const route = createPhase7AChatRoute({
+      dependencies: () => createPhase7AFixtureDependencies(requestNumber++ === 0
+        ? researchActions("headlines")
+        : [action({ action: "respond", public_summary: "Answer the follow-up", message: "The recall timing is the strongest follow-up angle.", source_ids: [] })]),
+    });
+    const sessionId = "session_artifact_revision_route";
+    const first = await route(requestFor({ phase7a: { action: "message", session_id: sessionId, message: `Make the packet from ${suppliedUrl}.` } }));
+    const firstStream = await first.text();
+    expect(firstStream).toContain('"type":"data-artifact"');
+    expect(firstStream.indexOf('"type":"data-source"')).toBeLessThan(firstStream.indexOf('"type":"data-artifact"'));
+
+    const second = await route(requestFor({ phase7a: { action: "message", session_id: sessionId, message: "What is the strongest angle?" } }));
+    const secondStream = await second.text();
+    expect(secondStream).toContain("The recall timing is the strongest follow-up angle.");
+    expect(secondStream).not.toContain('"type":"data-artifact"');
   });
 
   it("streams an explicit terminal controller failure with its real receipt and no retry", async () => {
@@ -764,6 +784,7 @@ describe("Phase 7A chat-first agent", () => {
     expect(stream).toContain('\"accounted_cost_usd\":0.0042');
     expect(stream).toContain('\"provider_requests\":1');
     expect(stream).toContain('\"state\":\"failed\"');
+    expect(stream).toMatch(/\"type\":\"data-error\".*\"run_id\":\"run_/);
     expect(stream).not.toContain("SECRET_RAW_OUTPUT_TOKEN");
   });
 
@@ -803,6 +824,7 @@ describe("Phase 7A chat-first agent", () => {
     }
     const routeSource = await readFile(resolve(root, "src/app/api/chat/route.ts"), "utf8");
     const componentSource = await readFile(resolve(root, "src/components/research-harness.tsx"), "utf8");
+    const threadSource = await readFile(resolve(root, "src/components/research-thread.tsx"), "utf8");
     expect(routeSource).not.toContain("createPhase6FixtureDependencies");
     expect(componentSource).not.toContain("Lake Bonneville");
     expect(componentSource).not.toContain("Demo/Live");
@@ -810,7 +832,8 @@ describe("Phase 7A chat-first agent", () => {
     expect(componentSource).not.toContain("session-rail");
     expect(componentSource).not.toContain("activity-rail");
     expect(componentSource).not.toContain("mobile-switch");
-    expect(componentSource).toContain("activity-panel");
+    expect(threadSource).toContain("agent-work");
+    expect(threadSource).toContain("Observable agent work");
     expect(componentSource).toContain("workspace-main");
   });
 

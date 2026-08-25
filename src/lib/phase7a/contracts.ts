@@ -285,6 +285,7 @@ export const phase7aReceiptSchema = z.object({
 });
 
 export const phase7aErrorSchema = z.object({
+  run_id: z.string().max(160).optional(),
   code: z.string().regex(/^phase7a_[a-z0-9_]+$/),
   message: z.string().min(1).max(300),
   retryable: z.boolean(),

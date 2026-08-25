@@ -24,7 +24,7 @@ export const dynamic = "force-dynamic";
 
 const activeSessions = new Set<string>();
 
-function safeError(error: unknown) {
+function safeError(error: unknown, runId?: string) {
   const code = error instanceof Error && /^phase7a_[a-z0-9_]+$/.test(error.message)
     ? error.message
     : "phase7a_request_failed";
@@ -49,6 +49,7 @@ function safeError(error: unknown) {
     phase7a_run_stopped: "The research turn was stopped.",
   };
   return phase7aErrorSchema.parse({
+    ...(runId ? { run_id: runId } : {}),
     code,
     message: messages[code] ?? "The research turn failed safely. No automatic retry was started.",
     retryable: ["phase7a_request_failed", "phase7a_run_stopped"].includes(code),
@@ -127,6 +128,7 @@ export function createPhase7AChatRoute(options: {
             }),
           });
           const workspace = getPhase7AWorkspace(parsed.session_id) ?? createPhase7AWorkspace(parsed.session_id);
+          const startingArtifactRevision = workspace.artifact_revision;
           const base = dependencyFactory(request.signal);
           const result = await runPhase7AWorkflow({ workspace, message: parsed.message, runId }, {
             ...base,
@@ -137,9 +139,6 @@ export function createPhase7AChatRoute(options: {
             },
           });
           putPhase7AWorkspace(result.workspace);
-          if (result.assistant_message) {
-            writer.write({ type: "data-message", id: result.assistant_message.message_id, data: result.assistant_message });
-          }
           for (const source of result.workspace.evidence) {
             writer.write({
               type: "data-source",
@@ -147,12 +146,15 @@ export function createPhase7AChatRoute(options: {
               data: phase7aSourceSchema.parse({ ...source, content: undefined }),
             });
           }
-          if (result.artifact && result.artifact_revision > 0) {
+          if (result.artifact && result.artifact_revision > startingArtifactRevision) {
             writer.write({
               type: "data-artifact",
               id: `${runId}-artifact-${result.artifact_revision}`,
               data: phase7aArtifactSchema.parse({ run_id: runId, revision: result.artifact_revision, artifact: result.artifact }),
             });
+          }
+          if (result.assistant_message) {
+            writer.write({ type: "data-message", id: result.assistant_message.message_id, data: result.assistant_message });
           }
           writer.write({
             type: "data-receipt",
@@ -181,7 +183,7 @@ export function createPhase7AChatRoute(options: {
           });
           if (result.status === "failed") {
             const firstCode = result.limitations.find((item) => /^phase7a_[a-z0-9_]+$/.test(item));
-            writer.write({ type: "data-error", id: runId, data: safeError(new Error(firstCode ?? "phase7a_request_failed")) });
+            writer.write({ type: "data-error", id: runId, data: safeError(new Error(firstCode ?? "phase7a_request_failed"), runId) });
           }
           const text = result.assistant_message?.text ?? summary;
           const textId = `text_${runId}`;
@@ -191,7 +193,7 @@ export function createPhase7AChatRoute(options: {
           writer.write({ type: "finish", finishReason: "stop" });
         } catch (error) {
           if (!request.signal.aborted) {
-            const safe = safeError(error);
+            const safe = safeError(error, runId);
             writer.write({ type: "data-error", id: runId, data: safe });
             writer.write({
               type: "data-run",

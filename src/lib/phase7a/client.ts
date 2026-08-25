@@ -37,7 +37,7 @@ export type Phase7AReceipt = {
   limitations: string[];
   artifact_revision: number;
 };
-export type Phase7AError = { code: string; message: string; retryable: boolean };
+export type Phase7AError = { run_id?: string; code: string; message: string; retryable: boolean };
 export type ChatTurn = { id: string; role: "user" | "assistant"; text: string; source_ids: string[] };
 
 export const phase7aActivitySchema = z.custom<Phase7AActivity>((value) => Boolean(value && typeof value === "object" && "id" in value && "status" in value));

@@ -397,6 +397,26 @@ The frozen plan, result, and live evidence are in `docs/PHASE_7A_2_PLAN.md`, `do
 - [x] Already-read candidates are not offered as unread, and the last provider slot cannot be consumed by another controller turn when a requested packet is ready to compose.
 - [x] No persistence, auth, deployment, subagent, new model, corpus mutation, hosted infrastructure, or provider fallback was added.
 
+## Phase 7A.3 — Chat-native research interface — PASSED LOCALLY
+
+The frozen scope and deterministic evidence are in `docs/PHASE_7A_3_PLAN.md` and `docs/PHASE_7A_3_RESULT.md`. Jake owns the first paid live UI acceptance run.
+
+- [x] Group every prompt, observable work trace, answer/packet, receipt, and error into one run-correlated chronological exchange.
+- [x] Render safe tool activity below the request that caused it; collapse successful work and retain failed work visibly.
+- [x] Render complete Headlines and Big Story artifacts inline as assistant answers, with optional Focus and readable Markdown copy.
+- [x] Replace visible machine source IDs with stable numbered article/episode references while preserving internal exact lookup.
+- [x] Present `partial` artifacts as usable answers with precise limitations without weakening authoritative receipt truth.
+- [x] Prevent a retained prior artifact from being streamed as a new follow-up answer and correlate streamed errors to runs.
+- [x] Prove client-state isolation, full artifact projection, citations, route behavior, responsive shell, and zero provider spend deterministically.
+- [ ] Complete one user-owned paid live UI acceptance run and inspect that exact browser state before declaring live acceptance.
+
+### Phase 7A.3 local gate — STOP
+
+- [x] Full supply-chain/lint/typecheck/194-test/production-build gate passes.
+- [x] Provider-free desktop/phone browser check passes with zero console warnings/errors and no horizontal overflow.
+- [x] No backend model/tool/corpus change, persistence, auth, deployment, sidebar/history, or provider call was added.
+- [ ] Do not start a replacement live run automatically; wait for Jake to submit the first prompt.
+
 ## Phase 7B — Durable private workspaces — NOT STARTED
 
 - [ ] Decide whether persistence/auth is worth building only after Phase 8 usefulness testing.

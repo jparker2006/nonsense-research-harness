@@ -30,23 +30,24 @@ CJ or Jeff is at a laptop before recording, scanning research and shaping a conv
 
 ```text
 ┌──────────────── one compact product header ────────────────┐
-│ Nonsense Research    title/status/cost    new/artifact/stop │
+│ Nonsense Research         title/status/cost        new/stop │
 ├─────────────────────────────────────────────────────────────┤
-│          bounded inline research activity (when used)       │
-│                                                             │
-│                 one primary chat workspace                  │
-│                  or one artifact document                   │
+│ user request                                                │
+│   observable work for that run                              │
+│   cited answer or full inline prep packet                   │
+│ next user request                                           │
+│   its own work and answer                                   │
 │                                                             │
 │                     sticky composer                         │
 └─────────────────────────────────────────────────────────────┘
-                                  source detail opens as drawer
+              source detail opens as drawer; packet can Focus
 ```
 
 There is no permanent session rail and no permanent activity rail. Agent activity is progressive disclosure inside the same workspace. Sources are contextual detail, not navigation.
 
 ## Signature
 
-The inline research tape is the product's signature. Its current action is immediately readable; completed tool calls expand below it. It shows observable work without turning hidden reasoning into theater.
+The chronological exchange is the product's signature. Each prompt owns a compact observable-work disclosure followed by its answer. A validated packet reads like a first-class assistant response, while Focus remains optional. It shows observable work without turning hidden reasoning into theater.
 
 ## Preserve
 
