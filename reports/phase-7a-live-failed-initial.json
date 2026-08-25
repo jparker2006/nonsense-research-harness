@@ -1,0 +1,185 @@
+{
+  "phase": "7A",
+  "gate": {
+    "per_turn_cost_cap_usd": 1,
+    "aggregate_cost_cap_usd": 2,
+    "per_turn_provider_request_cap": 20,
+    "controller_turn_cap": 10
+  },
+  "endpoint": "http://127.0.0.1:3210/api/chat",
+  "automatic_retries": 0,
+  "started_at": "2026-08-25T03:43:22.732Z",
+  "cases": [
+    {
+      "id": "headlines_sprout_outbreak",
+      "session_id": "session_phase7a_local",
+      "expected_mode": "headlines",
+      "started_at": "2026-08-25T03:43:22.734Z",
+      "completed_at": "2026-08-25T03:43:25.717Z",
+      "request_message": "Create an 8-minute Headlines preparation packet about the August 2026 multistate sprout foodborne-illness outbreak. Read both supplied links. Do at most one additional current-web search and read at most one especially useful additional source. Search the Nonsense transcript archive once and open at most one relevant chunk. Then create the validated packet and briefly tell me it is ready. Keep evidence, inference, and open uncertainty separate.\n\nFDA: https://www.fda.gov/food/outbreaks-foodborne-illness/outbreak-investigation-shiga-toxin-producing-e-coli-salmonella-sprouts-august-2026\nAP: https://apnews.com/article/alfalfa-sprouts-food-poisoning-ac7701ed353e1e8c0aea8fec04982a26",
+      "http_status": 200,
+      "cache_control": "no-store",
+      "receipt": {
+        "run_id": "run_6367667b-077d-4960-b23c-33ba4171bc19",
+        "status": "failed",
+        "counts": {
+          "controller_turns": 1,
+          "provider_requests": 1,
+          "grok_turns": 0,
+          "web_searches": 0,
+          "url_reads": 0,
+          "transcript_searches": 0,
+          "transcript_opens": 0,
+          "compositions": 0,
+          "repairs": 0
+        },
+        "accounted_cost_usd": 0.03,
+        "elapsed_ms": 1196.18,
+        "limitations": [
+          "phase7a_model_unavailable"
+        ],
+        "artifact_revision": 0
+      },
+      "artifact": null,
+      "assistant_message": null,
+      "safe_activity": [
+        {
+          "id": "evt_run_6367667b-077d-4960-b23c-33ba4171bc19_001",
+          "run_id": "run_6367667b-077d-4960-b23c-33ba4171bc19",
+          "kind": "run",
+          "label": "Research turn started",
+          "detail": "The agent is reading the conversation and evidence workspace",
+          "status": "running",
+          "created_at": "2026-08-25T03:43:24.514Z"
+        },
+        {
+          "id": "evt_run_6367667b-077d-4960-b23c-33ba4171bc19_decision_1",
+          "run_id": "run_6367667b-077d-4960-b23c-33ba4171bc19",
+          "kind": "agent",
+          "label": "Choosing the next research step",
+          "detail": "Reviewing the request and saved evidence",
+          "status": "running",
+          "created_at": "2026-08-25T03:43:24.515Z"
+        },
+        {
+          "id": "evt_run_6367667b-077d-4960-b23c-33ba4171bc19_003",
+          "run_id": "run_6367667b-077d-4960-b23c-33ba4171bc19",
+          "kind": "run",
+          "label": "Research turn failed safely",
+          "detail": "phase7a_model_unavailable",
+          "status": "failed",
+          "created_at": "2026-08-25T03:43:25.710Z"
+        }
+      ],
+      "terminal_run": {
+        "session_id": "session_phase7a_local",
+        "run_id": "run_6367667b-077d-4960-b23c-33ba4171bc19",
+        "state": "failed",
+        "summary": "Research turn failed safely"
+      },
+      "error": {
+        "code": "phase7a_model_unavailable",
+        "message": "The research turn failed safely. No automatic retry was started.",
+        "retryable": false
+      },
+      "failures": [
+        "stream_error",
+        "missing_artifact",
+        "missing_assistant_message",
+        "artifact_mode_mismatch"
+      ]
+    },
+    {
+      "id": "big_story_bonneville",
+      "session_id": "session_phase7a_big_story",
+      "expected_mode": "big_story",
+      "started_at": "2026-08-25T03:43:25.717Z",
+      "completed_at": "2026-08-25T03:43:26.192Z",
+      "request_message": "Create a 24-minute Big Story preparation packet about how vanished Lake Bonneville still organizes the modern Great Basin landscape and how visible evidence changes the way people understand deep time. Read the supplied NASA source. Do at most one additional current-web search and read at most one especially useful additional source. Search the Nonsense transcript archive once and open at most one relevant chunk. Then create the validated packet and briefly tell me it is ready. Keep the outline modular against the clock.\n\nNASA: https://science.nasa.gov/earth/earth-observatory/what-lake-bonneville-left-behind/",
+      "http_status": 200,
+      "cache_control": "no-store",
+      "receipt": {
+        "run_id": "run_a4ea3734-6fe3-448f-8f16-a9c506469615",
+        "status": "failed",
+        "counts": {
+          "controller_turns": 1,
+          "provider_requests": 1,
+          "grok_turns": 0,
+          "web_searches": 0,
+          "url_reads": 0,
+          "transcript_searches": 0,
+          "transcript_opens": 0,
+          "compositions": 0,
+          "repairs": 0
+        },
+        "accounted_cost_usd": 0.03,
+        "elapsed_ms": 328.02,
+        "limitations": [
+          "phase7a_model_unavailable"
+        ],
+        "artifact_revision": 0
+      },
+      "artifact": null,
+      "assistant_message": null,
+      "safe_activity": [
+        {
+          "id": "evt_run_a4ea3734-6fe3-448f-8f16-a9c506469615_001",
+          "run_id": "run_a4ea3734-6fe3-448f-8f16-a9c506469615",
+          "kind": "run",
+          "label": "Research turn started",
+          "detail": "The agent is reading the conversation and evidence workspace",
+          "status": "running",
+          "created_at": "2026-08-25T03:43:25.860Z"
+        },
+        {
+          "id": "evt_run_a4ea3734-6fe3-448f-8f16-a9c506469615_decision_1",
+          "run_id": "run_a4ea3734-6fe3-448f-8f16-a9c506469615",
+          "kind": "agent",
+          "label": "Choosing the next research step",
+          "detail": "Reviewing the request and saved evidence",
+          "status": "running",
+          "created_at": "2026-08-25T03:43:25.860Z"
+        },
+        {
+          "id": "evt_run_a4ea3734-6fe3-448f-8f16-a9c506469615_003",
+          "run_id": "run_a4ea3734-6fe3-448f-8f16-a9c506469615",
+          "kind": "run",
+          "label": "Research turn failed safely",
+          "detail": "phase7a_model_unavailable",
+          "status": "failed",
+          "created_at": "2026-08-25T03:43:26.188Z"
+        }
+      ],
+      "terminal_run": {
+        "session_id": "session_phase7a_big_story",
+        "run_id": "run_a4ea3734-6fe3-448f-8f16-a9c506469615",
+        "state": "failed",
+        "summary": "Research turn failed safely"
+      },
+      "error": {
+        "code": "phase7a_model_unavailable",
+        "message": "The research turn failed safely. No automatic retry was started.",
+        "retryable": false
+      },
+      "failures": [
+        "stream_error",
+        "missing_artifact",
+        "missing_assistant_message",
+        "artifact_mode_mismatch"
+      ]
+    }
+  ],
+  "failures": [
+    "headlines_sprout_outbreak:stream_error",
+    "headlines_sprout_outbreak:missing_artifact",
+    "headlines_sprout_outbreak:missing_assistant_message",
+    "headlines_sprout_outbreak:artifact_mode_mismatch",
+    "big_story_bonneville:stream_error",
+    "big_story_bonneville:missing_artifact",
+    "big_story_bonneville:missing_assistant_message",
+    "big_story_bonneville:artifact_mode_mismatch"
+  ],
+  "aggregate_cost_usd": 0.06,
+  "aggregate_provider_requests": 2,
+  "completed_at": "2026-08-25T03:43:26.192Z"
+}

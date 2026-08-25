@@ -1,0 +1,931 @@
+{
+  "phase": "7A",
+  "gate": {
+    "per_turn_cost_cap_usd": 1,
+    "aggregate_cost_cap_usd": 2,
+    "per_turn_provider_request_cap": 20,
+    "controller_turn_cap": 10
+  },
+  "endpoint": "http://127.0.0.1:3210/api/chat",
+  "automatic_retries": 0,
+  "started_at": "2026-08-25T03:51:38.126Z",
+  "cases": [
+    {
+      "id": "headlines_sprout_outbreak",
+      "session_id": "session_phase7a_local",
+      "expected_mode": "headlines",
+      "started_at": "2026-08-25T03:51:38.127Z",
+      "completed_at": "2026-08-25T03:53:31.818Z",
+      "request_message": "Create an 8-minute Headlines preparation packet about the August 2026 multistate sprout foodborne-illness outbreak. Read both supplied links. Do at most one additional current-web search and read at most one especially useful additional source. Search the Nonsense transcript archive once and open at most one relevant chunk. Then create the validated packet and briefly tell me it is ready. Keep evidence, inference, and open uncertainty separate.\n\nFDA: https://www.fda.gov/food/outbreaks-foodborne-illness/outbreak-investigation-shiga-toxin-producing-e-coli-salmonella-sprouts-august-2026\nAP: https://apnews.com/article/alfalfa-sprouts-food-poisoning-ac7701ed353e1e8c0aea8fec04982a26",
+      "http_status": 200,
+      "cache_control": "no-store",
+      "receipt": {
+        "run_id": "run_65cc7bb0-dba9-480b-8960-4ca3ccd28a98",
+        "status": "partial",
+        "counts": {
+          "controller_turns": 5,
+          "provider_requests": 8,
+          "grok_turns": 1,
+          "web_searches": 0,
+          "url_reads": 2,
+          "transcript_searches": 1,
+          "transcript_opens": 1,
+          "compositions": 1,
+          "repairs": 0
+        },
+        "accounted_cost_usd": 0.0744507,
+        "elapsed_ms": 111907.38,
+        "limitations": [
+          "archive:keyword_only"
+        ],
+        "artifact_revision": 1
+      },
+      "artifact": {
+        "run_id": "run_65cc7bb0-dba9-480b-8960-4ca3ccd28a98",
+        "revision": 1,
+        "artifact": {
+          "mode": "headlines",
+          "working_title": "August 2026 multistate alfalfa-sprout outbreak (STEC + Salmonella)",
+          "past_nonsense_coverage": {
+            "status": "no_relevant_archive_match",
+            "items": []
+          },
+          "conversation_questions": [
+            "How unusual is it for one sprout outbreak to involve several STEC serotypes plus Salmonella Agona, including dual infections?",
+            "How should the show weigh confirmed MN/WI distribution against illnesses reported from 15 states?",
+            "Does last year’s FDA warning letter belong in this conversation, or is it a separate facility-history note?",
+            "What should listeners do if they ate sprouts, froze leftovers without packaging, or ate restaurant dishes that may have included sprouts?",
+            "What single unknown—contamination source, extra firms, or wider distribution—would most change this story if answered?"
+          ],
+          "uncertainties_and_open_checks": [
+            "FDA says the contamination source is still unknown and it is checking whether additional products or firms are linked.",
+            "Confirmed recalled-product distribution is MN and WI; FDA says product could have gone farther, which is not fully mapped in the supplied evidence.",
+            "AP, citing FDA at the time of its report, says the company had not yet issued a recall; FDA’s Aug. 24 update says Everything Sprouts initiated a recall on Aug. 22. Treat this as a timing/source conflict, not a resolved fact.",
+            "AP sought company comment and did not report a response.",
+            "The FDA excerpt cuts off at “Last Illness Onset,” so a complete onset-date close is not in the usable text.",
+            "The archive chunk opened for this query is a measles-outbreak segment, not sprout coverage."
+          ],
+          "source_ledger": [
+            {
+              "source_id": "web_2786293ce491e6089cc4",
+              "source_type": "provided_link",
+              "availability": "complete",
+              "evidence_usable": true,
+              "title": "Outbreak Investigation of Shiga Toxin-producing E. coli & Salmonella: Sprouts (August 2026)",
+              "url": "https://www.fda.gov/food/outbreaks-foodborne-illness/outbreak-investigation-shiga-toxin-producing-e-coli-salmonella-sprouts-august-2026",
+              "retrieved_at": "2026-08-25T03:51:43.425Z",
+              "excerpt": "Do not eat, sell, or serve recalled Calco and Everything Sprouts-brand alfalfa sprouts. FDA’s investigation is ongoing.\n\nProductRecalled alfalfa sprouts grown by Everything Sprouts and sold under the Calco and Everything Sprouts brands. Recalled sprouts are packaged in 5-oz plastic containers with lot numbers 222, 223, 225, 226, and 230. These same Alfalfa sprouts were also used in Everything Sprouts Crunchy Protein Sprout Mix 5-oz cups, LOT# 222, 223, 226, 230 and the Zesty Garlic Mix cups, LOT# 222, 223, 225, 226, and 230. Symptoms of Shiga toxin-producing E. coli (STEC) infectionSymptoms be"
+            },
+            {
+              "source_id": "web_bb08b20fb503194f55ea",
+              "source_type": "provided_link",
+              "availability": "complete",
+              "evidence_usable": true,
+              "title": "Alfalfa sprouts linked to 15-state food-poisoning outbreak | AP News",
+              "url": "https://apnews.com/article/alfalfa-sprouts-food-poisoning-ac7701ed353e1e8c0aea8fec04982a26",
+              "retrieved_at": "2026-08-25T03:51:46.432Z",
+              "excerpt": "NEW YORK (AP) — U.S. health officials say a food-poisoning outbreak tied to alfalfa sprouts and involving multiple germs has sickened people in 15 states.State officials announced the outbreak earlier this week, saying they documented more than three dozen cases in Minnesota and Wisconsin. On Friday, the U.S. Centers for Disease Control and Prevention said the agency is aware of 55 cases nationally, including four people who have been hospitalized.The CDC said cases are also reported in Florida, Indiana, Iowa, Kansas, Michigan, New Hampshire, New York, Pennsylvania, North Carolina, South Carol"
+            }
+          ],
+          "what_happened": {
+            "text": "FDA and CDC, with state and local partners, are investigating a multistate outbreak of several Shiga toxin-producing E. coli serotypes and Salmonella Agona tied to alfalfa sprouts from Everything Sprouts, LLC of Minneapolis. As of the FDA advisory, 55 people from 15 states have been reported ill (46 STEC, 7 Salmonella, 2 both), with illnesses from May 31 to Aug. 8, 2026, 4 hospitalizations, and no deaths. Of 34 people interviewed, 26 (76%) reported eating alfalfa sprouts. On Aug. 22 the firm recalled specified Calco and Everything Sprouts alfalfa products; FDA’s investigation remains ongoing.",
+            "source_ids": [
+              "web_2786293ce491e6089cc4",
+              "web_bb08b20fb503194f55ea"
+            ]
+          },
+          "why_it_matters_now": {
+            "text": "The outbreak advisory is current and open: recalled 5-oz sprout cups and mixed sprout cups may still be in home refrigerators or freezers, and FDA is still determining whether product moved beyond confirmed MN/WI grocery, wholesale, and restaurant channels. Public-health advice is immediate—do not eat, sell, or serve the named lots, discard or return them, clean contacted surfaces, and seek care if symptoms resemble STEC or Salmonella after eating the recalled sprouts.",
+            "source_ids": [
+              "web_2786293ce491e6089cc4"
+            ]
+          },
+          "verified_facts": [
+            {
+              "text": "Recalled products are alfalfa sprouts grown by Everything Sprouts and sold under the Calco and Everything Sprouts brands in 5-oz plastic containers, lots 222, 223, 225, 226, and 230; the same sprouts went into Crunchy Protein Sprout Mix cups (lots 222, 223, 226, 230) and Zesty Garlic Mix cups (lots 222, 223, 225, 226, 230).",
+              "source_ids": [
+                "web_2786293ce491e6089cc4"
+              ]
+            },
+            {
+              "text": "FDA reports 55 illnesses in 15 states, 4 hospitalizations, 0 deaths; 46 people had E. coli, 7 Salmonella, and 2 both. Some people had more than one outbreak strain. STEC types listed are O26:H11, O103:H25, and O168:H8, plus Salmonella Agona.",
+              "source_ids": [
+                "web_2786293ce491e6089cc4"
+              ]
+            },
+            {
+              "text": "Illness-onset range in the FDA update is May 31, 2026–August 8, 2026. Recalled sprouts were distributed by Everything Sprouts from May 27, 2026, to August 21, 2026, to wholesale distributors and grocery stores in MN and WI; traceback also found them in MN and WI restaurants.",
+              "source_ids": [
+                "web_2786293ce491e6089cc4"
+              ]
+            },
+            {
+              "text": "AP lists additional case states as Florida, Indiana, Iowa, Kansas, Michigan, New Hampshire, New York, Pennsylvania, North Carolina, South Carolina, North Dakota, South Dakota, and Washington, and says state officials had reported more than three dozen cases in Minnesota and Wisconsin earlier in the week.",
+              "source_ids": [
+                "web_bb08b20fb503194f55ea"
+              ]
+            },
+            {
+              "text": "FDA inspected and sampled at Everything Sprouts on August 19, 2026. Consumers are told not to eat, sell, or serve the recalled brands; throw them out or return them; discard frozen unmarked product that might be affected; and consult a clinician if symptoms follow exposure.",
+              "source_ids": [
+                "web_2786293ce491e6089cc4"
+              ]
+            }
+          ],
+          "tension_or_argument": {
+            "text": "This is not a single-germ outbreak: officials are linking one sprout supplier to multiple STEC strains and Salmonella, with a high interview rate for sprout exposure, while confirmed retail/restaurant distribution is still only MN/WI even as cases span 15 states. A second tension is company-history versus current proof—AP reports a prior-year FDA warning letter about facility problems, but the live investigation has not identified the contamination source. A third is recall timing: AP said no recall had been issued yet; FDA’s later update says a recall began August 22.",
+            "source_ids": [
+              "web_2786293ce491e6089cc4",
+              "web_bb08b20fb503194f55ea"
+            ]
+          },
+          "surprising_details": [
+            {
+              "text": "Two people were infected with both Salmonella and E. coli, and FDA lists three STEC serotypes plus Salmonella Agona in the same sprout-linked cluster.",
+              "source_ids": [
+                "web_2786293ce491e6089cc4"
+              ]
+            },
+            {
+              "text": "Crunchy Protein mix lots omit 225, while plain alfalfa and Zesty Garlic mix include lot 225—easy to miss if someone only checks one product line.",
+              "source_ids": [
+                "web_2786293ce491e6089cc4"
+              ]
+            },
+            {
+              "text": "AP says FDA last year warned Everything Sprouts after inspections found problems including a leaking roof dripping onto bean sprouts and workers’ smocks. That letter is prior regulatory history, not the stated cause of this outbreak.",
+              "source_ids": [
+                "web_bb08b20fb503194f55ea"
+              ]
+            }
+          ],
+          "flexible_outline": [
+            {
+              "priority": "must_have",
+              "text": "Core event: 55 illnesses / 15 states / 4 hospitalizations / 0 deaths; alfalfa sprouts from Everything Sprouts, Minneapolis; mixed STEC serotypes plus Salmonella Agona; 26 of 34 interviewed ate alfalfa sprouts.",
+              "source_ids": [
+                "web_2786293ce491e6089cc4",
+                "web_bb08b20fb503194f55ea"
+              ],
+              "estimated_minutes": 1.5
+            },
+            {
+              "priority": "must_have",
+              "text": "Named products and action: Calco and Everything Sprouts 5-oz alfalfa lots 222, 223, 225, 226, 230; also Crunchy Protein and Zesty Garlic mix cups; do not eat, sell, or serve; discard/return and clean surfaces.",
+              "source_ids": [
+                "web_2786293ce491e6089cc4"
+              ],
+              "estimated_minutes": 1.5
+            },
+            {
+              "priority": "must_have",
+              "text": "Live tension: multi-pathogen cluster plus dual infections; traceback to one grower; investigation open on contamination source and other possible products/firms.",
+              "source_ids": [
+                "web_2786293ce491e6089cc4"
+              ],
+              "estimated_minutes": 1.5
+            },
+            {
+              "priority": "use_if_time",
+              "text": "Map mismatch: confirmed distribution MN/WI groceries, wholesale, and restaurants from May 27–Aug. 21 versus AP’s 15-state case list; FDA says product may have gone farther.",
+              "source_ids": [
+                "web_2786293ce491e6089cc4",
+                "web_bb08b20fb503194f55ea"
+              ],
+              "estimated_minutes": 1
+            },
+            {
+              "priority": "use_if_time",
+              "text": "Optional context, labeled as prior history: AP’s report of a previous FDA warning letter about a leaking roof and other inspection concerns; no company comment in the AP story.",
+              "source_ids": [
+                "web_bb08b20fb503194f55ea"
+              ],
+              "estimated_minutes": 1
+            },
+            {
+              "priority": "cut_first",
+              "text": "Symptom clocks and risk groups only if needed: STEC from a few days up to nine days, possible HUS; Salmonella usually 12–72 hours, lasting 4–7 days; higher risk for young children, elderly, and immunocompromised people.",
+              "source_ids": [
+                "web_2786293ce491e6089cc4"
+              ],
+              "estimated_minutes": 0.75
+            },
+            {
+              "priority": "cut_first",
+              "text": "Sourcing check, not a gotcha: AP’s “no recall yet” line versus FDA’s Aug. 24 note that the firm initiated a recall on Aug. 22 after an Aug. 19 inspection.",
+              "source_ids": [
+                "web_2786293ce491e6089cc4",
+                "web_bb08b20fb503194f55ea"
+              ],
+              "estimated_minutes": 0.75
+            }
+          ]
+        }
+      },
+      "assistant_message": {
+        "message_id": "msg_49ffe24b-3979-48b2-ab79-6874e420dc0e",
+        "run_id": "run_65cc7bb0-dba9-480b-8960-4ca3ccd28a98",
+        "text": "The validated Headlines preparation packet “August 2026 multistate alfalfa-sprout outbreak (STEC + Salmonella)” is ready in the artifact panel.",
+        "source_ids": [
+          "web_2786293ce491e6089cc4",
+          "web_bb08b20fb503194f55ea"
+        ],
+        "created_at": "2026-08-25T03:53:31.801Z"
+      },
+      "safe_activity": [
+        {
+          "id": "evt_run_65cc7bb0-dba9-480b-8960-4ca3ccd28a98_001",
+          "run_id": "run_65cc7bb0-dba9-480b-8960-4ca3ccd28a98",
+          "kind": "run",
+          "label": "Research turn started",
+          "detail": "The agent is reading the conversation and evidence workspace",
+          "status": "running",
+          "created_at": "2026-08-25T03:51:39.894Z"
+        },
+        {
+          "id": "evt_run_65cc7bb0-dba9-480b-8960-4ca3ccd28a98_decision_1",
+          "run_id": "run_65cc7bb0-dba9-480b-8960-4ca3ccd28a98",
+          "kind": "agent",
+          "label": "Choosing the next research step",
+          "detail": "Reviewing the request and saved evidence",
+          "status": "running",
+          "created_at": "2026-08-25T03:51:39.895Z"
+        },
+        {
+          "id": "evt_run_65cc7bb0-dba9-480b-8960-4ca3ccd28a98_decision_1",
+          "run_id": "run_65cc7bb0-dba9-480b-8960-4ca3ccd28a98",
+          "kind": "agent",
+          "label": "Next step chosen",
+          "detail": "I’m reading the supplied FDA outbreak-investigation page first as the primary source.",
+          "status": "complete",
+          "created_at": "2026-08-25T03:51:43.423Z"
+        },
+        {
+          "id": "evt_run_65cc7bb0-dba9-480b-8960-4ca3ccd28a98_read_1",
+          "run_id": "run_65cc7bb0-dba9-480b-8960-4ca3ccd28a98",
+          "kind": "tool",
+          "label": "Read source",
+          "detail": "www.fda.gov",
+          "status": "running",
+          "tool": "read_url",
+          "created_at": "2026-08-25T03:51:43.424Z"
+        },
+        {
+          "id": "evt_run_65cc7bb0-dba9-480b-8960-4ca3ccd28a98_read_1",
+          "run_id": "run_65cc7bb0-dba9-480b-8960-4ca3ccd28a98",
+          "kind": "tool",
+          "label": "Source retrieved",
+          "detail": "Outbreak Investigation of Shiga Toxin-producing E. coli & Salmonella: Sprouts (August 2026) · complete",
+          "status": "complete",
+          "tool": "read_url",
+          "created_at": "2026-08-25T03:51:43.745Z"
+        },
+        {
+          "id": "evt_run_65cc7bb0-dba9-480b-8960-4ca3ccd28a98_decision_2",
+          "run_id": "run_65cc7bb0-dba9-480b-8960-4ca3ccd28a98",
+          "kind": "agent",
+          "label": "Choosing the next research step",
+          "detail": "Source web_2786293ce491e6089cc4 is usable evidence.",
+          "status": "running",
+          "created_at": "2026-08-25T03:51:43.746Z"
+        },
+        {
+          "id": "evt_run_65cc7bb0-dba9-480b-8960-4ca3ccd28a98_decision_2",
+          "run_id": "run_65cc7bb0-dba9-480b-8960-4ca3ccd28a98",
+          "kind": "agent",
+          "label": "Next step chosen",
+          "detail": "Read the supplied AP report for independent outbreak context.",
+          "status": "complete",
+          "created_at": "2026-08-25T03:51:46.431Z"
+        },
+        {
+          "id": "evt_run_65cc7bb0-dba9-480b-8960-4ca3ccd28a98_read_2",
+          "run_id": "run_65cc7bb0-dba9-480b-8960-4ca3ccd28a98",
+          "kind": "tool",
+          "label": "Read source",
+          "detail": "apnews.com",
+          "status": "running",
+          "tool": "read_url",
+          "created_at": "2026-08-25T03:51:46.432Z"
+        },
+        {
+          "id": "evt_run_65cc7bb0-dba9-480b-8960-4ca3ccd28a98_read_2",
+          "run_id": "run_65cc7bb0-dba9-480b-8960-4ca3ccd28a98",
+          "kind": "tool",
+          "label": "Source retrieved",
+          "detail": "Alfalfa sprouts linked to 15-state food-poisoning outbreak | AP News · complete",
+          "status": "complete",
+          "tool": "read_url",
+          "created_at": "2026-08-25T03:51:47.378Z"
+        },
+        {
+          "id": "evt_run_65cc7bb0-dba9-480b-8960-4ca3ccd28a98_decision_3",
+          "run_id": "run_65cc7bb0-dba9-480b-8960-4ca3ccd28a98",
+          "kind": "agent",
+          "label": "Choosing the next research step",
+          "detail": "Source web_bb08b20fb503194f55ea is usable evidence.",
+          "status": "running",
+          "created_at": "2026-08-25T03:51:47.378Z"
+        },
+        {
+          "id": "evt_run_65cc7bb0-dba9-480b-8960-4ca3ccd28a98_decision_3",
+          "run_id": "run_65cc7bb0-dba9-480b-8960-4ca3ccd28a98",
+          "kind": "agent",
+          "label": "Next step chosen",
+          "detail": "Search the Nonsense archive for prior coverage that could add context to the sprout outbreak packet.",
+          "status": "complete",
+          "created_at": "2026-08-25T03:51:50.918Z"
+        },
+        {
+          "id": "evt_run_65cc7bb0-dba9-480b-8960-4ca3ccd28a98_archive_1",
+          "run_id": "run_65cc7bb0-dba9-480b-8960-4ca3ccd28a98",
+          "kind": "tool",
+          "label": "Search Nonsense archive",
+          "detail": "sprouts foodborne illness outbreak",
+          "status": "running",
+          "tool": "search_transcripts",
+          "created_at": "2026-08-25T03:51:50.919Z"
+        },
+        {
+          "id": "evt_run_65cc7bb0-dba9-480b-8960-4ca3ccd28a98_archive_1",
+          "run_id": "run_65cc7bb0-dba9-480b-8960-4ca3ccd28a98",
+          "kind": "tool",
+          "label": "Archive search complete",
+          "detail": "5 matches · keyword_only",
+          "status": "partial",
+          "tool": "search_transcripts",
+          "created_at": "2026-08-25T03:51:50.928Z"
+        },
+        {
+          "id": "evt_run_65cc7bb0-dba9-480b-8960-4ca3ccd28a98_decision_4",
+          "run_id": "run_65cc7bb0-dba9-480b-8960-4ca3ccd28a98",
+          "kind": "agent",
+          "label": "Choosing the next research step",
+          "detail": "Archive retrieval is keyword_only; 5 chunks can be opened.",
+          "status": "running",
+          "created_at": "2026-08-25T03:51:50.928Z"
+        },
+        {
+          "id": "evt_run_65cc7bb0-dba9-480b-8960-4ca3ccd28a98_decision_4",
+          "run_id": "run_65cc7bb0-dba9-480b-8960-4ca3ccd28a98",
+          "kind": "agent",
+          "label": "Next step chosen",
+          "detail": "Open the most relevant prior Nonsense outbreak-response transcript chunk for context.",
+          "status": "complete",
+          "created_at": "2026-08-25T03:51:59.679Z"
+        },
+        {
+          "id": "evt_run_65cc7bb0-dba9-480b-8960-4ca3ccd28a98_chunk_1",
+          "run_id": "run_65cc7bb0-dba9-480b-8960-4ca3ccd28a98",
+          "kind": "tool",
+          "label": "Open archive passage",
+          "detail": "168b2b2a-6312-4183-9c5e-1aa0a288d02e:006:c001",
+          "status": "running",
+          "tool": "open_transcript_chunk",
+          "created_at": "2026-08-25T03:51:59.680Z"
+        },
+        {
+          "id": "evt_run_65cc7bb0-dba9-480b-8960-4ca3ccd28a98_chunk_1",
+          "run_id": "run_65cc7bb0-dba9-480b-8960-4ca3ccd28a98",
+          "kind": "tool",
+          "label": "Archive passage opened",
+          "detail": "HEADLINES: Another Measles Outbreak, More Roadster Refunds & Your Achy-Breaky Melatonin · archive_168b2b2a-6312-4183-9c5e-1aa0a288d02e:006:c001",
+          "status": "complete",
+          "tool": "open_transcript_chunk",
+          "created_at": "2026-08-25T03:51:59.680Z"
+        },
+        {
+          "id": "evt_run_65cc7bb0-dba9-480b-8960-4ca3ccd28a98_decision_5",
+          "run_id": "run_65cc7bb0-dba9-480b-8960-4ca3ccd28a98",
+          "kind": "agent",
+          "label": "Choosing the next research step",
+          "detail": "Archive source archive_168b2b2a-6312-4183-9c5e-1aa0a288d02e:006:c001 is usable evidence without speaker labels.",
+          "status": "running",
+          "created_at": "2026-08-25T03:51:59.680Z"
+        },
+        {
+          "id": "evt_run_65cc7bb0-dba9-480b-8960-4ca3ccd28a98_decision_5",
+          "run_id": "run_65cc7bb0-dba9-480b-8960-4ca3ccd28a98",
+          "kind": "agent",
+          "label": "Next step chosen",
+          "detail": "Create the validated 8-minute Headlines preparation packet from the supplied FDA and AP reporting plus the relevant Nonsense archive context.",
+          "status": "complete",
+          "created_at": "2026-08-25T03:52:06.205Z"
+        },
+        {
+          "id": "evt_run_65cc7bb0-dba9-480b-8960-4ca3ccd28a98_artifact",
+          "run_id": "run_65cc7bb0-dba9-480b-8960-4ca3ccd28a98",
+          "kind": "composition",
+          "label": "Writing the preparation packet",
+          "detail": "Create the validated 8-minute Headlines preparation packet from the supplied FDA and AP reporting plus the relevant Nonsense archive context.",
+          "status": "running",
+          "created_at": "2026-08-25T03:52:06.208Z"
+        },
+        {
+          "id": "evt_run_65cc7bb0-dba9-480b-8960-4ca3ccd28a98_artifact",
+          "run_id": "run_65cc7bb0-dba9-480b-8960-4ca3ccd28a98",
+          "kind": "artifact",
+          "label": "Preparation packet ready",
+          "detail": "Headlines · revision 1",
+          "status": "complete",
+          "created_at": "2026-08-25T03:53:31.800Z"
+        },
+        {
+          "id": "evt_run_65cc7bb0-dba9-480b-8960-4ca3ccd28a98_012",
+          "run_id": "run_65cc7bb0-dba9-480b-8960-4ca3ccd28a98",
+          "kind": "run",
+          "label": "Answer and artifact ready",
+          "detail": "Create the validated 8-minute Headlines preparation packet from the supplied FDA and AP reporting plus the relevant Nonsense archive context.",
+          "status": "partial",
+          "created_at": "2026-08-25T03:53:31.802Z"
+        }
+      ],
+      "terminal_run": {
+        "session_id": "session_phase7a_local",
+        "run_id": "run_65cc7bb0-dba9-480b-8960-4ca3ccd28a98",
+        "state": "partial",
+        "summary": "Answer ready with explicit limitations"
+      },
+      "error": null,
+      "failures": []
+    },
+    {
+      "id": "big_story_bonneville",
+      "session_id": "session_phase7a_big_story",
+      "expected_mode": "big_story",
+      "started_at": "2026-08-25T03:53:31.818Z",
+      "completed_at": "2026-08-25T03:56:21.790Z",
+      "request_message": "Create a 24-minute Big Story preparation packet about how vanished Lake Bonneville still organizes the modern Great Basin landscape and how visible evidence changes the way people understand deep time. Read the supplied NASA source. Do at most one additional current-web search and read at most one especially useful additional source. Search the Nonsense transcript archive once and open at most one relevant chunk. Then create the validated packet and briefly tell me it is ready. Keep the outline modular against the clock.\n\nNASA: https://science.nasa.gov/earth/earth-observatory/what-lake-bonneville-left-behind/",
+      "http_status": 200,
+      "cache_control": "no-store",
+      "receipt": {
+        "run_id": "run_b3bc8ce9-b997-469c-873b-555d3af9d420",
+        "status": "partial",
+        "counts": {
+          "controller_turns": 6,
+          "provider_requests": 10,
+          "grok_turns": 1,
+          "web_searches": 1,
+          "url_reads": 2,
+          "transcript_searches": 1,
+          "transcript_opens": 1,
+          "compositions": 1,
+          "repairs": 0
+        },
+        "accounted_cost_usd": 0.11836115,
+        "elapsed_ms": 169687.98,
+        "limitations": [
+          "archive:keyword_only"
+        ],
+        "artifact_revision": 1
+      },
+      "artifact": {
+        "run_id": "run_b3bc8ce9-b997-469c-873b-555d3af9d420",
+        "revision": 1,
+        "artifact": {
+          "mode": "big_story",
+          "working_title": "What vanished Lake Bonneville still writes on the Great Basin",
+          "core_question": "How do Lake Bonneville’s remaining shorelines, playas, and remnant lakes still organize today’s Great Basin landscape, and what can that visible evidence support—without overstating—about deep time?",
+          "research_brief": {
+            "text": "Ice Age Lake Bonneville began forming about 55,000 years ago after eruptions diverted the Bear River; a Red Rock Pass dam held a Michigan-scale lake until a breach about 18,000 years ago dropped the surface more than 350 feet in six weeks. Later drying left Great Salt Lake, Utah Lake, Sevier Lake, pale playas, evaporites, and satellite-visible bathtub rings. USGS wave-cut terraces on the Promontory Mountains record stationary Quaternary levels; peaks were islands; the modern Salt Lake is a remnant; the last high stand was about 14,000 years ago. Darker fault-block mountains are hundreds of millions of years older than basin fill. Visible inheritance is well sourced; a full deep-time philosophy is not.",
+            "source_ids": [
+              "web_0f75b14faed2914ffab6",
+              "web_8d744dacce217d117997"
+            ]
+          },
+          "research_cards": [
+            {
+              "role": "background",
+              "text": "Bonneville formed about 55,000 years ago in a cool, wet interval after volcanic eruptions in southeastern Idaho diverted the Bear River into Gem Valley and basins to the south. A natural dam at Red Rock Pass confined a lake nearly as large as Lake Michigan across much of western Utah and parts of Nevada and Idaho.",
+              "source_ids": [
+                "web_0f75b14faed2914ffab6"
+              ]
+            },
+            {
+              "role": "key_evidence",
+              "text": "About 18,000 years ago water breached Red Rock Pass, sending a torrent into the Columbia River system and dropping the lake more than 350 feet (105 m) over six weeks—one of North America’s largest floods. As climate later warmed and dried, remnants included today’s Great Salt Lake, Utah Lake, and Sevier Lake.",
+              "source_ids": [
+                "web_0f75b14faed2914ffab6"
+              ]
+            },
+            {
+              "role": "key_evidence",
+              "text": "Landsat shows bathtub-like rings and wave-cut terraces; pale clay, marl, and sandy lakebed contrast with darker, rockier, vegetated surroundings. USGS: Promontory Mountains carry step-like benches cut when levels were stationary; such terraces occur on lower mountainsides across the Great Basin; high-water Promontory peaks were islands; modern Salt Lake is a remnant; last high stand about 14,000 years ago.",
+              "source_ids": [
+                "web_0f75b14faed2914ffab6",
+                "web_8d744dacce217d117997"
+              ]
+            },
+            {
+              "role": "force",
+              "text": "Evaporating water left bright evaporite crusts—halite, gypsum, and potassium- and magnesium-bearing salts—and potash-mining ponds on remarkably flat playas. Rising above them are fault-block mountains of erosion-resistant sedimentary and metasedimentary bedrock hundreds of millions of years old, plus younger igneous and metamorphic rocks.",
+              "source_ids": [
+                "web_0f75b14faed2914ffab6"
+              ]
+            },
+            {
+              "role": "interpretation",
+              "text": "Rings, benches, playas, and remnant lakes make a vanished Ice Age water body readable now. The same view stacks Quaternary lake traces against mountain rock hundreds of millions of years older. That is strong visible evidence of landform inheritance and age contrast. The sources do not themselves establish how people should understand deep time, or that Bonneville fully organizes every Great Basin landform.",
+              "source_ids": [
+                "web_0f75b14faed2914ffab6",
+                "web_8d744dacce217d117997"
+              ]
+            },
+            {
+              "role": "surprise",
+              "text": "The same flats later hosted speed records—Mickey Thompson 406.60 mph in 1960; Andy Green 406.320 mph in a hydrogen car in August 2026—and, in August 1846, mired Donner-Reed wagons when thin salt crust broke into mud near Crater Island.",
+              "source_ids": [
+                "web_0f75b14faed2914ffab6"
+              ]
+            },
+            {
+              "role": "recommendation_lead",
+              "text": "If a media object is useful: NASA Earth Observatory Landsat of Bonneville rings and playas, and the USGS public-domain Golden Spike wave-cut terraces photo. These are optional visual leads, not a topic decision.",
+              "source_ids": [
+                "web_0f75b14faed2914ffab6",
+                "web_8d744dacce217d117997"
+              ]
+            }
+          ],
+          "past_nonsense_coverage": {
+            "status": "no_relevant_archive_match",
+            "items": []
+          },
+          "conversation_questions": [
+            "What should a listener be able to see first—rings, benches, pale playas, remnant lakes—before anyone says “deep time”?",
+            "How do we keep the Red Rock Pass flood vivid without turning the whole packet into only a catastrophe story?",
+            "What do USGS “stationary” terrace levels add that a single shrinking-lake narrative would miss?",
+            "Where is the line between “this vanished lake still organizes parts of this landscape” and Great Basin-wide claims these two sources do not carry?",
+            "If prior show chatter about Salt Lake City comes up, how do we keep it clearly separate from Bonneville geology?"
+          ],
+          "modular_outline": [
+            {
+              "priority": "must_have",
+              "text": "Open on the Landsat visual: bathtub rings and pale playas against dark mountains. Reporting prompt: name what is still visible before explaining why. Transition: the lake is gone; the shoreline geometry is not.",
+              "source_ids": [
+                "web_0f75b14faed2914ffab6"
+              ],
+              "estimated_minutes": 2.5
+            },
+            {
+              "priority": "must_have",
+              "text": "Formation module: ~55,000 years, Bear River diversion, Red Rock Pass dam, Michigan-scale lake in western Utah and parts of Nevada and Idaho. Keep this as setup, not a finished origin lecture.",
+              "source_ids": [
+                "web_0f75b14faed2914ffab6"
+              ],
+              "estimated_minutes": 4.5
+            },
+            {
+              "priority": "must_have",
+              "text": "Flood module: ~18,000-year Red Rock Pass breach into the Columbia system; more than 350 feet down in six weeks; then warming and drying. Transition: catastrophe explains the drop; climate explains the later shrink.",
+              "source_ids": [
+                "web_0f75b14faed2914ffab6"
+              ],
+              "estimated_minutes": 4
+            },
+            {
+              "priority": "must_have",
+              "text": "Visible-inheritance module: satellite shorelines; USGS Promontory wave-cut terraces from stationary Quaternary levels; high-water islands; last high stand ~14,000 years; modern Salt Lake as remnant. Reporting prompt: distinguish falling water from still-stands.",
+              "source_ids": [
+                "web_0f75b14faed2914ffab6",
+                "web_8d744dacce217d117997"
+              ],
+              "estimated_minutes": 3.5
+            },
+            {
+              "priority": "must_have",
+              "text": "Materials contrast: evaporite playas and potash ponds versus fault-block mountains of bedrock hundreds of millions of years old. This is the sourced deep-time contrast—young basin fill against old highlands—not a metaphysics beat.",
+              "source_ids": [
+                "web_0f75b14faed2914ffab6"
+              ],
+              "estimated_minutes": 3
+            },
+            {
+              "priority": "must_have",
+              "text": "Closing return: rest on remnant lakes and still-visible rings. Interpretive check: visible evidence of a vanished lake organizing landforms is supported; overclaiming a complete deep-time lesson is not. Stop there if the clock is tight.",
+              "source_ids": [
+                "web_0f75b14faed2914ffab6",
+                "web_8d744dacce217d117997"
+              ],
+              "estimated_minutes": 2
+            },
+            {
+              "priority": "use_if_time",
+              "text": "Optional human overlay on the flats: 1846 Donner-Reed wagons breaking through salt crust; later land-speed records and mining geometry. Use only to show the playa as a working surface, then return to shorelines.",
+              "source_ids": [
+                "web_0f75b14faed2914ffab6"
+              ],
+              "estimated_minutes": 2.5
+            },
+            {
+              "priority": "cut_first",
+              "text": "First cut: Crater Island DAVINCI “Venus on Earth” camera test. Interesting analog, not required to explain Bonneville’s landscape imprint.",
+              "source_ids": [
+                "web_0f75b14faed2914ffab6"
+              ],
+              "estimated_minutes": 2
+            }
+          ],
+          "uncertainties_and_open_checks": [
+            "Archive chunk archive_702cd612-29a5-463e-a6ba-78a1d59c6b39:004:c004 is only casual Salt Lake City travel talk; it does not substantively cover Lake Bonneville and is not prior geology coverage.",
+            "These sources document Bonneville’s imprint in western Utah and adjacent Nevada/Idaho, plus Great Basin terrace occurrence; they do not inventory every modern Great Basin landform.",
+            "“Deep time” here is an interpretive frame. Sourced ages are tens of thousands of years for the lake versus hundreds of millions of years for mountain bedrock.",
+            "How the ~18,000-year breach relates to the ~14,000-year last high stand is not fully explained in the two usable sources.",
+            "USGS caption cites NPS 2006 and Utah Geological Survey 2010; those underlying reports were not read.",
+            "NASA article dates (including 2026 imagery and a 2026 speed record) are taken only as that page’s text, not independently checked here."
+          ],
+          "source_ledger": [
+            {
+              "source_id": "web_0f75b14faed2914ffab6",
+              "source_type": "provided_link",
+              "availability": "complete",
+              "evidence_usable": true,
+              "title": "What Lake Bonneville Left Behind - NASA Science",
+              "url": "https://science.nasa.gov/earth/earth-observatory/what-lake-bonneville-left-behind/",
+              "retrieved_at": "2026-08-25T03:53:34.964Z",
+              "excerpt": "5 min readImage of the Day for August 24, 2026The drying of the massive lake exposed playas that became the setting for feats of engineering and technological ingenuity, as well as epic tales of exploration and desperation.NASA Earth ObservatoryAug 24, 2026 Article\nView more Images of the Day:\n\nAt its peak, ancient Lake Bonneville would have been a sight to behold. Nearly as large as Lake Michigan, the Ice Age lake spread across much of western Utah and parts of Nevada and Idaho. When it eventually receded, it left behind flat, bright playas and salt flats rich with minerals—a landscape that w"
+            },
+            {
+              "source_id": "web_8d744dacce217d117997",
+              "source_type": "web",
+              "availability": "complete",
+              "evidence_usable": true,
+              "title": "Golden Spike - wave-cut terraces",
+              "url": "https://www.usgs.gov/media/images/golden-spike-wave-cut-terraces",
+              "retrieved_at": "2026-08-25T03:54:23.090Z",
+              "excerpt": "Detailed Description\n\nWave-cut terraces (or benches) on the Promontory Mountains. These step-like features formed by waves eroding the shoreline during periods when lake levels were stationary between other periods when water surface levels of ancient Lake Bonneville were rising or falling during the Quaternary Period. Wave-cut terraces can be seen along the lower mountainsides throughout the Great Basin region. During periods when water levels were high, the peaks of the Promontory Mountains were islands in the great freshwater lake. The modern Salt Lake is a remnant of the original great Lak"
+            }
+          ]
+        }
+      },
+      "assistant_message": {
+        "message_id": "msg_85d8f534-ee8d-4cf9-83d3-171495a5f666",
+        "run_id": "run_b3bc8ce9-b997-469c-873b-555d3af9d420",
+        "text": "The validated Big Story preparation packet “What vanished Lake Bonneville still writes on the Great Basin” is ready in the artifact panel.",
+        "source_ids": [
+          "web_0f75b14faed2914ffab6",
+          "web_8d744dacce217d117997"
+        ],
+        "created_at": "2026-08-25T03:56:21.775Z"
+      },
+      "safe_activity": [
+        {
+          "id": "evt_run_b3bc8ce9-b997-469c-873b-555d3af9d420_001",
+          "run_id": "run_b3bc8ce9-b997-469c-873b-555d3af9d420",
+          "kind": "run",
+          "label": "Research turn started",
+          "detail": "The agent is reading the conversation and evidence workspace",
+          "status": "running",
+          "created_at": "2026-08-25T03:53:32.086Z"
+        },
+        {
+          "id": "evt_run_b3bc8ce9-b997-469c-873b-555d3af9d420_decision_1",
+          "run_id": "run_b3bc8ce9-b997-469c-873b-555d3af9d420",
+          "kind": "agent",
+          "label": "Choosing the next research step",
+          "detail": "Reviewing the request and saved evidence",
+          "status": "running",
+          "created_at": "2026-08-25T03:53:32.087Z"
+        },
+        {
+          "id": "evt_run_b3bc8ce9-b997-469c-873b-555d3af9d420_decision_1",
+          "run_id": "run_b3bc8ce9-b997-469c-873b-555d3af9d420",
+          "kind": "agent",
+          "label": "Next step chosen",
+          "detail": "Read the supplied NASA source on what Lake Bonneville left behind.",
+          "status": "complete",
+          "created_at": "2026-08-25T03:53:34.962Z"
+        },
+        {
+          "id": "evt_run_b3bc8ce9-b997-469c-873b-555d3af9d420_read_1",
+          "run_id": "run_b3bc8ce9-b997-469c-873b-555d3af9d420",
+          "kind": "tool",
+          "label": "Read source",
+          "detail": "science.nasa.gov",
+          "status": "running",
+          "tool": "read_url",
+          "created_at": "2026-08-25T03:53:34.963Z"
+        },
+        {
+          "id": "evt_run_b3bc8ce9-b997-469c-873b-555d3af9d420_read_1",
+          "run_id": "run_b3bc8ce9-b997-469c-873b-555d3af9d420",
+          "kind": "tool",
+          "label": "Source retrieved",
+          "detail": "What Lake Bonneville Left Behind - NASA Science · complete",
+          "status": "complete",
+          "tool": "read_url",
+          "created_at": "2026-08-25T03:53:35.894Z"
+        },
+        {
+          "id": "evt_run_b3bc8ce9-b997-469c-873b-555d3af9d420_decision_2",
+          "run_id": "run_b3bc8ce9-b997-469c-873b-555d3af9d420",
+          "kind": "agent",
+          "label": "Choosing the next research step",
+          "detail": "Source web_0f75b14faed2914ffab6 is usable evidence.",
+          "status": "running",
+          "created_at": "2026-08-25T03:53:35.894Z"
+        },
+        {
+          "id": "evt_run_b3bc8ce9-b997-469c-873b-555d3af9d420_decision_2",
+          "run_id": "run_b3bc8ce9-b997-469c-873b-555d3af9d420",
+          "kind": "agent",
+          "label": "Next step chosen",
+          "detail": "Search the Nonsense archive for prior discussion that could add useful context on Lake Bonneville, the Great Basin, or visible evidence of deep time.",
+          "status": "complete",
+          "created_at": "2026-08-25T03:53:39.915Z"
+        },
+        {
+          "id": "evt_run_b3bc8ce9-b997-469c-873b-555d3af9d420_archive_1",
+          "run_id": "run_b3bc8ce9-b997-469c-873b-555d3af9d420",
+          "kind": "tool",
+          "label": "Search Nonsense archive",
+          "detail": "Lake Bonneville Great Basin ancient lake shoreline deep time landscape",
+          "status": "running",
+          "tool": "search_transcripts",
+          "created_at": "2026-08-25T03:53:39.915Z"
+        },
+        {
+          "id": "evt_run_b3bc8ce9-b997-469c-873b-555d3af9d420_archive_1",
+          "run_id": "run_b3bc8ce9-b997-469c-873b-555d3af9d420",
+          "kind": "tool",
+          "label": "Archive search complete",
+          "detail": "5 matches · keyword_only",
+          "status": "partial",
+          "tool": "search_transcripts",
+          "created_at": "2026-08-25T03:53:39.930Z"
+        },
+        {
+          "id": "evt_run_b3bc8ce9-b997-469c-873b-555d3af9d420_decision_3",
+          "run_id": "run_b3bc8ce9-b997-469c-873b-555d3af9d420",
+          "kind": "agent",
+          "label": "Choosing the next research step",
+          "detail": "Archive retrieval is keyword_only; 5 chunks can be opened.",
+          "status": "running",
+          "created_at": "2026-08-25T03:53:39.930Z"
+        },
+        {
+          "id": "evt_run_b3bc8ce9-b997-469c-873b-555d3af9d420_decision_3",
+          "run_id": "run_b3bc8ce9-b997-469c-873b-555d3af9d420",
+          "kind": "agent",
+          "label": "Next step chosen",
+          "detail": "Searching for one authoritative supplemental source on Lake Bonneville’s shorelines, basin features, and present-day Great Basin landscape.",
+          "status": "complete",
+          "created_at": "2026-08-25T03:53:46.716Z"
+        },
+        {
+          "id": "evt_run_b3bc8ce9-b997-469c-873b-555d3af9d420_web_1",
+          "run_id": "run_b3bc8ce9-b997-469c-873b-555d3af9d420",
+          "kind": "tool",
+          "label": "Search current web",
+          "detail": "Lake Bonneville shoreline terraces Great Basin modern landscape USGS Utah Geological Survey deep time visible evidence",
+          "status": "running",
+          "tool": "web_search",
+          "created_at": "2026-08-25T03:53:46.717Z"
+        },
+        {
+          "id": "evt_run_b3bc8ce9-b997-469c-873b-555d3af9d420_web_1",
+          "run_id": "run_b3bc8ce9-b997-469c-873b-555d3af9d420",
+          "kind": "tool",
+          "label": "Web candidates found",
+          "detail": "5 candidates · complete",
+          "status": "complete",
+          "tool": "web_search",
+          "created_at": "2026-08-25T03:54:16.852Z"
+        },
+        {
+          "id": "evt_run_b3bc8ce9-b997-469c-873b-555d3af9d420_decision_4",
+          "run_id": "run_b3bc8ce9-b997-469c-873b-555d3af9d420",
+          "kind": "agent",
+          "label": "Choosing the next research step",
+          "detail": "Web search status complete; 5 unread candidates are available.",
+          "status": "running",
+          "created_at": "2026-08-25T03:54:16.854Z"
+        },
+        {
+          "id": "evt_run_b3bc8ce9-b997-469c-873b-555d3af9d420_decision_4",
+          "run_id": "run_b3bc8ce9-b997-469c-873b-555d3af9d420",
+          "kind": "agent",
+          "label": "Next step chosen",
+          "detail": "Read the most directly useful authoritative companion source on visible Lake Bonneville shoreline evidence.",
+          "status": "complete",
+          "created_at": "2026-08-25T03:54:23.088Z"
+        },
+        {
+          "id": "evt_run_b3bc8ce9-b997-469c-873b-555d3af9d420_read_2",
+          "run_id": "run_b3bc8ce9-b997-469c-873b-555d3af9d420",
+          "kind": "tool",
+          "label": "Read source",
+          "detail": "www.usgs.gov",
+          "status": "running",
+          "tool": "read_url",
+          "created_at": "2026-08-25T03:54:23.090Z"
+        },
+        {
+          "id": "evt_run_b3bc8ce9-b997-469c-873b-555d3af9d420_read_2",
+          "run_id": "run_b3bc8ce9-b997-469c-873b-555d3af9d420",
+          "kind": "tool",
+          "label": "Source retrieved",
+          "detail": "Golden Spike - wave-cut terraces · complete",
+          "status": "complete",
+          "tool": "read_url",
+          "created_at": "2026-08-25T03:54:25.186Z"
+        },
+        {
+          "id": "evt_run_b3bc8ce9-b997-469c-873b-555d3af9d420_decision_5",
+          "run_id": "run_b3bc8ce9-b997-469c-873b-555d3af9d420",
+          "kind": "agent",
+          "label": "Choosing the next research step",
+          "detail": "Source web_8d744dacce217d117997 is usable evidence.",
+          "status": "running",
+          "created_at": "2026-08-25T03:54:25.187Z"
+        },
+        {
+          "id": "evt_run_b3bc8ce9-b997-469c-873b-555d3af9d420_decision_5",
+          "run_id": "run_b3bc8ce9-b997-469c-873b-555d3af9d420",
+          "kind": "agent",
+          "label": "Next step chosen",
+          "detail": "Open the most relevant prior Nonsense transcript match for Salt Lake and Great Basin context.",
+          "status": "complete",
+          "created_at": "2026-08-25T03:54:31.971Z"
+        },
+        {
+          "id": "evt_run_b3bc8ce9-b997-469c-873b-555d3af9d420_chunk_1",
+          "run_id": "run_b3bc8ce9-b997-469c-873b-555d3af9d420",
+          "kind": "tool",
+          "label": "Open archive passage",
+          "detail": "702cd612-29a5-463e-a6ba-78a1d59c6b39:004:c004",
+          "status": "running",
+          "tool": "open_transcript_chunk",
+          "created_at": "2026-08-25T03:54:31.971Z"
+        },
+        {
+          "id": "evt_run_b3bc8ce9-b997-469c-873b-555d3af9d420_chunk_1",
+          "run_id": "run_b3bc8ce9-b997-469c-873b-555d3af9d420",
+          "kind": "tool",
+          "label": "Archive passage opened",
+          "detail": "HEADLINES: Gemini Goes Supernova, Airbus Blames the Sun, and Solar Saves the Grid · archive_702cd612-29a5-463e-a6ba-78a1d59c6b39:004:c004",
+          "status": "complete",
+          "tool": "open_transcript_chunk",
+          "created_at": "2026-08-25T03:54:31.971Z"
+        },
+        {
+          "id": "evt_run_b3bc8ce9-b997-469c-873b-555d3af9d420_decision_6",
+          "run_id": "run_b3bc8ce9-b997-469c-873b-555d3af9d420",
+          "kind": "agent",
+          "label": "Choosing the next research step",
+          "detail": "Archive source archive_702cd612-29a5-463e-a6ba-78a1d59c6b39:004:c004 is usable evidence without speaker labels.",
+          "status": "running",
+          "created_at": "2026-08-25T03:54:31.971Z"
+        },
+        {
+          "id": "evt_run_b3bc8ce9-b997-469c-873b-555d3af9d420_decision_6",
+          "run_id": "run_b3bc8ce9-b997-469c-873b-555d3af9d420",
+          "kind": "agent",
+          "label": "Next step chosen",
+          "detail": "Create the validated, modular 24-minute Big Story preparation packet now.",
+          "status": "complete",
+          "created_at": "2026-08-25T03:54:39.516Z"
+        },
+        {
+          "id": "evt_run_b3bc8ce9-b997-469c-873b-555d3af9d420_artifact",
+          "run_id": "run_b3bc8ce9-b997-469c-873b-555d3af9d420",
+          "kind": "composition",
+          "label": "Writing the preparation packet",
+          "detail": "Create the validated, modular 24-minute Big Story preparation packet now.",
+          "status": "running",
+          "created_at": "2026-08-25T03:54:39.517Z"
+        },
+        {
+          "id": "evt_run_b3bc8ce9-b997-469c-873b-555d3af9d420_artifact",
+          "run_id": "run_b3bc8ce9-b997-469c-873b-555d3af9d420",
+          "kind": "artifact",
+          "label": "Preparation packet ready",
+          "detail": "Big Story · revision 1",
+          "status": "complete",
+          "created_at": "2026-08-25T03:56:21.772Z"
+        },
+        {
+          "id": "evt_run_b3bc8ce9-b997-469c-873b-555d3af9d420_014",
+          "run_id": "run_b3bc8ce9-b997-469c-873b-555d3af9d420",
+          "kind": "run",
+          "label": "Answer and artifact ready",
+          "detail": "Create the validated, modular 24-minute Big Story preparation packet now.",
+          "status": "partial",
+          "created_at": "2026-08-25T03:56:21.775Z"
+        }
+      ],
+      "terminal_run": {
+        "session_id": "session_phase7a_big_story",
+        "run_id": "run_b3bc8ce9-b997-469c-873b-555d3af9d420",
+        "state": "partial",
+        "summary": "Answer ready with explicit limitations"
+      },
+      "error": null,
+      "failures": []
+    }
+  ],
+  "failures": [],
+  "aggregate_cost_usd": 0.19281185,
+  "aggregate_provider_requests": 18,
+  "completed_at": "2026-08-25T03:56:21.790Z"
+}

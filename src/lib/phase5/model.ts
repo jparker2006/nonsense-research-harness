@@ -221,6 +221,8 @@ export function createOpenRouterPhase5Model(options: {
   liveAuthorized?: boolean;
   fetchImpl?: typeof fetch;
   phase6LiveProof?: boolean;
+  phase7aLive?: boolean;
+  artifactContext?: Partial<Record<Phase5Input["mode"], string>>;
 }): Phase5ModelAdapter {
   const apiKey = options.apiKey?.trim() ?? "";
   const liveAuthorized = options.liveAuthorized === true;
@@ -230,7 +232,10 @@ export function createOpenRouterPhase5Model(options: {
     (options.phase6LiveProof === true &&
       process.env.NODE_ENV !== "production" &&
       process.env.PHASE6_EXECUTE_LIVE === "approved" &&
-      process.env.PHASE6_LIVE_PROOF === "approved");
+      process.env.PHASE6_LIVE_PROOF === "approved") ||
+    (options.phase7aLive === true &&
+      process.env.NODE_ENV !== "production" &&
+      process.env.PHASE7A_LOCAL_LIVE === "approved");
   return {
     async plan(input, callOptions) {
       const result = await runStructured({
@@ -265,7 +270,7 @@ export function createOpenRouterPhase5Model(options: {
         timeoutMs: callOptions?.timeoutMs,
         signal: callOptions?.signal,
         testOnlyLockedBypass,
-        prompt: `${artifactInstructions(input.mode)}\n\nINPUT:\n${JSON.stringify(input)}\n\nRESEARCH PLAN:\n${JSON.stringify(plan)}\n\nEVIDENCE:\n${evidenceForPrompt(evidence)}`,
+        prompt: `${artifactInstructions(input.mode)}${options.artifactContext?.[input.mode] ? `\n\n${options.artifactContext[input.mode]}` : ""}\n\nINPUT:\n${JSON.stringify(input)}\n\nRESEARCH PLAN:\n${JSON.stringify(plan)}\n\nEVIDENCE:\n${evidenceForPrompt(evidence)}`,
       });
     },
     async repair(input, plan, evidence, artifact, validationErrors, callOptions) {
@@ -281,7 +286,7 @@ export function createOpenRouterPhase5Model(options: {
         timeoutMs: callOptions?.timeoutMs,
         signal: callOptions?.signal,
         testOnlyLockedBypass,
-        prompt: `${artifactInstructions(input.mode)} Repair the parseable artifact exactly once using the validation errors. Do not add evidence or IDs.\n\nINPUT:\n${JSON.stringify(input)}\n\nPLAN:\n${JSON.stringify(plan)}\n\nEVIDENCE:\n${evidenceForPrompt(evidence)}\n\nINVALID ARTIFACT:\n${JSON.stringify(artifact)}\n\nVALIDATION ERRORS:\n${JSON.stringify(validationErrors)}`,
+        prompt: `${artifactInstructions(input.mode)}${options.artifactContext?.[input.mode] ? `\n\n${options.artifactContext[input.mode]}` : ""} Repair the parseable artifact exactly once using the validation errors. Do not add evidence or IDs.\n\nINPUT:\n${JSON.stringify(input)}\n\nPLAN:\n${JSON.stringify(plan)}\n\nEVIDENCE:\n${evidenceForPrompt(evidence)}\n\nINVALID ARTIFACT:\n${JSON.stringify(artifact)}\n\nVALIDATION ERRORS:\n${JSON.stringify(validationErrors)}`,
       });
     },
   };

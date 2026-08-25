@@ -148,40 +148,12 @@ describe("Phase 6 workbench contract", () => {
     expect(result.counts.repairs).toBe(0);
   });
 
-  it("keeps the production route fixture-only, bounded, streamed, and single-run", async () => {
-    const { POST } = await import("../src/app/api/chat/route.ts");
-    const requestFor = (body: unknown) => new Request("http://local.test/api/chat", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify(body),
-    });
-
-    const invalid = await POST(requestFor({ phase6: { action: "start", session_id: "too_short" } }));
-    expect(invalid.status).toBe(400);
-    await expect(invalid.json()).resolves.toMatchObject({ code: "phase6_invalid_request" });
-
-    const oversized = await POST(new Request("http://local.test/api/chat", {
-      method: "POST",
-      body: JSON.stringify({ phase6: { action: "start", session_id: "session_oversized", input: { ...input, notes: "x".repeat(24_000) } } }),
-    }));
-    expect(oversized.status).toBe(413);
-
-    const sessionId = `session_route_${Date.now()}`;
-    const first = await POST(requestFor({ phase6: { action: "start", session_id: sessionId, input } }));
-    expect(first.status).toBe(200);
-    expect(first.headers.get("x-nonsense-execution")).toBe("fixture");
-    expect(first.headers.get("cache-control")).toBe("no-store");
-
-    const duplicate = await POST(requestFor({ phase6: { action: "start", session_id: sessionId, input } }));
-    expect(duplicate.status).toBe(409);
-    await expect(duplicate.json()).resolves.toMatchObject({ code: "phase6_run_in_progress" });
-
-    const stream = await first.text();
-    expect(stream).toContain('"type":"data-run"');
-    expect(stream).toContain('"type":"data-activity"');
-    expect(stream).toContain('"type":"data-artifact"');
-    expect(stream).toContain('"type":"data-receipt"');
-    expect(stream).toContain('"type":"finish"');
-    expect(stream).not.toContain("OPENROUTER_API_KEY");
+  it("preserves the historical Phase 6 fixture while removing it from the current production route", async () => {
+    const fixture = await readFile(resolve(root, "src/lib/phase6/fixture.ts"), "utf8");
+    const route = await readFile(resolve(root, "src/app/api/chat/route.ts"), "utf8");
+    expect(fixture).toContain("createPhase6FixtureDependencies");
+    expect(route).not.toContain("createPhase6FixtureDependencies");
+    expect(route).not.toContain("X-Nonsense-Execution");
+    expect(route).toContain("phase7a_live_not_authorized");
   });
 });

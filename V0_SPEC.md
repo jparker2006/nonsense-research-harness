@@ -1,12 +1,12 @@
 # Nonsense Research Harness — v0 Specification
 
-Status: Approved by Jake on 2026-08-23. Phase 3 transcript retrieval is complete; hosted resources, deployment, and later phases remain unauthorized.
+Status: Approved by Jake on 2026-08-23 and amended on 2026-08-24 after Phase 7A. The local chat-first adaptive agent is implemented and proven. Durable storage, authentication, deployment, subagents, and visual redesign remain outside the completed scope.
 
 Authoritative project root: `/Users/jakeparker/Desktop/Nonsense Podcast Project`
 
 ## 1. Product definition
 
-The Nonsense Research Harness is a private web application that helps CJ Little and Jeff Parker prepare one podcast story at a time. A user supplies a topic, links, and rough notes. One agent reads the supplied material, performs bounded current research, searches the existing podcast transcript archive, and produces an editable, cited research packet with a flexible outline.
+The Nonsense Research Harness is a chat-first research application that helps CJ Little and Jeff Parker investigate and prepare podcast topics. A user talks to one agent normally and may include a topic, links, rough notes, questions, or an explicit request for a Headlines or Big Story packet. The agent decides whether to answer, research the current web, search the transcript archive, or create a cited clock-aware artifact.
 
 The harness prepares better conversation material. CJ and Jeff remain equal partners and retain topic selection, editorial judgment, argument, writing decisions, and final control of the clock.
 
@@ -25,14 +25,15 @@ For a real Headline or Big Story topic, either host can create a workspace, watc
 
 ### Included
 
-- One story/topic per workspace
-- Two modes: `headlines` and `big_story`
+- One research conversation per ephemeral local workspace
+- Optional `headlines` and `big_story` artifact procedures
 - Supplied-link reading
 - Bounded current web research
 - Search and exact excerpt retrieval over the existing transcript archive
 - Streaming, sanitized tool activity
-- Structured, editable research-plus-outline artifact
-- Follow-up conversation in the same workspace
+- One-action-at-a-time adaptive research within code-enforced limits
+- Structured, source-linked research-plus-outline artifact when requested
+- Follow-up conversation that can reuse evidence, explicitly perform more research, or revise the artifact in the same workspace
 - Persistent workspaces in the deployed application
 - Honest partial, unavailable, stopped, and failed states
 
@@ -47,46 +48,38 @@ For a real Headline or Big Story topic, either host can create a workspace, watc
 - Audio download, transcription, or ASR
 - Hosted vector database or external retrieval service
 - Any model beyond the fixed light/heavy pair, fallback models, subagents, critic agents, or delegation
+- GBrain, LLMwiki, a knowledge graph, or an automatically generated topic wiki
+- General shell access, arbitrary code execution, browser automation, or an open-ended external tool catalog
 - Simultaneous multiplayer editing
 - Google Drive synchronization
 - Fine-tuning
 - Background autonomous jobs
 - Production analytics dashboards
 
-## 4. Workspace input contract
+## 4. Conversation input contract
 
-Every workspace contains these fields:
+The public request is exactly `{ action: "message", session_id, message }`. `message` is ordinary text up to 12,000 characters. It may contain questions, URLs, notes, an artifact request, a target clock, or none of those. A user never has to select a mode before chatting. URLs become readable only when explicitly supplied by the user or returned by the bounded web-search tool. Headlines/Big Story mode, topic, instruction, and target minutes enter the structured contract only when the controller selects `create_artifact` in response to an explicit user request.
 
-| Field | Required | Contract |
-| --- | --- | --- |
-| `mode` | Yes | Exactly `headlines` or `big_story` |
-| `topic` | Yes | Plain-language topic or working title; non-empty |
-| `links` | No | Ordered HTTP/HTTPS URLs supplied by the user; duplicates normalized |
-| `notes` | No | Rough notes, questions, claims, or desired angles; treated as user input, not verified fact |
-| `target_minutes` | No | Positive number representing desired story runtime; if absent, the outline remains ordered and cuttable without pretending to know timing |
-
-v0 does not require file upload, a selected host, a complete episode title, or a prepared prompt. Application-level size and count limits must be explicit in code and shown before an oversized input is rejected. The initial numeric limits will be calibrated and frozen during the provider compatibility phase.
+The route body is capped at 24 KB. Extra keys, malformed requests, unknown actions, undiscovered URLs, unreturned archive chunk IDs, repeated no-progress actions, and nonexistent citation IDs fail safely.
 
 ## 5. Golden-path experience
 
-1. The user unlocks the private application.
-2. The user creates a workspace and chooses Headlines or Big Story.
-3. The user enters a topic and optionally adds links, notes, and a target runtime.
-4. The user starts research.
-5. The center activity stream shows concise actions such as reading a supplied article, searching the web, finding archive matches, validating evidence, and assembling the artifact.
-6. The user can expand an action to inspect safe inputs, results, excerpts, citations, or an honest error.
-7. The right artifact panel fills with the completed research packet and outline.
-8. The user can edit the artifact directly, open sources, copy material, stop a live run, retry a failed run, or ask a follow-up.
-9. Follow-up chat does not silently overwrite manual artifact edits. Artifact mutation after the first run requires an explicit update/regenerate action.
-10. The workspace and its evidence reopen after a browser reload or server cold start.
+1. The user opens a blank research conversation and types naturally.
+2. Luna reviews recent conversation, saved evidence, unread candidates, archive matches, the current artifact, and exact remaining limits.
+3. Luna selects exactly one typed action; code executes it and streams a safe public summary into the research tape.
+4. The loop reassesses after each observation until it answers or creates a requested artifact.
+5. Ordinary answers appear as cited assistant messages. A requested Headlines or Big Story packet appears in the artifact view with a source ledger and copy-to-Markdown control.
+6. The user asks a follow-up in the same composer. The agent may answer from saved evidence or perform new bounded research; it does not fake a refinement.
+7. Stop cancels the active request where possible and preserves evidence plus the last validated artifact in the current process.
+8. “New research” starts a new ephemeral local workspace.
 
 ## 6. Interface contract
 
 ### Desktop layout
 
-- Left: workspace/thread list and new-workspace action
-- Center: conversation and streaming activity timeline
-- Right: editable artifact and source ledger
+- Left: ephemeral session identity, archive boundary, new-research action, and last-turn receipt
+- Center: visible agent decisions and streaming tool activity
+- Main workspace: chat by default; optional artifact and source detail when created
 
 On narrow screens, the same three areas may become tabs or drawers. No feature may exist only in a developer console.
 
@@ -107,20 +100,7 @@ The interface must not show private chain-of-thought, hidden reasoning tokens, s
 
 ### Event vocabulary
 
-The server-to-client stream supports at least:
-
-- `run_started`
-- `tool_started`
-- `tool_completed`
-- `tool_failed`
-- `validation_started`
-- `validation_failed`
-- `repair_started`
-- `composition_started`
-- `artifact_completed`
-- `run_stopped`
-- `run_failed`
-- `run_completed`
+The server-to-client stream exposes bounded `data-run`, `data-activity`, `data-message`, `data-source`, `data-artifact`, `data-receipt`, and `data-error` parts. Activity kinds are `run`, `agent`, `tool`, `composition`, `validation`, and `artifact`. They reveal public action summaries and safe tool detail, never private reasoning.
 
 Each event has a run ID, workspace ID, timestamp, display-safe summary, and typed payload. Replayed events must render the same visible state as the original stream.
 
@@ -219,25 +199,44 @@ Output: full stored verbatim chunk text, exact source offsets, episode and segme
 
 ## 10. Agent and workflow contract
 
-There is one agent using two pinned OpenRouter models selected deterministically by code: GPT-5.6 Luna at max effort for light structured/tool work and Grok 4.6 at medium effort for heavy research and synthesis. Neither model selects or falls back to the other.
+There is one user-visible Nonsense research agent using two pinned OpenRouter models assigned deterministic roles by code. GPT-5.6 Luna at max effort controls bounded research decisions. Grok 4.6 at medium effort performs current-web search through the accepted native tool and synthesizes an artifact only when Luna selects `create_artifact`; it may perform at most one deterministic-validation repair. Neither model selects, routes to, or falls back to the other. There are no subagents.
 
 Graph:
 
-`intake → research/tool loop → deterministic evidence validation → optional one repair loop → structured composition → persistence`
+`chat message → load bounded in-memory workspace → Mastra turn workflow → Luna loop [observe → choose one typed action → execute in code → save observation → reassess] → cited response OR optional Grok artifact → deterministic validation → optional one repair → stream and retain local workspace`
+
+The controller may choose exactly one of these typed actions per turn:
+
+- `web_search`
+- `read_url`
+- `search_transcripts`
+- `open_transcript_chunk`
+- `create_artifact`
+- `respond`
+
+The model-visible workspace is explicit product state, not hidden chain-of-thought. It contains at most 24 recent user/assistant turns, 24 evidence sources, 18 unread web candidates, 18 transcript matches, recent query history, current artifact metadata, and exact remaining limits. It never contains reasoning tokens. Full page bodies remain server-only; the client receives bounded source metadata/excerpts and sanitized activity.
+
+Instruction layers are small and explicit:
+
+1. A global server-only system prompt defines product purpose, equal treatment of CJ and Jeff, evidence rules, untrusted-content handling, truthful uncertainty, and the requirement to use typed actions.
+2. A server-only Headlines or Big Story procedure is supplied to Grok only after the corresponding artifact action.
+3. Code and schemas remain the authority for permissions, budgets, tool execution, citations, and valid output; prompts cannot grant capabilities or relax a limit.
 
 Rules:
 
-- Attempt each unique supplied link before using it as evidence.
 - Perform at least one transcript search for every initial artifact run.
-- The model may choose additional bounded searches and reads within the configured limits.
-- Deterministic validation checks schema validity, required fields, resolvable citations, exact archive IDs/excerpts, and budget termination.
-- At most one repair loop may run after validation failure.
-- If repair still fails, return an honest partial artifact with validation failures; do not loop indefinitely.
+- Execute only the controller's single validated action; model-authored code is never executed.
+- Rebuild each controller turn from bounded conversation/evidence state, tool observations, current artifact metadata, and remaining budget.
+- Permit `read_url` only for a user-supplied or search-discovered public URL and `open_transcript_chunk` only for a returned match.
+- Treat search candidates as leads rather than evidence until `read_url` succeeds; permit citations only to usable saved source IDs.
+- Terminate on `respond`, successful `create_artifact`, stop, deadline, controller/tool/provider/cost ceiling, or typed unrecoverable failure. Automatic retry is zero.
+- Deterministic validation checks artifact schema, required fields, resolvable citations, exact archive IDs/excerpts, source ledger, and clock.
+- At most one artifact repair may run after validation failure. If repair fails, preserve the previous valid artifact and return an honest partial or failed result.
 - No provider/model fallback is allowed in v0.
-- A stop request terminates the active stream where technically possible and preserves already collected evidence.
-- Follow-ups run in the same workspace with access to the saved artifact and evidence, subject to the same limits.
+- A stop request terminates the active stream where technically possible and preserves confirmed evidence plus the last valid artifact.
+- Follow-ups resume the same in-memory workspace and can genuinely research a missing angle. Saved-evidence-only requests can complete with one Luna call and no tools.
 
-Numeric turn, tool, token, time, and dollar ceilings are configuration, not prompt text. Phase 2 must prove and freeze initial values. A paid run is rejected when required budget configuration is absent.
+Per user message, code caps Luna decisions at 10, provider requests at 20, web searches at 3, URL reads at 8, transcript searches at 2, archive opens at 6, Grok compositions at 1, repairs at 1, wall time at 300 seconds, and accounted cost at `$1.00`. Automatic retries and provider/model fallbacks are zero.
 
 ## 11. Data contract and integrity snapshot
 
@@ -262,12 +261,17 @@ The application uses a generated, server-only search index derived from processe
 
 ## 12. Persistence and deployment contract
 
+- Phase 7A is intentionally local and ephemeral: at most eight workspaces remain in one process for six hours. A server restart loses them, and a fresh browser does not hydrate an existing server workspace until it sends another message.
+- There is no authentication, remote database, hosted infrastructure, or deployment in the completed phase.
+- A future Phase 7B may implement the target below only after Phase 8 proves the harness is useful enough to justify persistence.
 - Target: one Next.js application deployed on Vercel.
 - Agent streaming runs through a server route; the browser never receives the OpenRouter key.
 - The deployed application cannot rely on writable local disk or process memory for durable state.
 - A remote storage adapter persists access/session data, workspaces, messages, runs, artifacts, source ledgers, and usage receipts.
-- Remote libSQL/Turso is provisional until its serverless and Mastra compatibility is proven. The application code depends on a storage interface rather than vendor-specific calls outside the adapter.
-- Mastra is provisional until the pinned dependency, streaming, OpenRouter, and Vercel bundle spike passes. LangGraph.js is the defined fallback without changing product, tool, event, or artifact contracts.
+- The durable workspace also persists the append-only safe event stream, public plan, evidence notebook, manual artifact edits, idempotency keys, and run locks. Bounded snapshots accelerate reload, but event replay remains the audit authority.
+- A browser reload or function restart may reconnect to or accurately report an active run; it must never infer completion or silently start replacement paid work.
+- Any remote store choice is unmade; do not infer libSQL/Turso or another vendor from the local implementation.
+- Mastra remains the pinned turn-workflow boundary. The proven custom OpenRouter adapters remain the provider boundary so exact routing, ZDR, no-fallback policy, and receipts stay code-owned.
 - Vercel project creation, hosted storage creation, secrets, and deployment require later explicit approval.
 
 ## 13. Security, privacy, cost, and reliability
@@ -288,6 +292,7 @@ The application uses a generated, server-only search index derived from processe
 - The whole archive is never sent to the model in one request.
 - The UI must disclose the provider boundary before first use.
 - Logs and traces exclude secrets and should minimize raw user content.
+- External pages, search results, transcripts, notes, and prior artifacts are untrusted data. None can alter the system prompt, tool permissions, action schema, budgets, or access boundary.
 
 ### Cost
 
@@ -319,7 +324,8 @@ Run the same inputs through:
 
 - Gemini using the hosts' ordinary general-purpose workflow
 - Plain Grok through OpenRouter without podcast tools or artifact enforcement
-- The Nonsense Research Harness
+- The frozen Phase 5 fixed research workflow
+- The Phase 7 adaptive Nonsense Research Harness
 
 Deterministic checks:
 
@@ -327,6 +333,8 @@ Deterministic checks:
 - Citation resolution
 - Exact archive excerpt and ID validity
 - Budget termination
+- Controller-loop termination and truthful remaining-budget state
+- Durable event replay, notebook consistency, idempotency, and duplicate-run prevention
 - Honest failure states
 - Cost and latency receipt
 
@@ -338,8 +346,9 @@ Qualitative checks:
 - Amount of generic AI prose
 - Manual cleanup required
 - Respect for the story clock without overscripting
+- Whether adaptive research finds materially better evidence than the fixed workflow often enough to justify its added latency and cost
 
-The v0 usefulness gate passes only if the harness has zero fabricated citations/archive quotes in the test set and provides a clear advantage in archive recall and repeatable preparation. If the advantage over Gemini/plain Grok is unclear, stop and simplify before deployment.
+The v0 usefulness gate passes only if the harness has zero fabricated citations/archive quotes in the test set and provides a clear advantage in archive recall and repeatable preparation. The adaptive loop must also outperform the fixed workflow on at least one material research-quality dimension without unacceptable reliability or cost regression. If the advantage over Gemini/plain Grok or the fixed workflow is unclear, stop and simplify before deployment.
 
 ## 15. Phase 0 acceptance gate
 

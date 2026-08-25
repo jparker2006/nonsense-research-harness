@@ -1,6 +1,6 @@
 # Nonsense Research Harness — Build TODO
 
-Status: Phase 5, Phase 5.1, and Phase 6 **PASSED**. The authorized corrected Phase 6.5 browser proof returned a validated Headlines artifact using five of six provider requests, zero retries, and `$0.05391264` of its `$0.50` cap. Every live path is relocked. Phase 7 has not started. See `docs/PHASE_6_RESULT.md`.
+Status: Phases 1–6 and Phase 7A **PASSED**. Phase 7A is the first reusable local product: a blank chat connects to a bounded adaptive Luna controller, the real safe web/archive tools, an ephemeral evidence workspace, and optional validated Grok Headlines/Big Story artifacts. Final live proof produced both modes for `$0.19281185`; a saved-evidence browser follow-up then used one controller request and displayed `$0.0022`. Persistence, auth, deployment, subagents, and visual redesign remain deferred. See `docs/PHASE_7A_RESULT.md`.
 
 ## Intended v0 outcome
 
@@ -20,6 +20,8 @@ The product prepares conversation material. It does not choose the final stories
   - 441 segment records: `/Users/jakeparker/Desktop/Nonsense Podcast Project/data/processed/segments.jsonl`
 - The processed files are about 4.9 MB combined. They are small enough for a simple server-side archive index in v0.
 - Phase 3 produced 1,259 exact-source retrieval chunks, local BM25, 1,536-dimensional document vectors, reciprocal-rank fusion, and two server-only transcript tools. The frozen reranked evaluation reached 100% Recall@5 across exact, conceptual, and filter cases.
+- Phase 6 streams the real bounded Phase 5 workflow through the browser workbench. Its corrected live Headlines proof completed with a validated artifact using five of six provider requests, zero retries, and `$0.05391264` of its `$0.50` cap. The interface and Big Story path also pass deterministic fixtures; no deployed persistence exists yet.
+- Phase 7A replaces the form/fixture default with a live-only chat route, a typed observe-decide-act loop, genuine follow-ups, in-memory evidence reuse, and optional artifact creation. Deterministic fixtures are test injection only; missing provider authorization is explicitly unavailable.
 
 ## Phase rules
 
@@ -312,31 +314,40 @@ This phase builds one server-side archive tool using deterministic exact-text ch
 - [x] A corrected, explicitly authorized full live browser run returns a validated artifact within five provider requests, zero retries, and `$0.05391264`.
 - [x] Do not add visual polish beyond this point until the usefulness evaluation passes.
 
-## Phase 7 — Add deployable persistence and minimal access control
+## Phase 7A — Chat-first local adaptive agent — PASSED
 
-### Harden before running
+The frozen scope and evidence are in `docs/PHASE_7A_PLAN.md` and `docs/PHASE_7A_RESULT.md`.
 
-- [ ] Confirm remote libSQL/Turso remains the simplest supported serverless store; otherwise choose one replacement before coding.
-- [ ] Define a minimal schema for users/access, threads, messages, runs, artifacts, sources, and usage receipts.
-- [ ] Define retention and deletion behavior.
-- [ ] Decide whether v0 uses one shared access code or named accounts; default to one shared code.
-- [ ] Prevent cross-thread access and unauthenticated API use.
-- [ ] Obtain approval before creating a hosted database or writing remote data.
+- [x] Replace mandatory mode/topic/link/notes intake with one ordinary chat composer.
+- [x] Keep the normal route live-only; fixtures are dependency-injected by tests and never silently replace user input.
+- [x] Add one strict server-only system prompt for equal-partner, evidence, untrusted-content, citation, and no-invented-attribution behavior.
+- [x] Add Headlines and Big Story artifact procedures only when the user requests an artifact.
+- [x] Add a Luna controller that selects one of `web_search`, `read_url`, `search_transcripts`, `open_transcript_chunk`, `create_artifact`, or `respond` per turn.
+- [x] Execute actions through code-owned allowlists and the existing SSRF-hardened/web/archive tools; reject undiscovered URLs, unreturned chunks, repeated actions, and invented citations.
+- [x] Preserve recent turns, candidates, exact evidence, transcript matches, and the last validated artifact in an eight-session, six-hour in-memory workspace.
+- [x] Make follow-ups real: the controller may answer from saved evidence or perform additional bounded research.
+- [x] Make Headlines/Big Story optional; a validated artifact ends the turn with a deterministic acknowledgement instead of one redundant provider call.
+- [x] Enforce 10 controller turns, 20 provider requests, 3 web searches, 8 URL reads, 2 transcript searches, 6 opens, 1 composition, 1 repair, 300 seconds, and `$1.00` per user turn; automatic retries remain zero.
+- [x] Stream safe agent decisions, tools, answers, source metadata, artifact, and receipt into the visible workbench without a Demo/Live badge.
+- [x] Prove direct chat, adaptive research, genuine follow-up, both artifact modes, artifact preservation, cancellation, unavailable mode, strict schemas, source safety, route streaming, and model policy deterministically.
+- [x] Preserve both failed live proof rounds, fix their root causes, and pass the final frozen Headlines and Big Story live proof for `$0.19281185` and 18 aggregate provider requests.
+- [x] Prove the visible browser can answer from saved evidence with one controller call/no tools and display the prior validated artifact.
+- [x] Pass the full supply-chain/lint/typecheck/test/build gate and preserve corpus/historical evidence hashes.
 
-### Build
+### Phase 7A gate — STOP
 
-- [ ] Persist and reload threads, messages, artifacts, sources, and run status.
-- [ ] Add the approved access gate with secure, HTTP-only session cookies.
-- [ ] Add rate limiting and basic abuse protection.
-- [ ] Ensure the application does not depend on writable local disk or a long-lived process.
-- [ ] Test function restart, reload during a run, duplicate submission, storage outage, and expired session behavior.
+- [x] The product is a reusable local chat agent, not a fixture demo or one fixed form workflow.
+- [x] The controller changes actions after each observation and terminates within hard limits.
+- [x] Artifacts remain evidence-validated, clock-aware, source-linked, and optional.
+- [x] Missing authorization, provider/tool degradation, stop, invalid action, and failed composition are honest and do not start automatic retries.
+- [x] No persistence, auth, deployment, subagents, general shell, GBrain/LLMwiki, or visual redesign was added.
 
-### Phase 7 gate — STOP
+## Phase 7B — Durable private workspaces — NOT STARTED
 
-- [ ] Workspaces survive cold starts and browser reloads.
-- [ ] Unauthorized requests cannot read or start runs.
-- [ ] Duplicate requests do not create duplicate paid runs.
-- [ ] Storage failures are explicit and do not lose an already completed artifact silently.
+- [ ] Decide whether persistence/auth is worth building only after Phase 8 usefulness testing.
+- [ ] If approved, freeze a narrow serverless store adapter, shared access control, retention/deletion, idempotency, one-thread lease, reload/replay, and Vercel constraints.
+- [ ] Obtain separate approval before installing a storage dependency, creating hosted infrastructure, writing remote data, or deploying.
+- [ ] Do not add subagents, background jobs, multiplayer editing, or broader tools as a persistence workaround.
 
 ## Phase 8 — Evaluate usefulness before deployment
 
@@ -352,8 +363,9 @@ This phase builds one server-side archive tool using deterministic exact-text ch
 - [ ] Test one supplied Headlines article.
 - [ ] Test one Big Story topic with rough notes and links.
 - [ ] Test one topic with meaningful prior podcast coverage.
+- [ ] Compare the frozen Phase 5 fixed workflow, the Phase 7 adaptive harness, plain Gemini, and plain Grok on identical inputs.
 - [ ] Check citation validity, archive-reference validity, schema completeness, cost, latency, and failure behavior.
-- [ ] Compare preparation usefulness, generic-AI prose, fresh angles, archive usefulness, and amount of manual cleanup.
+- [ ] Compare preparation usefulness, coverage, generic-AI prose, fresh angles, archive usefulness, amount of manual cleanup, and whether adaptive research justifies its added latency and cost.
 - [ ] Record failures and revise the smallest responsible layer: tool, retrieval, prompt, schema, graph, or model configuration.
 
 ### Phase 8 gate — STOP AND DECIDE
@@ -400,10 +412,12 @@ Do not pull these into a phase unless the usefulness evaluation identifies a con
 - [ ] Audio download or transcription
 - [ ] Fine-tuning
 - [ ] Any additional models, automatic routers, fallbacks, subagents, or critic agents
+- [ ] GBrain, LLMwiki, knowledge graphs, or automatically maintained topic dossiers
+- [ ] General shell, arbitrary code execution, browser automation, or a broad MCP tool catalog
 - [ ] Durable background jobs or Vercel Workflow
 - [ ] Mobile-native application
 - [ ] Analytics dashboard
 
 ## First next action
 
-Harden Phase 7 with Jake before any persistence, authentication, hosted database, or deployment work. Do not begin it automatically.
+Run Phase 8 usefulness comparisons before adding persistence or polishing the interface. Compare Phase 7A against the frozen Phase 5 workflow and plain Gemini/Grok on identical inputs; do not deploy automatically.

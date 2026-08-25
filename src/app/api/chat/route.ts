@@ -1,20 +1,23 @@
-import { createUIMessageStream, createUIMessageStreamResponse } from "ai";
 import { randomUUID } from "node:crypto";
+import { createUIMessageStream, createUIMessageStreamResponse } from "ai";
 import { ZodError } from "zod";
-import { phase5RunResultSchema, type Phase5RunResult } from "@/lib/phase5/contracts";
 import { createLivePhase5Tools } from "@/lib/phase5/live-tools";
 import { createOpenRouterPhase5Model } from "@/lib/phase5/model";
-import { runPhase5Workflow } from "@/lib/phase5/workflow";
+import type { Phase7AAgentDependencies } from "@/lib/phase7a/agent";
 import {
-  PHASE_6_LIMITS,
-  parsePhase6Envelope,
-  phase6ErrorSchema,
-  type Phase6UIMessage,
-} from "@/lib/phase6/contracts";
-import { createPhase6FixtureDependencies } from "@/lib/phase6/fixture";
-import { claimPhase6LiveProof, phase6LiveProofAuthorized, writePhase6LiveReport } from "@/lib/phase6/live-proof";
-import { projectActivity, projectArtifact, projectReceipt } from "@/lib/phase6/projection";
-import { getPhase6Session, putPhase6Session } from "@/lib/phase6/session-store";
+  PHASE_7A_LIMITS,
+  parsePhase7AEnvelope,
+  phase7aArtifactSchema,
+  phase7aErrorSchema,
+  phase7aReceiptSchema,
+  phase7aRunSchema,
+  phase7aSourceSchema,
+  type Phase7AUIMessage,
+} from "@/lib/phase7a/contracts";
+import { createOpenRouterPhase7AModel, phase7aLocalLiveAuthorized } from "@/lib/phase7a/model";
+import { PHASE_7A_ARTIFACT_PROCEDURES } from "@/lib/phase7a/prompts";
+import { createPhase7AWorkspace, getPhase7AWorkspace, putPhase7AWorkspace } from "@/lib/phase7a/session-store";
+import { runPhase7AWorkflow } from "@/lib/phase7a/workflow";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -22,176 +25,184 @@ export const dynamic = "force-dynamic";
 const activeSessions = new Set<string>();
 
 function safeError(error: unknown) {
-  const code = error instanceof Error && /^phase6_[a-z0-9_]+$/.test(error.message)
+  const code = error instanceof Error && /^phase7a_[a-z0-9_]+$/.test(error.message)
     ? error.message
-    : "phase6_request_failed";
+    : "phase7a_request_failed";
   const messages: Record<string, string> = {
-    phase6_invalid_request: "The request was invalid. Check the topic, links, and notes.",
-    phase6_request_too_large: "The request exceeded the 24 KB input boundary.",
-    phase6_run_in_progress: "This session already has a run in progress.",
-    phase6_session_missing: "The prior artifact is no longer in this local server session.",
-    phase6_live_attempt_consumed: "The single Phase 6 live proof has already been used.",
-    phase6_live_not_authorized: "Live provider access is locked.",
+    phase7a_invalid_request: "The chat request was invalid.",
+    phase7a_request_too_large: "The request exceeded the 24 KB input boundary.",
+    phase7a_run_in_progress: "This local conversation already has a research turn in progress.",
+    phase7a_missing_key: "OpenRouter is not configured for this local research agent.",
+    phase7a_live_not_authorized: "Local live research is not enabled. No fixture was substituted and nothing was spent.",
+    phase7a_invalid_citation: "The agent attempted to cite evidence it had not retrieved.",
+    phase7a_url_not_allowed: "The agent attempted to read a URL that was neither supplied nor discovered.",
+    phase7a_chunk_not_allowed: "The agent attempted to open an archive chunk that search had not returned.",
+    phase7a_repeated_action: "The agent repeated an action without new evidence, so the turn stopped safely.",
+    phase7a_budget_exhausted: "The turn reached its $1.00 cost boundary.",
+    phase7a_provider_request_limit: "The turn reached its provider-request boundary.",
+    phase7a_run_stopped: "The research turn was stopped.",
   };
-  return phase6ErrorSchema.parse({
+  return phase7aErrorSchema.parse({
     code,
-    message: messages[code] ?? "The run failed safely. No automatic retry was started.",
-    retryable: ["phase6_request_failed", "phase6_session_missing"].includes(code),
+    message: messages[code] ?? "The research turn failed safely. No automatic retry was started.",
+    retryable: ["phase7a_request_failed", "phase7a_run_stopped"].includes(code),
   });
 }
 
-function refinedResult(previous: Phase5RunResult, instruction: string): Phase5RunResult {
-  if (!previous.artifact) throw new Error("phase6_session_missing");
-  const note = `Requested refinement (not independently researched): ${instruction}`.slice(0, 500);
-  return phase5RunResultSchema.parse({
-    ...previous,
-    run_id: `run_${randomUUID()}`,
-    artifact: {
-      ...previous.artifact,
-      uncertainties_and_open_checks: [note, ...previous.artifact.uncertainties_and_open_checks].slice(0, 8),
-    },
-    status: previous.status === "failed" || previous.status === "stopped" ? "partial" : previous.status,
-    events: [],
-    usage: [],
-    counts: { luna_turns: 0, grok_turns: 0, web_searches: 0, url_reads: 0, transcript_searches: 0, transcript_opens: 0, repairs: 0 },
-    repair_attempted: false,
-    accounted_cost_usd: 0,
-    elapsed_ms: 0,
-    validation_errors: [...previous.validation_errors, "phase6_follow_up_not_researched"],
-  });
+function liveDependencies(signal: AbortSignal): Phase7AAgentDependencies {
+  const apiKey = process.env.OPENROUTER_API_KEY?.trim() ?? "";
+  if (!apiKey) throw new Error("phase7a_missing_key");
+  if (!phase7aLocalLiveAuthorized()) throw new Error("phase7a_live_not_authorized");
+  const configuredCostCap = Number(process.env.PHASE7A_TURN_COST_CAP_USD ?? PHASE_7A_LIMITS.costCapUsd);
+  const costCapUsd = Number.isFinite(configuredCostCap) && configuredCostCap > 0
+    ? Math.min(PHASE_7A_LIMITS.costCapUsd, configuredCostCap)
+    : PHASE_7A_LIMITS.costCapUsd;
+  return {
+    controller: createOpenRouterPhase7AModel({ apiKey, liveAuthorized: true }),
+    composer: createOpenRouterPhase5Model({
+      apiKey,
+      liveAuthorized: true,
+      phase7aLive: true,
+      artifactContext: PHASE_7A_ARTIFACT_PROCEDURES,
+    }),
+    tools: createLivePhase5Tools({ apiKey, liveAuthorized: true, signal }),
+    signal,
+    costCapUsd,
+  };
 }
 
-export async function POST(request: Request) {
-  const raw = await request.text();
-  if (Buffer.byteLength(raw, "utf8") > PHASE_6_LIMITS.maxRequestBytes) {
-    return Response.json(safeError(new Error("phase6_request_too_large")), { status: 413 });
-  }
-  let parsed;
-  try {
-    parsed = parsePhase6Envelope(JSON.parse(raw));
-  } catch (error) {
-    return Response.json(safeError(error instanceof ZodError ? new Error("phase6_invalid_request") : error), { status: 400 });
-  }
-  if (activeSessions.has(parsed.session_id)) {
-    return Response.json(safeError(new Error("phase6_run_in_progress")), { status: 409 });
-  }
+export function createPhase7AChatRoute(options: {
+  dependencies?: (signal: AbortSignal) => Phase7AAgentDependencies;
+} = {}) {
+  const dependencyFactory = options.dependencies ?? liveDependencies;
+  const injected = options.dependencies !== undefined;
 
-  const routeStartedAt = new Date().toISOString();
-  const execution = parsed.action !== "follow_up" && phase6LiveProofAuthorized() ? "live" : "fixture";
-  if (execution === "live") {
-    try {
-      claimPhase6LiveProof();
-    } catch (error) {
-      return Response.json(safeError(error), { status: 409 });
+  return async function phase7aPost(request: Request) {
+    const raw = await request.text();
+    if (Buffer.byteLength(raw, "utf8") > PHASE_7A_LIMITS.maxRequestBytes) {
+      return Response.json(safeError(new Error("phase7a_request_too_large")), { status: 413 });
     }
-  }
-  activeSessions.add(parsed.session_id);
-
-  const stream = createUIMessageStream<Phase6UIMessage>({
-    execute: async ({ writer }) => {
-      let revision = 1;
-      const runId = `run_${randomUUID()}`;
+    let parsed;
+    try {
+      parsed = parsePhase7AEnvelope(JSON.parse(raw));
+    } catch (error) {
+      return Response.json(safeError(error instanceof ZodError ? new Error("phase7a_invalid_request") : error), { status: 400 });
+    }
+    if (!injected) {
       try {
-        let finalResult: Phase5RunResult;
-        if (parsed.action === "follow_up") {
-          const current = getPhase6Session(parsed.session_id);
-          if (!current) throw new Error("phase6_session_missing");
-          revision = current.revision + 1;
-          writer.write({
-            type: "data-run",
-            id: runId,
-            data: { session_id: parsed.session_id, run_id: runId, state: "running", summary: "Applying a local follow-up", mode: current.result.input.mode, execution: "fixture" },
-          });
-          writer.write({
-            type: "data-activity",
-            id: `${runId}-follow-up`,
-            data: {
-              id: `${runId}-follow-up`,
-              run_id: runId,
-              kind: "composition",
-              label: "Refining the existing packet",
-              detail: "Using the current validated evidence without new research",
-              status: "running",
-              created_at: new Date().toISOString(),
-            },
-          });
-          finalResult = refinedResult(current.result, parsed.instruction);
-          writer.write({
-            type: "data-activity",
-            id: `${runId}-follow-up`,
-            data: {
-              id: `${runId}-follow-up`,
-              run_id: runId,
-              kind: "composition",
-              label: "Existing packet refined",
-              detail: "No new web or archive research was performed",
-              status: "complete",
-              created_at: new Date().toISOString(),
-            },
-          });
-        } else {
-          writer.write({
-            type: "data-run",
-            id: runId,
-            data: { session_id: parsed.session_id, run_id: runId, state: "running", summary: "Research run started", mode: parsed.input.mode, execution },
-          });
-          const onEvent = (event: Parameters<typeof projectActivity>[0]) => {
-            if (request.signal.aborted) return;
-            const projected = projectActivity(event);
-            writer.write({ type: "data-activity", id: projected.id, data: projected });
-          };
-          const deps = execution === "live"
-            ? {
-                model: createOpenRouterPhase5Model({ apiKey: process.env.OPENROUTER_API_KEY, liveAuthorized: true, phase6LiveProof: true }),
-                tools: createLivePhase5Tools({ apiKey: process.env.OPENROUTER_API_KEY, liveAuthorized: true, signal: request.signal }),
-                signal: request.signal,
-                onEvent,
-              }
-            : { ...createPhase6FixtureDependencies(request.signal), onEvent };
-          finalResult = await runPhase5Workflow(parsed.input, deps, { runId });
-        }
-
-        const artifact = projectArtifact(finalResult, revision);
-        if (artifact) writer.write({ type: "data-artifact", id: `${finalResult.run_id}-r${revision}`, data: artifact });
-        writer.write({ type: "data-receipt", id: finalResult.run_id, data: projectReceipt(finalResult, revision) });
-        writer.write({
-          type: "data-run",
-          id: finalResult.run_id,
-          data: {
-            session_id: parsed.session_id,
-            run_id: finalResult.run_id,
-            state: finalResult.status,
-            summary: finalResult.status === "complete" ? "Preparation packet ready" : finalResult.status === "partial" ? "Packet ready with explicit limitations" : finalResult.status === "stopped" ? "Run stopped" : "Run failed safely",
-            mode: finalResult.input.mode,
-            execution,
-          },
-        });
-        const textId = `summary-${finalResult.run_id}`;
-        writer.write({ type: "text-start", id: textId });
-        writer.write({ type: "text-delta", id: textId, delta: finalResult.artifact ? "The validated preparation packet is ready in the artifact workspace." : "No validated artifact was produced." });
-        writer.write({ type: "text-end", id: textId });
-        putPhase6Session({ session_id: parsed.session_id, result: finalResult, revision, updated_at_ms: Date.now() });
-        if (execution === "live") writePhase6LiveReport(finalResult, routeStartedAt);
-        writer.write({ type: "finish", finishReason: "stop" });
+        if (!process.env.OPENROUTER_API_KEY?.trim()) throw new Error("phase7a_missing_key");
+        if (!phase7aLocalLiveAuthorized()) throw new Error("phase7a_live_not_authorized");
       } catch (error) {
-        if (!request.signal.aborted) {
-          const safe = safeError(error);
-          writer.write({ type: "data-error", id: runId, data: safe });
+        return Response.json(safeError(error), { status: 503, headers: { "Cache-Control": "no-store" } });
+      }
+    }
+    if (activeSessions.has(parsed.session_id)) {
+      return Response.json(safeError(new Error("phase7a_run_in_progress")), { status: 409 });
+    }
+    activeSessions.add(parsed.session_id);
+    const runId = `run_${randomUUID()}`;
+
+    const stream = createUIMessageStream<Phase7AUIMessage>({
+      execute: async ({ writer }) => {
+        try {
           writer.write({
             type: "data-run",
             id: runId,
-            data: { session_id: parsed.session_id, run_id: runId, state: "failed", summary: safe.message, mode: parsed.action === "follow_up" ? "headlines" : parsed.input.mode, execution },
+            data: phase7aRunSchema.parse({
+              session_id: parsed.session_id,
+              run_id: runId,
+              state: "running",
+              summary: "The agent is deciding what to research next",
+            }),
           });
+          const workspace = getPhase7AWorkspace(parsed.session_id) ?? createPhase7AWorkspace(parsed.session_id);
+          const base = dependencyFactory(request.signal);
+          const result = await runPhase7AWorkflow({ workspace, message: parsed.message, runId }, {
+            ...base,
+            signal: request.signal,
+            onEvent: (event) => {
+              if (!request.signal.aborted) writer.write({ type: "data-activity", id: event.id, data: event });
+              base.onEvent?.(event);
+            },
+          });
+          putPhase7AWorkspace(result.workspace);
+          if (result.assistant_message) {
+            writer.write({ type: "data-message", id: result.assistant_message.message_id, data: result.assistant_message });
+          }
+          for (const source of result.workspace.evidence) {
+            writer.write({
+              type: "data-source",
+              id: source.source_id,
+              data: phase7aSourceSchema.parse({ ...source, content: undefined }),
+            });
+          }
+          if (result.artifact && result.artifact_revision > 0) {
+            writer.write({
+              type: "data-artifact",
+              id: `${runId}-artifact-${result.artifact_revision}`,
+              data: phase7aArtifactSchema.parse({ run_id: runId, revision: result.artifact_revision, artifact: result.artifact }),
+            });
+          }
+          writer.write({
+            type: "data-receipt",
+            id: runId,
+            data: phase7aReceiptSchema.parse({
+              run_id: runId,
+              status: result.status,
+              counts: result.counts,
+              accounted_cost_usd: result.accounted_cost_usd,
+              elapsed_ms: result.elapsed_ms,
+              limitations: result.limitations,
+              artifact_revision: result.artifact_revision,
+            }),
+          });
+          const summary = result.status === "complete"
+            ? "Answer ready"
+            : result.status === "partial"
+              ? "Answer ready with explicit limitations"
+              : result.status === "stopped"
+                ? "Research turn stopped"
+                : "Research turn failed safely";
+          writer.write({
+            type: "data-run",
+            id: runId,
+            data: phase7aRunSchema.parse({ session_id: parsed.session_id, run_id: runId, state: result.status, summary }),
+          });
+          if (result.status === "failed") {
+            const firstCode = result.limitations.find((item) => /^phase7a_[a-z0-9_]+$/.test(item));
+            writer.write({ type: "data-error", id: runId, data: safeError(new Error(firstCode ?? "phase7a_request_failed")) });
+          }
+          const text = result.assistant_message?.text ?? summary;
+          const textId = `text_${runId}`;
+          writer.write({ type: "text-start", id: textId });
+          writer.write({ type: "text-delta", id: textId, delta: text });
+          writer.write({ type: "text-end", id: textId });
+          writer.write({ type: "finish", finishReason: "stop" });
+        } catch (error) {
+          if (!request.signal.aborted) {
+            const safe = safeError(error);
+            writer.write({ type: "data-error", id: runId, data: safe });
+            writer.write({
+              type: "data-run",
+              id: runId,
+              data: phase7aRunSchema.parse({ session_id: parsed.session_id, run_id: runId, state: "failed", summary: safe.message }),
+            });
+          }
+        } finally {
+          activeSessions.delete(parsed.session_id);
         }
-      } finally {
-        activeSessions.delete(parsed.session_id);
-      }
-    },
-    onError: () => "The run failed safely. No automatic retry was started.",
-  });
+      },
+      onError: () => "The research turn failed safely. No automatic retry was started.",
+    });
 
-  return createUIMessageStreamResponse({
-    stream,
-    headers: { "Cache-Control": "no-store", "X-Content-Type-Options": "nosniff", "X-Nonsense-Execution": execution },
-  });
+    return createUIMessageStreamResponse({
+      stream,
+      headers: {
+        "Cache-Control": "no-store",
+        "X-Content-Type-Options": "nosniff",
+      },
+    });
+  };
 }
+
+export const POST = createPhase7AChatRoute();

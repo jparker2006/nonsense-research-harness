@@ -1,0 +1,637 @@
+{
+  "phase": "7A",
+  "gate": {
+    "per_turn_cost_cap_usd": 1,
+    "aggregate_cost_cap_usd": 2,
+    "per_turn_provider_request_cap": 20,
+    "controller_turn_cap": 10
+  },
+  "endpoint": "http://127.0.0.1:3210/api/chat",
+  "automatic_retries": 0,
+  "started_at": "2026-08-25T03:45:27.665Z",
+  "cases": [
+    {
+      "id": "headlines_sprout_outbreak",
+      "session_id": "session_phase7a_local",
+      "expected_mode": "headlines",
+      "started_at": "2026-08-25T03:45:27.666Z",
+      "completed_at": "2026-08-25T03:48:30.004Z",
+      "request_message": "Create an 8-minute Headlines preparation packet about the August 2026 multistate sprout foodborne-illness outbreak. Read both supplied links. Do at most one additional current-web search and read at most one especially useful additional source. Search the Nonsense transcript archive once and open at most one relevant chunk. Then create the validated packet and briefly tell me it is ready. Keep evidence, inference, and open uncertainty separate.\n\nFDA: https://www.fda.gov/food/outbreaks-foodborne-illness/outbreak-investigation-shiga-toxin-producing-e-coli-salmonella-sprouts-august-2026\nAP: https://apnews.com/article/alfalfa-sprouts-food-poisoning-ac7701ed353e1e8c0aea8fec04982a26",
+      "http_status": 200,
+      "cache_control": "no-store",
+      "receipt": {
+        "run_id": "run_85afe5df-185d-4f5a-a3f7-418fbe8dc846",
+        "status": "failed",
+        "counts": {
+          "controller_turns": 7,
+          "provider_requests": 11,
+          "grok_turns": 1,
+          "web_searches": 1,
+          "url_reads": 3,
+          "transcript_searches": 1,
+          "transcript_opens": 0,
+          "compositions": 1,
+          "repairs": 0
+        },
+        "accounted_cost_usd": 0.14424185,
+        "elapsed_ms": 180437.13,
+        "limitations": [
+          "archive:keyword_only",
+          "phase7a_model_unavailable"
+        ],
+        "artifact_revision": 1
+      },
+      "artifact": {
+        "run_id": "run_85afe5df-185d-4f5a-a3f7-418fbe8dc846",
+        "revision": 1,
+        "artifact": {
+          "mode": "headlines",
+          "working_title": "August 2026 multi-pathogen alfalfa sprout outbreak: 55 cases, Everything Sprouts recall",
+          "past_nonsense_coverage": {
+            "status": "no_relevant_archive_match",
+            "items": []
+          },
+          "conversation_questions": [
+            "How should a multi-pathogen sprout outbreak be described without implying more about the contamination source than traceback currently shows?",
+            "What is the most useful consumer takeaway when lot codes may be missing, product was frozen without packaging, or sprouts were eaten at a restaurant?",
+            "How much, if any, weight belongs on AP’s prior-year warning-letter reporting versus the current epidemiologic and traceback link?",
+            "How should 15-state case reports be discussed alongside FDA’s confirmed recalled-product distribution only in Minnesota and Wisconsin so far?",
+            "What, if anything, changes about the public-health story because two people were infected with both Salmonella and STEC?",
+            "Which caveats should stay attached to every number: undercount, 3–4 week reporting lag, and an ongoing inspection?"
+          ],
+          "uncertainties_and_open_checks": [
+            "Fact-check guardrail: case counts, onset dates, hospitalization figures, and the distribution map can change because FDA and CDC say the investigation is ongoing.",
+            "Investigators have not established the contamination source (for example grower conditions versus a common seed supplier).",
+            "FDA has not finished determining whether additional products, lots, firms, or states are linked.",
+            "Confirmed recalled-product distribution is MN and WI, while illnesses are reported from 15 states; further movement of product is still being checked.",
+            "CDC says the true number of illnesses is likely much higher and recent cases may not yet be counted.",
+            "AP reported, earlier, that the company had not yet issued a recall; the later FDA advisory says a recall began August 22. Use the FDA chronology and do not treat the AP line as current recall status.",
+            "AP said it had not obtained comment from Everything Sprouts.",
+            "WGS-predicted Salmonella resistance is described as unlikely to change treatment for most people; it is not, on this record, a demonstrated treatment-failure finding."
+          ],
+          "source_ledger": [
+            {
+              "source_id": "web_2786293ce491e6089cc4",
+              "source_type": "provided_link",
+              "availability": "complete",
+              "evidence_usable": true,
+              "title": "Outbreak Investigation of Shiga Toxin-producing E. coli & Salmonella: Sprouts (August 2026)",
+              "url": "https://www.fda.gov/food/outbreaks-foodborne-illness/outbreak-investigation-shiga-toxin-producing-e-coli-salmonella-sprouts-august-2026",
+              "retrieved_at": "2026-08-25T03:45:32.678Z",
+              "excerpt": "Do not eat, sell, or serve recalled Calco and Everything Sprouts-brand alfalfa sprouts. FDA’s investigation is ongoing.\n\nProductRecalled alfalfa sprouts grown by Everything Sprouts and sold under the Calco and Everything Sprouts brands. Recalled sprouts are packaged in 5-oz plastic containers with lot numbers 222, 223, 225, 226, and 230. These same Alfalfa sprouts were also used in Everything Sprouts Crunchy Protein Sprout Mix 5-oz cups, LOT# 222, 223, 226, 230 and the Zesty Garlic Mix cups, LOT# 222, 223, 225, 226, and 230. Symptoms of Shiga toxin-producing E. coli (STEC) infectionSymptoms be"
+            },
+            {
+              "source_id": "web_bb08b20fb503194f55ea",
+              "source_type": "provided_link",
+              "availability": "complete",
+              "evidence_usable": true,
+              "title": "Alfalfa sprouts linked to 15-state food-poisoning outbreak | AP News",
+              "url": "https://apnews.com/article/alfalfa-sprouts-food-poisoning-ac7701ed353e1e8c0aea8fec04982a26",
+              "retrieved_at": "2026-08-25T03:45:36.894Z",
+              "excerpt": "NEW YORK (AP) — U.S. health officials say a food-poisoning outbreak tied to alfalfa sprouts and involving multiple germs has sickened people in 15 states.State officials announced the outbreak earlier this week, saying they documented more than three dozen cases in Minnesota and Wisconsin. On Friday, the U.S. Centers for Disease Control and Prevention said the agency is aware of 55 cases nationally, including four people who have been hospitalized.The CDC said cases are also reported in Florida, Indiana, Iowa, Kansas, Michigan, New Hampshire, New York, Pennsylvania, North Carolina, South Carol"
+            },
+            {
+              "source_id": "web_f06f84080c50be4d9724",
+              "source_type": "web",
+              "availability": "complete",
+              "evidence_usable": true,
+              "title": "Investigation Update: E. coli and Salmonella Outbreak, August 2026",
+              "url": "https://www.cdc.gov/ecoli/outbreaks/alfalfa-sprouts-08-26/investigation.html",
+              "retrieved_at": "2026-08-25T03:46:31.158Z",
+              "excerpt": "CDC, public health and regulatory officials in several states, and the U.S. Food and Drug Administration (FDA) are collecting different types of data to investigate a multistate outbreak of 3 strains of E. coli infections and 1 strain of Salmonella infections: E. coli O26:H11, O103:H25, and O168:H8 and Salmonella Agona.\nEpidemiologic and traceback data show that alfalfa sprouts distributed by Everything Sprouts may be contaminated with multiple pathogens and may be making people sick.\nEpidemiologic data\nCases\n\nNotice\nSome people were infected with more than one outbreak strain. Forty-six peopl"
+            }
+          ],
+          "what_happened": {
+            "text": "As of FDA’s August 24, 2026 update, FDA and CDC are investigating a multistate outbreak of STEC (O26:H11, O103:H25, O168:H8) and Salmonella Agona. Epidemiologic and traceback data identify alfalfa sprouts from Everything Sprouts, LLC, Minneapolis, as a source. 55 people from 15 states: 46 E. coli, 7 Salmonella, 2 both; 4 hospitalizations; 0 deaths; onsets May 31–August 8, 2026. Of 34 people interviewed, 26 (76%) ate alfalfa sprouts. On August 22 the firm recalled Calco and Everything Sprouts 5-oz alfalfa sprouts lots 222, 223, 225, 226, and 230, plus Crunchy Protein Sprout Mix lots 222, 223, 226, 230 and Zesty Garlic Mix lots 222, 223, 225, 226, 230. Product went to wholesale, grocery, and restaurants in MN and WI from May 27–August 21, 2026. FDA inspected and sampled starting August 19. Investigation ongoing.",
+            "source_ids": [
+              "web_2786293ce491e6089cc4",
+              "web_f06f84080c50be4d9724",
+              "web_bb08b20fb503194f55ea"
+            ]
+          },
+          "why_it_matters_now": {
+            "text": "Public guidance is active: do not eat, sell, or serve recalled Calco/Everything Sprouts alfalfa sprouts or the named mix cups; throw away or return them, including unmarked frozen leftovers; clean surfaces they touched; seek care for STEC- or Salmonella-like symptoms after exposure. CDC notes a 3–4 week lag in linking cases and says the true number sick is likely higher. Labeled inference: this is still a live consumer-alert story because distribution beyond MN/WI is not closed, restaurant exposure occurred, and additional products or firms have not been ruled in or out.",
+            "source_ids": [
+              "web_2786293ce491e6089cc4",
+              "web_f06f84080c50be4d9724"
+            ]
+          },
+          "verified_facts": [
+            {
+              "text": "Current published tally: 55 illnesses, 4 hospitalizations, 0 deaths, 15 states. Illness onsets May 31 to August 8, 2026.",
+              "source_ids": [
+                "web_2786293ce491e6089cc4",
+                "web_f06f84080c50be4d9724",
+                "web_bb08b20fb503194f55ea"
+              ]
+            },
+            {
+              "text": "Pathogens named: STEC O26:H11, O103:H25, and O168:H8, plus Salmonella Agona. Some people had more than one outbreak strain.",
+              "source_ids": [
+                "web_2786293ce491e6089cc4",
+                "web_f06f84080c50be4d9724"
+              ]
+            },
+            {
+              "text": "Implicated grower/products: Everything Sprouts alfalfa sprouts sold as Calco and Everything Sprouts 5-oz cups (lots 222, 223, 225, 226, 230), also used in Crunchy Protein Sprout Mix and Zesty Garlic Mix cups with the listed lots. Recall initiated August 22, 2026.",
+              "source_ids": [
+                "web_2786293ce491e6089cc4"
+              ]
+            },
+            {
+              "text": "Confirmed recalled-product distribution: wholesale distributors and grocery stores in Minnesota and Wisconsin, and restaurants in those states, May 27–August 21, 2026. FDA is checking whether product went farther. Recalled restaurant product should no longer be for sale.",
+              "source_ids": [
+                "web_2786293ce491e6089cc4"
+              ]
+            },
+            {
+              "text": "AP lists additional states with reported cases: Florida, Indiana, Iowa, Kansas, Michigan, New Hampshire, New York, Pennsylvania, North Carolina, South Carolina, North Dakota, South Dakota, and Washington, after state officials described more than three dozen cases in Minnesota and Wisconsin.",
+              "source_ids": [
+                "web_bb08b20fb503194f55ea"
+              ]
+            },
+            {
+              "text": "Among 55 people with age/sex data: ages 12–94, median 34; 73% female. CDC: of 34 interviewed, 26 (76%) ate alfalfa sprouts, versus 8.7% reporting any sprouts in the FoodNet Population Survey. At least two illness clusters in Minnesota and Wisconsin.",
+              "source_ids": [
+                "web_f06f84080c50be4d9724",
+                "web_2786293ce491e6089cc4"
+              ]
+            },
+            {
+              "text": "WGS found outbreak isolates closely related. Salmonella from 9 people’s samples was predicted resistant to three or more of fosfomycin, streptomycin, sulfisoxazole, and tetracycline; CDC says this is unlikely to change treatment for most people. STEC from 46 samples had no predicted resistance; antibiotics are not recommended for STEC.",
+              "source_ids": [
+                "web_f06f84080c50be4d9724"
+              ]
+            }
+          ],
+          "tension_or_argument": {
+            "text": "Established tension: foodborne outbreaks are usually defined by one germ; this one involves Salmonella plus multiple STEC serotypes, including two dual infections. A second tension is clock/status: AP, citing FDA at the time of its story, said the company had not yet issued a recall; FDA’s August 24 advisory says Everything Sprouts initiated a recall on August 22. Labeled inference/context only: AP’s report that FDA sent a warning letter the previous year over a leaking roof dripping onto bean sprouts and workers’ smocks is background about the firm, not evidence that those conditions caused this outbreak.",
+            "source_ids": [
+              "web_bb08b20fb503194f55ea",
+              "web_2786293ce491e6089cc4",
+              "web_f06f84080c50be4d9724"
+            ]
+          },
+          "surprising_details": [
+            {
+              "text": "Two people were infected with both Salmonella and E. coli outbreak strains.",
+              "source_ids": [
+                "web_2786293ce491e6089cc4",
+                "web_f06f84080c50be4d9724"
+              ]
+            },
+            {
+              "text": "Sprout exposure among interviewees (76%) far exceeded the 8.7% FoodNet baseline for any sprouts.",
+              "source_ids": [
+                "web_f06f84080c50be4d9724"
+              ]
+            },
+            {
+              "text": "The same alfalfa sprouts were packed not only as plain 5-oz cups but also into Crunchy Protein Sprout Mix and Zesty Garlic Mix cups.",
+              "source_ids": [
+                "web_2786293ce491e6089cc4"
+              ]
+            },
+            {
+              "text": "Last reported illness onset is August 8, while recalled product was still being distributed through August 21.",
+              "source_ids": [
+                "web_2786293ce491e6089cc4"
+              ]
+            },
+            {
+              "text": "WGS predicted multidrug resistance in Salmonella from 9 samples, while STEC isolates had no predicted resistance.",
+              "source_ids": [
+                "web_f06f84080c50be4d9724"
+              ]
+            }
+          ],
+          "flexible_outline": [
+            {
+              "priority": "must_have",
+              "text": "Neutral top line from established evidence only: 55 illnesses in 15 states, four hospitalizations, no deaths, STEC plus Salmonella Agona, linked to Everything Sprouts alfalfa sprouts; recall of named Calco/Everything Sprouts lots; investigation ongoing. Flag that counts and maps can move.",
+              "source_ids": [
+                "web_2786293ce491e6089cc4",
+                "web_f06f84080c50be4d9724"
+              ],
+              "estimated_minutes": 2
+            },
+            {
+              "priority": "must_have",
+              "text": "Concise chronology: onsets May 31–August 8; distribution May 27–August 21; FDA inspection/sampling August 19; August 21 outbreak advisory; August 22 firm-initiated recall; August 24 FDA update. Keep AP’s earlier ‘no recall yet’ line as a superseded status report, not the current fact.",
+              "source_ids": [
+                "web_2786293ce491e6089cc4",
+                "web_bb08b20fb503194f55ea"
+              ],
+              "estimated_minutes": 1.5
+            },
+            {
+              "priority": "must_have",
+              "text": "Why multiple pathogens matter (descriptive, not causal speculation) and practical guidance: do not eat/sell/serve recalled lots; discard unmarked frozen product; clean contact surfaces; who is at higher Salmonella risk; STEC/HUS warning and when to seek care.",
+              "source_ids": [
+                "web_2786293ce491e6089cc4",
+                "web_f06f84080c50be4d9724"
+              ],
+              "estimated_minutes": 1.5
+            },
+            {
+              "priority": "use_if_time",
+              "text": "Supporting epi only: 76% sprout exposure vs FoodNet 8.7%; at least two MN/WI clusters; demographics (median age 34, 73% female); WGS relatedness and the limited resistance findings.",
+              "source_ids": [
+                "web_f06f84080c50be4d9724"
+              ],
+              "estimated_minutes": 1
+            },
+            {
+              "priority": "use_if_time",
+              "text": "Labeled inference/context, if used at all: AP warning-letter/roof item as prior regulatory background, explicitly not proof of this contamination pathway.",
+              "source_ids": [
+                "web_bb08b20fb503194f55ea"
+              ],
+              "estimated_minutes": 0.75
+            },
+            {
+              "priority": "cut_first",
+              "text": "Cut first if comparing stories: extra state names, mix-cup lot lists, restaurant-versus-grocery distribution detail, and PulseNet/WGS method explanation.",
+              "source_ids": [
+                "web_bb08b20fb503194f55ea",
+                "web_2786293ce491e6089cc4",
+                "web_f06f84080c50be4d9724"
+              ],
+              "estimated_minutes": 0.75
+            },
+            {
+              "priority": "must_have",
+              "text": "Close on open checks: contamination source unknown; possible additional firms/seeds/states; undercount and reporting lag. Source note: FDA advisory, AP story, CDC investigation update. Archive search found no relevant prior Nonsense sprout-outbreak coverage.",
+              "source_ids": [
+                "web_2786293ce491e6089cc4",
+                "web_f06f84080c50be4d9724"
+              ],
+              "estimated_minutes": 0.5
+            }
+          ]
+        }
+      },
+      "assistant_message": null,
+      "safe_activity": [
+        {
+          "id": "evt_run_85afe5df-185d-4f5a-a3f7-418fbe8dc846_001",
+          "run_id": "run_85afe5df-185d-4f5a-a3f7-418fbe8dc846",
+          "kind": "run",
+          "label": "Research turn started",
+          "detail": "The agent is reading the conversation and evidence workspace",
+          "status": "running",
+          "created_at": "2026-08-25T03:45:29.514Z"
+        },
+        {
+          "id": "evt_run_85afe5df-185d-4f5a-a3f7-418fbe8dc846_decision_1",
+          "run_id": "run_85afe5df-185d-4f5a-a3f7-418fbe8dc846",
+          "kind": "agent",
+          "label": "Choosing the next research step",
+          "detail": "Reviewing the request and saved evidence",
+          "status": "running",
+          "created_at": "2026-08-25T03:45:29.515Z"
+        },
+        {
+          "id": "evt_run_85afe5df-185d-4f5a-a3f7-418fbe8dc846_decision_1",
+          "run_id": "run_85afe5df-185d-4f5a-a3f7-418fbe8dc846",
+          "kind": "agent",
+          "label": "Next step chosen",
+          "detail": "I’m reading the supplied FDA outbreak investigation first to establish the primary evidence base.",
+          "status": "complete",
+          "created_at": "2026-08-25T03:45:32.676Z"
+        },
+        {
+          "id": "evt_run_85afe5df-185d-4f5a-a3f7-418fbe8dc846_read_1",
+          "run_id": "run_85afe5df-185d-4f5a-a3f7-418fbe8dc846",
+          "kind": "tool",
+          "label": "Read source",
+          "detail": "www.fda.gov",
+          "status": "running",
+          "tool": "read_url",
+          "created_at": "2026-08-25T03:45:32.677Z"
+        },
+        {
+          "id": "evt_run_85afe5df-185d-4f5a-a3f7-418fbe8dc846_read_1",
+          "run_id": "run_85afe5df-185d-4f5a-a3f7-418fbe8dc846",
+          "kind": "tool",
+          "label": "Source retrieved",
+          "detail": "Outbreak Investigation of Shiga Toxin-producing E. coli & Salmonella: Sprouts (August 2026) · complete",
+          "status": "complete",
+          "tool": "read_url",
+          "created_at": "2026-08-25T03:45:33.162Z"
+        },
+        {
+          "id": "evt_run_85afe5df-185d-4f5a-a3f7-418fbe8dc846_decision_2",
+          "run_id": "run_85afe5df-185d-4f5a-a3f7-418fbe8dc846",
+          "kind": "agent",
+          "label": "Choosing the next research step",
+          "detail": "Source web_2786293ce491e6089cc4 is usable evidence.",
+          "status": "running",
+          "created_at": "2026-08-25T03:45:33.162Z"
+        },
+        {
+          "id": "evt_run_85afe5df-185d-4f5a-a3f7-418fbe8dc846_decision_2",
+          "run_id": "run_85afe5df-185d-4f5a-a3f7-418fbe8dc846",
+          "kind": "agent",
+          "label": "Next step chosen",
+          "detail": "I’m reading the supplied AP report so the packet can be grounded in both requested sources.",
+          "status": "complete",
+          "created_at": "2026-08-25T03:45:36.888Z"
+        },
+        {
+          "id": "evt_run_85afe5df-185d-4f5a-a3f7-418fbe8dc846_read_2",
+          "run_id": "run_85afe5df-185d-4f5a-a3f7-418fbe8dc846",
+          "kind": "tool",
+          "label": "Read source",
+          "detail": "apnews.com",
+          "status": "running",
+          "tool": "read_url",
+          "created_at": "2026-08-25T03:45:36.893Z"
+        },
+        {
+          "id": "evt_run_85afe5df-185d-4f5a-a3f7-418fbe8dc846_read_2",
+          "run_id": "run_85afe5df-185d-4f5a-a3f7-418fbe8dc846",
+          "kind": "tool",
+          "label": "Source retrieved",
+          "detail": "Alfalfa sprouts linked to 15-state food-poisoning outbreak | AP News · complete",
+          "status": "complete",
+          "tool": "read_url",
+          "created_at": "2026-08-25T03:45:37.871Z"
+        },
+        {
+          "id": "evt_run_85afe5df-185d-4f5a-a3f7-418fbe8dc846_decision_3",
+          "run_id": "run_85afe5df-185d-4f5a-a3f7-418fbe8dc846",
+          "kind": "agent",
+          "label": "Choosing the next research step",
+          "detail": "Source web_bb08b20fb503194f55ea is usable evidence.",
+          "status": "running",
+          "created_at": "2026-08-25T03:45:37.871Z"
+        },
+        {
+          "id": "evt_run_85afe5df-185d-4f5a-a3f7-418fbe8dc846_decision_3",
+          "run_id": "run_85afe5df-185d-4f5a-a3f7-418fbe8dc846",
+          "kind": "agent",
+          "label": "Next step chosen",
+          "detail": "I’m searching the Nonsense transcript archive once for relevant prior coverage of the sprout outbreak or food-safety context.",
+          "status": "complete",
+          "created_at": "2026-08-25T03:45:42.644Z"
+        },
+        {
+          "id": "evt_run_85afe5df-185d-4f5a-a3f7-418fbe8dc846_archive_1",
+          "run_id": "run_85afe5df-185d-4f5a-a3f7-418fbe8dc846",
+          "kind": "tool",
+          "label": "Search Nonsense archive",
+          "detail": "August 2026 alfalfa sprouts Everything Sprouts foodborne illness outbreak",
+          "status": "running",
+          "tool": "search_transcripts",
+          "created_at": "2026-08-25T03:45:42.644Z"
+        },
+        {
+          "id": "evt_run_85afe5df-185d-4f5a-a3f7-418fbe8dc846_archive_1",
+          "run_id": "run_85afe5df-185d-4f5a-a3f7-418fbe8dc846",
+          "kind": "tool",
+          "label": "Archive search complete",
+          "detail": "5 matches · keyword_only",
+          "status": "partial",
+          "tool": "search_transcripts",
+          "created_at": "2026-08-25T03:45:42.660Z"
+        },
+        {
+          "id": "evt_run_85afe5df-185d-4f5a-a3f7-418fbe8dc846_decision_4",
+          "run_id": "run_85afe5df-185d-4f5a-a3f7-418fbe8dc846",
+          "kind": "agent",
+          "label": "Choosing the next research step",
+          "detail": "Archive retrieval is keyword_only; 5 chunks can be opened.",
+          "status": "running",
+          "created_at": "2026-08-25T03:45:42.661Z"
+        },
+        {
+          "id": "evt_run_85afe5df-185d-4f5a-a3f7-418fbe8dc846_decision_4",
+          "run_id": "run_85afe5df-185d-4f5a-a3f7-418fbe8dc846",
+          "kind": "agent",
+          "label": "Next step chosen",
+          "detail": "I’m using the one permitted additional web search to find the latest authoritative case-count and investigation update.",
+          "status": "complete",
+          "created_at": "2026-08-25T03:45:59.542Z"
+        },
+        {
+          "id": "evt_run_85afe5df-185d-4f5a-a3f7-418fbe8dc846_web_1",
+          "run_id": "run_85afe5df-185d-4f5a-a3f7-418fbe8dc846",
+          "kind": "tool",
+          "label": "Search current web",
+          "detail": "August 2026 CDC Everything Sprouts alfalfa sprouts outbreak Salmonella Agona STEC case count",
+          "status": "running",
+          "tool": "web_search",
+          "created_at": "2026-08-25T03:45:59.543Z"
+        },
+        {
+          "id": "evt_run_85afe5df-185d-4f5a-a3f7-418fbe8dc846_web_1",
+          "run_id": "run_85afe5df-185d-4f5a-a3f7-418fbe8dc846",
+          "kind": "tool",
+          "label": "Web candidates found",
+          "detail": "2 candidates · complete",
+          "status": "complete",
+          "tool": "web_search",
+          "created_at": "2026-08-25T03:46:23.154Z"
+        },
+        {
+          "id": "evt_run_85afe5df-185d-4f5a-a3f7-418fbe8dc846_decision_5",
+          "run_id": "run_85afe5df-185d-4f5a-a3f7-418fbe8dc846",
+          "kind": "agent",
+          "label": "Choosing the next research step",
+          "detail": "Web search status complete; 2 unread candidates are available.",
+          "status": "running",
+          "created_at": "2026-08-25T03:46:23.154Z"
+        },
+        {
+          "id": "evt_run_85afe5df-185d-4f5a-a3f7-418fbe8dc846_decision_5",
+          "run_id": "run_85afe5df-185d-4f5a-a3f7-418fbe8dc846",
+          "kind": "agent",
+          "label": "Next step chosen",
+          "detail": "Read the CDC investigation page as the one additional current source to verify the outbreak’s case count, locations, and linkage to sprouts.",
+          "status": "complete",
+          "created_at": "2026-08-25T03:46:31.158Z"
+        },
+        {
+          "id": "evt_run_85afe5df-185d-4f5a-a3f7-418fbe8dc846_read_3",
+          "run_id": "run_85afe5df-185d-4f5a-a3f7-418fbe8dc846",
+          "kind": "tool",
+          "label": "Read source",
+          "detail": "www.cdc.gov",
+          "status": "running",
+          "tool": "read_url",
+          "created_at": "2026-08-25T03:46:31.158Z"
+        },
+        {
+          "id": "evt_run_85afe5df-185d-4f5a-a3f7-418fbe8dc846_read_3",
+          "run_id": "run_85afe5df-185d-4f5a-a3f7-418fbe8dc846",
+          "kind": "tool",
+          "label": "Source retrieved",
+          "detail": "Investigation Update: E. coli and Salmonella Outbreak, August 2026 · complete",
+          "status": "complete",
+          "tool": "read_url",
+          "created_at": "2026-08-25T03:46:32.329Z"
+        },
+        {
+          "id": "evt_run_85afe5df-185d-4f5a-a3f7-418fbe8dc846_decision_6",
+          "run_id": "run_85afe5df-185d-4f5a-a3f7-418fbe8dc846",
+          "kind": "agent",
+          "label": "Choosing the next research step",
+          "detail": "Source web_f06f84080c50be4d9724 is usable evidence.",
+          "status": "running",
+          "created_at": "2026-08-25T03:46:32.329Z"
+        },
+        {
+          "id": "evt_run_85afe5df-185d-4f5a-a3f7-418fbe8dc846_decision_6",
+          "run_id": "run_85afe5df-185d-4f5a-a3f7-418fbe8dc846",
+          "kind": "agent",
+          "label": "Next step chosen",
+          "detail": "Creating the validated 8-minute Headlines packet from the FDA, AP, and CDC evidence, with evidence, inference, and open uncertainty kept separate.",
+          "status": "complete",
+          "created_at": "2026-08-25T03:46:48.348Z"
+        },
+        {
+          "id": "evt_run_85afe5df-185d-4f5a-a3f7-418fbe8dc846_artifact",
+          "run_id": "run_85afe5df-185d-4f5a-a3f7-418fbe8dc846",
+          "kind": "composition",
+          "label": "Writing the preparation packet",
+          "detail": "Creating the validated 8-minute Headlines packet from the FDA, AP, and CDC evidence, with evidence, inference, and open uncertainty kept separate.",
+          "status": "running",
+          "created_at": "2026-08-25T03:46:48.350Z"
+        },
+        {
+          "id": "evt_run_85afe5df-185d-4f5a-a3f7-418fbe8dc846_artifact",
+          "run_id": "run_85afe5df-185d-4f5a-a3f7-418fbe8dc846",
+          "kind": "artifact",
+          "label": "Preparation packet ready",
+          "detail": "Headlines · revision 1",
+          "status": "complete",
+          "created_at": "2026-08-25T03:48:29.954Z"
+        },
+        {
+          "id": "evt_run_85afe5df-185d-4f5a-a3f7-418fbe8dc846_decision_7",
+          "run_id": "run_85afe5df-185d-4f5a-a3f7-418fbe8dc846",
+          "kind": "agent",
+          "label": "Choosing the next research step",
+          "detail": "Headlines artifact revision 1 passed deterministic validation.",
+          "status": "running",
+          "created_at": "2026-08-25T03:48:29.954Z"
+        },
+        {
+          "id": "evt_run_85afe5df-185d-4f5a-a3f7-418fbe8dc846_015",
+          "run_id": "run_85afe5df-185d-4f5a-a3f7-418fbe8dc846",
+          "kind": "run",
+          "label": "Research turn failed safely",
+          "detail": "phase7a_model_unavailable",
+          "status": "failed",
+          "created_at": "2026-08-25T03:48:29.958Z"
+        }
+      ],
+      "terminal_run": {
+        "session_id": "session_phase7a_local",
+        "run_id": "run_85afe5df-185d-4f5a-a3f7-418fbe8dc846",
+        "state": "failed",
+        "summary": "Research turn failed safely"
+      },
+      "error": {
+        "code": "phase7a_model_unavailable",
+        "message": "The research turn failed safely. No automatic retry was started.",
+        "retryable": false
+      },
+      "failures": [
+        "stream_error",
+        "missing_assistant_message"
+      ]
+    },
+    {
+      "id": "big_story_bonneville",
+      "session_id": "session_phase7a_big_story",
+      "expected_mode": "big_story",
+      "started_at": "2026-08-25T03:48:30.004Z",
+      "completed_at": "2026-08-25T03:48:35.877Z",
+      "request_message": "Create a 24-minute Big Story preparation packet about how vanished Lake Bonneville still organizes the modern Great Basin landscape and how visible evidence changes the way people understand deep time. Read the supplied NASA source. Do at most one additional current-web search and read at most one especially useful additional source. Search the Nonsense transcript archive once and open at most one relevant chunk. Then create the validated packet and briefly tell me it is ready. Keep the outline modular against the clock.\n\nNASA: https://science.nasa.gov/earth/earth-observatory/what-lake-bonneville-left-behind/",
+      "http_status": 200,
+      "cache_control": "no-store",
+      "receipt": {
+        "run_id": "run_ba58c5e7-ebb9-4f09-be56-c115d81193f6",
+        "status": "failed",
+        "counts": {
+          "controller_turns": 1,
+          "provider_requests": 1,
+          "grok_turns": 0,
+          "web_searches": 0,
+          "url_reads": 0,
+          "transcript_searches": 0,
+          "transcript_opens": 0,
+          "compositions": 0,
+          "repairs": 0
+        },
+        "accounted_cost_usd": 0.03,
+        "elapsed_ms": 5651.34,
+        "limitations": [
+          "phase7a_controller_invalid"
+        ],
+        "artifact_revision": 0
+      },
+      "artifact": null,
+      "assistant_message": null,
+      "safe_activity": [
+        {
+          "id": "evt_run_ba58c5e7-ebb9-4f09-be56-c115d81193f6_001",
+          "run_id": "run_ba58c5e7-ebb9-4f09-be56-c115d81193f6",
+          "kind": "run",
+          "label": "Research turn started",
+          "detail": "The agent is reading the conversation and evidence workspace",
+          "status": "running",
+          "created_at": "2026-08-25T03:48:30.222Z"
+        },
+        {
+          "id": "evt_run_ba58c5e7-ebb9-4f09-be56-c115d81193f6_decision_1",
+          "run_id": "run_ba58c5e7-ebb9-4f09-be56-c115d81193f6",
+          "kind": "agent",
+          "label": "Choosing the next research step",
+          "detail": "Reviewing the request and saved evidence",
+          "status": "running",
+          "created_at": "2026-08-25T03:48:30.222Z"
+        },
+        {
+          "id": "evt_run_ba58c5e7-ebb9-4f09-be56-c115d81193f6_003",
+          "run_id": "run_ba58c5e7-ebb9-4f09-be56-c115d81193f6",
+          "kind": "run",
+          "label": "Research turn failed safely",
+          "detail": "phase7a_controller_invalid",
+          "status": "failed",
+          "created_at": "2026-08-25T03:48:35.873Z"
+        }
+      ],
+      "terminal_run": {
+        "session_id": "session_phase7a_big_story",
+        "run_id": "run_ba58c5e7-ebb9-4f09-be56-c115d81193f6",
+        "state": "failed",
+        "summary": "Research turn failed safely"
+      },
+      "error": {
+        "code": "phase7a_controller_invalid",
+        "message": "The research turn failed safely. No automatic retry was started.",
+        "retryable": false
+      },
+      "failures": [
+        "stream_error",
+        "missing_artifact",
+        "missing_assistant_message",
+        "artifact_mode_mismatch"
+      ]
+    }
+  ],
+  "failures": [
+    "headlines_sprout_outbreak:stream_error",
+    "headlines_sprout_outbreak:missing_assistant_message",
+    "big_story_bonneville:stream_error",
+    "big_story_bonneville:missing_artifact",
+    "big_story_bonneville:missing_assistant_message",
+    "big_story_bonneville:artifact_mode_mismatch"
+  ],
+  "aggregate_cost_usd": 0.17424185,
+  "aggregate_provider_requests": 12,
+  "completed_at": "2026-08-25T03:48:35.877Z"
+}

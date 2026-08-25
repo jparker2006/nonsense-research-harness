@@ -1,0 +1,47 @@
+{
+  "phase": "7A",
+  "proof": "live_saved_evidence_follow_up_and_artifact_handoff",
+  "observed_at_hst": "2026-08-24T17:56:47-10:00",
+  "url": "http://127.0.0.1:3210/",
+  "session_id": "session_phase7a_local",
+  "request": "Using only the saved evidence from that sprout research, give me the single strongest supported angle in two sentences. Do not do any new research or create another artifact.",
+  "terminal_state": "complete",
+  "assistant_message_present": true,
+  "assistant_source_ids": [
+    "web_2786293ce491e6089cc4",
+    "web_bb08b20fb503194f55ea"
+  ],
+  "visible_receipt": {
+    "accounted_cost_usd_rounded": 0.0022,
+    "provider_requests": 1,
+    "controller_turns": 1
+  },
+  "observed_tools": {
+    "web_searches": 0,
+    "url_reads": 0,
+    "transcript_searches": 0,
+    "transcript_opens": 0,
+    "compositions": 0
+  },
+  "artifact": {
+    "mode": "headlines",
+    "revision": 1,
+    "working_title": "August 2026 multistate alfalfa-sprout outbreak (STEC + Salmonella)",
+    "visible_in_artifact_panel": true,
+    "copy_markdown_control_present": true,
+    "source_ledger_count": 2
+  },
+  "ui_assertions": {
+    "blank_chat_first_state_before_message": true,
+    "user_turn_visible": true,
+    "assistant_turn_visible": true,
+    "agent_decision_visible": true,
+    "artifact_toggle_visible": true,
+    "permanent_demo_live_badge_absent": true,
+    "lake_bonneville_fixture_absent_from_blank_state": true
+  },
+  "limitations": [
+    "The browser displays turn cost to four decimal places, so 0.0022 is rounded rather than the exact provider receipt.",
+    "The workspace is process-memory only and is lost when the local server restarts."
+  ]
+}

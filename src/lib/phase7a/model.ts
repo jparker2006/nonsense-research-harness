@@ -1,0 +1,130 @@
+import { z } from "zod";
+import { readOpenRouterStream, type Phase2Request } from "../openrouter-phase2.ts";
+import { PHASE_5_MODELS } from "../phase5/contracts.ts";
+import type { Phase5ModelReceipt, Phase5ModelResult } from "../phase5/model.ts";
+import {
+  phase7aControllerOutputSchema,
+  phase7aControllerOutputToAction,
+  type Phase7AAction,
+  type Phase7AWorkspace,
+} from "./contracts.ts";
+import { PHASE_7A_SYSTEM_PROMPT, phase7aDecisionPrompt } from "./prompts.ts";
+
+export const PHASE_7A_MODEL_REQUEST_TIMEOUT_MS = 120_000;
+export const PHASE_7A_CONTROLLER_MAX_OUTPUT_TOKENS = 2_000;
+
+export type Phase7AModelAdapter = {
+  decide(input: {
+    workspace: Phase7AWorkspace;
+    currentMessage: string;
+    remaining: Record<string, number>;
+    lastObservation?: string;
+  }, options?: { timeoutMs?: number; signal?: AbortSignal }): Promise<Phase5ModelResult<Phase7AAction>>;
+};
+
+function controllerRequest(prompt: string): Phase2Request {
+  const model = PHASE_5_MODELS.light;
+  return {
+    model: model.id,
+    messages: [
+      { role: "system", content: PHASE_7A_SYSTEM_PROMPT },
+      { role: "user", content: prompt },
+    ],
+    stream: true,
+    max_tokens: PHASE_7A_CONTROLLER_MAX_OUTPUT_TOKENS,
+    response_format: {
+      type: "json_schema",
+      json_schema: {
+        name: "phase7a_controller_action",
+        strict: true,
+        schema: z.toJSONSchema(phase7aControllerOutputSchema, { target: "draft-07", unrepresentable: "any" }),
+      },
+    },
+    provider: {
+      allow_fallbacks: false,
+      require_parameters: true,
+      data_collection: "deny",
+      zdr: model.zdr,
+      max_price: model.maxPricePerMillion,
+    },
+    reasoning: { effort: model.reasoningEffort, exclude: true },
+  };
+}
+
+export function phase7aLocalLiveAuthorized(): boolean {
+  return process.env.NODE_ENV !== "production" && process.env.PHASE7A_LOCAL_LIVE === "approved";
+}
+
+export function createOpenRouterPhase7AModel(options: {
+  apiKey?: string;
+  liveAuthorized?: boolean;
+  fetchImpl?: typeof fetch;
+}): Phase7AModelAdapter {
+  const apiKey = options.apiKey?.trim() ?? "";
+  const liveAuthorized = options.liveAuthorized === true;
+  const fetchImpl = options.fetchImpl ?? fetch;
+
+  return {
+    async decide(input, callOptions) {
+      if (!apiKey) throw new Error("phase7a_missing_key");
+      if (!liveAuthorized) throw new Error("phase7a_live_not_authorized");
+      const startedAt = performance.now();
+      try {
+        const response = await fetchImpl("https://openrouter.ai/api/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            authorization: `Bearer ${apiKey}`,
+            "content-type": "application/json",
+            "x-title": "Nonsense Research Harness Phase 7A",
+          },
+          body: JSON.stringify(controllerRequest(phase7aDecisionPrompt(input))),
+          signal: callOptions?.signal
+            ? AbortSignal.any([
+                callOptions.signal,
+                AbortSignal.timeout(Math.max(1, Math.min(callOptions.timeoutMs ?? PHASE_7A_MODEL_REQUEST_TIMEOUT_MS, PHASE_7A_MODEL_REQUEST_TIMEOUT_MS))),
+              ])
+            : AbortSignal.timeout(Math.max(1, Math.min(callOptions?.timeoutMs ?? PHASE_7A_MODEL_REQUEST_TIMEOUT_MS, PHASE_7A_MODEL_REQUEST_TIMEOUT_MS))),
+        });
+        const result = await readOpenRouterStream(response, startedAt);
+        const expected = PHASE_5_MODELS.light.id;
+        if (!result.model || (result.model !== expected && !result.model.startsWith(`${expected}-`))) {
+          throw new Error("phase7a_route_mismatch");
+        }
+        if (!result.done) throw new Error("phase7a_incomplete_stream");
+        const outputStatus: Phase5ModelReceipt["output_status"] = result.finishReason && result.finishReason !== "stop"
+          ? result.finishReason === "length" ? "truncated" : "incomplete"
+          : result.text.length === 0 ? "empty" : "parsed";
+        let parsed: Phase7AAction;
+        try {
+          if (outputStatus !== "parsed") throw new Error("not_parsed");
+          parsed = phase7aControllerOutputToAction(phase7aControllerOutputSchema.parse(JSON.parse(result.text)));
+        } catch {
+          throw new Error(outputStatus === "truncated" ? "phase7a_model_truncated_output" : "phase7a_controller_invalid");
+        }
+        return {
+          value: parsed,
+          output_status: "parsed",
+          receipt: {
+            model: result.model,
+            provider: result.provider,
+            prompt_tokens: result.usage?.prompt_tokens,
+            completion_tokens: result.usage?.completion_tokens,
+            total_tokens: result.usage?.total_tokens,
+            cost_usd: result.usage?.cost,
+            latency_ms: Number(result.elapsedMs.toFixed(2)),
+            generation_id: result.id,
+            finish_reason: result.finishReason,
+            response_characters: result.text.length,
+            output_status: "parsed",
+            reasoning_tokens: result.usage?.completion_tokens_details?.reasoning_tokens,
+          },
+        };
+      } catch (error) {
+        if (callOptions?.signal?.aborted) throw new Error("phase7a_run_stopped");
+        if (error instanceof Error && error.message.startsWith("phase7a_")) throw error;
+        if (error instanceof DOMException && error.name === "TimeoutError") throw new Error("phase7a_model_timeout");
+        throw new Error("phase7a_model_unavailable");
+      }
+    },
+  };
+}
