@@ -1,12 +1,12 @@
 # Phase 7A session and follow-up repair result
 
-Status: **CODE PASSED; REPLACEMENT LIVE RUN FAILED ON A SEPARATE CONTROLLER-OUTPUT ISSUE** on 2026-08-24 HST.
+Status: **PASSED; THE SEPARATE CONTROLLER-OUTPUT ISSUE WAS CLOSED BY PHASE 7A.2** on 2026-08-24 HST.
 
 ## Outcome
 
 The stale-conversation defect is repaired. The browser no longer sends every new conversation to the fixed `session_phase7a_local` workspace, and an agent run no longer treats legitimate research repeated in a later user turn as an endless-loop violation. The full deterministic gate passes.
 
-The one authorized replacement browser run did not complete end to end. Its browser stream remained attached, current web search completed with five candidates, and no stale-session `phase7a_repeated_action` occurred. The following Luna controller response failed strict output validation as `phase7a_controller_invalid`, so the run stopped before reading sources, searching the archive, or creating a Headlines packet. This is preserved as a separate open reliability issue rather than being described as a successful proof.
+The original authorized replacement browser run did not complete end to end. Its browser stream remained attached, current web search completed with five candidates, and no stale-session `phase7a_repeated_action` occurred. The following Luna controller response failed strict output validation as `phase7a_controller_invalid`, so that historical run stopped before reading sources, searching the archive, or creating a Headlines packet. That failure remains preserved; `docs/PHASE_7A_2_RESULT.md` records the subsequent diagnosis, deterministic hardening, and successful corrected live proof.
 
 ## Implementation
 
@@ -39,6 +39,6 @@ The one authorized replacement browser run did not complete end to end. Its brow
 - Transcript searches: **0 completed**
 - Artifact: **not created**
 
-## Next repair
+## Resolution
 
-Instrument the controller adapter so JSON parsing, transport-schema validation, action conversion, finish reason, and bounded response metadata remain distinguishable without retaining raw private model output. Then harden the failing structured-output boundary deterministically before authorizing another paid browser proof. Do not add an automatic model retry merely to hide this failure.
+Phase 7A.2 distinguishes JSON parsing, transport-schema validation, action conversion, finish reason, and bounded response metadata without retaining raw private model output. It also fixed the later truncation and repeated-action causes exposed by two separately authorized proofs. The final corrected browser run reached a validated cited Headlines artifact in exactly 12 requests and displayed `$0.1625`, with zero automatic retries and zero console warnings/errors.

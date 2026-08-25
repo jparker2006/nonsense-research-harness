@@ -93,7 +93,7 @@ function ActivityPanel({ activities, run, receipt }: { activities: Phase7AActivi
           <small>{receipt ? `${receipt.counts.provider_requests} requests · $${receipt.accounted_cost_usd.toFixed(4)}` : `${activities.length} ${activities.length === 1 ? "step" : "steps"}`}</small>
         </div>
       </header>
-      {activities.length ? <details className="activity-details" open={run?.state === "running" || undefined}>
+      {activities.length ? <details className="activity-details" open={run?.state === "running" || run?.state === "failed" || undefined}>
         <summary>{activities.length} observable research {activities.length === 1 ? "step" : "steps"}</summary>
         <ol className="activity-list">
           {activities.map((activity) => (
@@ -156,7 +156,7 @@ function Conversation({
             {running ? <li className="chat-thinking"><LoaderCircle className="spin" aria-hidden="true" /><span>Working through the next step…</span></li> : null}
           </ol>
         )}
-        {error ? <div className="chat-error" role="alert"><CircleAlert aria-hidden="true" /><div><strong>The turn stopped safely.</strong><p>{error.message}</p></div></div> : null}
+        {error ? <div className="chat-error" role="alert"><CircleAlert aria-hidden="true" /><div><strong>Research stopped before completion.</strong><p>{error.message}</p><small>You can send a follow-up to continue from the research already collected.</small></div></div> : null}
       </div>
       <form className="chat-composer" onSubmit={submit}>
         <textarea value={draft} onChange={(event) => setDraft(event.target.value)} maxLength={12_000} rows={3} placeholder="Ask a question, paste links, or request a Headlines / Big Story packet…" disabled={running} aria-label="Message the research agent" />

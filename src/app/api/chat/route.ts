@@ -38,6 +38,12 @@ function safeError(error: unknown) {
     phase7a_url_not_allowed: "The agent attempted to read a URL that was neither supplied nor discovered.",
     phase7a_chunk_not_allowed: "The agent attempted to open an archive chunk that search had not returned.",
     phase7a_repeated_action: "The agent repeated an action without new evidence, so the turn stopped safely.",
+    phase7a_controller_empty_output: "The planning model returned no next step. Collected research was preserved and no automatic retry was started.",
+    phase7a_controller_truncated_output: "The planning model's next step was cut off. Collected research was preserved and no automatic retry was started.",
+    phase7a_controller_incomplete_output: "The planning model did not finish its next step. Collected research was preserved and no automatic retry was started.",
+    phase7a_controller_invalid_json: "The planning model returned unreadable next-step data. Collected research was preserved and no automatic retry was started.",
+    phase7a_controller_transport_invalid: "The planning model returned an invalid next-step packet. Collected research was preserved and no automatic retry was started.",
+    phase7a_controller_action_invalid: "The planning model selected an invalid research action. Collected research was preserved and no automatic retry was started.",
     phase7a_budget_exhausted: "The turn reached its $1.00 cost boundary.",
     phase7a_provider_request_limit: "The turn reached its provider-request boundary.",
     phase7a_run_stopped: "The research turn was stopped.",
@@ -57,6 +63,10 @@ function liveDependencies(signal: AbortSignal): Phase7AAgentDependencies {
   const costCapUsd = Number.isFinite(configuredCostCap) && configuredCostCap > 0
     ? Math.min(PHASE_7A_LIMITS.costCapUsd, configuredCostCap)
     : PHASE_7A_LIMITS.costCapUsd;
+  const configuredRequestCap = Number(process.env.PHASE7A_TURN_REQUEST_CAP ?? PHASE_7A_LIMITS.maxProviderRequests);
+  const providerRequestCap = Number.isFinite(configuredRequestCap) && configuredRequestCap > 0
+    ? Math.min(PHASE_7A_LIMITS.maxProviderRequests, Math.floor(configuredRequestCap))
+    : PHASE_7A_LIMITS.maxProviderRequests;
   return {
     controller: createOpenRouterPhase7AModel({ apiKey, liveAuthorized: true }),
     composer: createOpenRouterPhase5Model({
@@ -68,6 +78,7 @@ function liveDependencies(signal: AbortSignal): Phase7AAgentDependencies {
     tools: createLivePhase5Tools({ apiKey, liveAuthorized: true, signal }),
     signal,
     costCapUsd,
+    providerRequestCap,
   };
 }
 

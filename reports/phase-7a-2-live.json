@@ -1,0 +1,92 @@
+{
+  "phase": "7A.2 controller completion reliability",
+  "date_hst": "2026-08-24",
+  "route": "http://127.0.0.1:3210/",
+  "prompt": "Find the most significant current U.S. foodborne-illness outbreak or recall. Research it using current web sources, prioritizing the CDC, FDA, and strong original reporting. Search the Season 3–4 Nonsense transcripts for relevant past conversations about food safety, recalls, regulation, or similar incidents. Tell me what is genuinely interesting or arguable, then create an 8-minute Headlines prep packet with citations, conversation questions, and a clock-aware outline.",
+  "authorization": {
+    "automatic_retries": 0,
+    "each_attempt_separately_authorized": true,
+    "final_attempt_provider_request_cap": 12,
+    "final_attempt_cost_cap_usd": 0.75
+  },
+  "attempts": [
+    {
+      "attempt": 1,
+      "terminal_status": "failed",
+      "terminal_code": "phase7a_controller_truncated_output",
+      "provider_requests": 11,
+      "accounted_cost_usd_displayed": 0.0823,
+      "artifact_created": false,
+      "automatic_retries": 0,
+      "root_cause": "The 2,000-token Luna controller completion allowance was exhausted before the typed action object completed."
+    },
+    {
+      "attempt": 2,
+      "terminal_status": "failed",
+      "terminal_code": "phase7a_repeated_action",
+      "provider_requests": 12,
+      "accounted_cost_usd_displayed": 0.1839,
+      "artifact_created": false,
+      "automatic_retries": 0,
+      "root_cause": "Already-read URLs remained labeled as unread, and the final provider slot was not reserved for the requested artifact."
+    },
+    {
+      "attempt": 3,
+      "terminal_status": "partial",
+      "provider_requests": 12,
+      "accounted_cost_usd_displayed": 0.1625,
+      "automatic_retries": 0,
+      "controller_turns": 6,
+      "web_searches": 3,
+      "url_reads": 5,
+      "transcript_searches": 1,
+      "transcript_opens": 0,
+      "compositions": 1,
+      "repairs": 0,
+      "browser_console_warnings_or_errors": 0,
+      "stream_remained_attached": true,
+      "server_application_elapsed": "approximately 4.2 minutes",
+      "archive": {
+        "status": "no_match",
+        "matches": 0,
+        "invented_coverage": false
+      },
+      "web": {
+        "usable_sources": 4,
+        "restricted_sources": 1,
+        "usable_source_titles": [
+          "Outbreak Investigation of Shiga Toxin-producing E. coli & Salmonella: Sprouts (August 2026)",
+          "Investigation Update: E. coli and Salmonella Outbreak, August 2026",
+          "Outbreak Investigation of Salmonella: Jalapeño (August 2026)",
+          "Investigation Update: Salmonella Outbreak, August 2026"
+        ],
+        "restricted_source": "Reuters"
+      },
+      "artifact": {
+        "created": true,
+        "validated": true,
+        "mode": "headlines",
+        "revision": 1,
+        "target_minutes": 8,
+        "working_title": "Largest current U.S. foodborne outbreak: 431 Salmonella cases tied to imported jalapeños",
+        "source_ledger_entries": 4,
+        "conversation_questions_present": true,
+        "clock_aware_outline_present": true,
+        "open_checks_present": true
+      },
+      "termination_guard_observed": "Final request reserved for the packet"
+    }
+  ],
+  "aggregate": {
+    "provider_requests": 35,
+    "accounted_cost_usd_displayed": 0.4287,
+    "automatic_retries": 0
+  },
+  "limitations": [
+    "The first two failures remain preserved; they were separate explicitly authorized attempts, not automatic retries.",
+    "The successful proof is honestly partial because one Reuters page was restricted; the packet explicitly says independent reporting was unavailable instead of treating it as evidence.",
+    "The Season 3-4 archive search returned no match, so no archive passage or speaker attribution was invented.",
+    "The browser projects accounted cost to four decimals; a more precise final provider total was not exposed in the UI evidence.",
+    "The successful run proves completion and safety on one current Headlines case, not comparative usefulness against Gemini or performance on every topic."
+  ]
+}

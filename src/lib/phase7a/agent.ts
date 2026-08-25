@@ -25,6 +25,7 @@ import {
 import type { ProviderReceipt } from "../transcript-retrieval/providers.ts";
 import {
   PHASE_7A_LIMITS,
+  phase7aActionSchema,
   phase7aActivitySchema,
   phase7aAssistantMessageSchema,
   phase7aCountsSchema,
@@ -35,12 +36,13 @@ import {
   type Phase7AAction,
   type Phase7AActivity,
   type Phase7AAssistantMessage,
+  type Phase7AControllerFailure,
   type Phase7ACounts,
   type Phase7ARunTrace,
   type Phase7ATurnResult,
   type Phase7AWorkspace,
 } from "./contracts.ts";
-import type { Phase7AModelAdapter } from "./model.ts";
+import { Phase7AControllerOutputError, type Phase7AModelAdapter } from "./model.ts";
 
 export type Phase7AAgentDependencies = {
   controller: Phase7AModelAdapter;
@@ -51,6 +53,7 @@ export type Phase7AAgentDependencies = {
   signal?: AbortSignal;
   onEvent?: (event: Phase7AActivity) => void;
   costCapUsd?: number;
+  providerRequestCap?: number;
 };
 
 type AgentState = {
@@ -67,11 +70,13 @@ type AgentState = {
   startedAtMs: number;
   startedAtIso: string;
   traceSteps: Phase7ARunTrace["steps"];
+  controllerFailure: Phase7AControllerFailure | null;
   seenWebQueries: Set<string>;
   seenReadUrls: Set<string>;
   seenArchiveQueries: Set<string>;
   seenTranscriptChunks: Set<string>;
   costCapUsd: number;
+  providerRequestCap: number;
 };
 
 const RESERVATIONS = Object.freeze({ controller: 0.03, webSearch: 0.1, transcriptSearch: 0.03, grok: 0.25 });
@@ -146,7 +151,7 @@ function emit(
 }
 
 function reserveProvider(state: AgentState, requests: number, amount: number): void {
-  if (state.counts.provider_requests + requests > PHASE_7A_LIMITS.maxProviderRequests) {
+  if (state.counts.provider_requests + requests > state.providerRequestCap) {
     throw new Error("phase7a_provider_request_limit");
   }
   if (state.accountedCostUsd + amount > state.costCapUsd + 1e-9) {
@@ -294,13 +299,15 @@ function allowedReadUrl(state: AgentState, raw: string): { url: string; sourceTy
   const supplied = suppliedUrls(state.workspace);
   if (supplied.has(url)) return { url, sourceType: "provided_link" };
   if (state.workspace.candidates.some((candidate) => normalizeWebUrl(candidate.url) === url)) return { url, sourceType: "web" };
+  const prior = state.workspace.evidence.find((source) => source.url && normalizeWebUrl(source.url) === url);
+  if (prior) return { url, sourceType: prior.source_type === "provided_link" ? "provided_link" : "web" };
   throw new Error("phase7a_url_not_allowed");
 }
 
 function remaining(state: AgentState): Record<string, number> {
   return {
     controller_turns: PHASE_7A_LIMITS.maxControllerTurns - state.counts.controller_turns,
-    provider_requests: PHASE_7A_LIMITS.maxProviderRequests - state.counts.provider_requests,
+    provider_requests: state.providerRequestCap - state.counts.provider_requests,
     web_searches: PHASE_7A_LIMITS.maxWebSearches - state.counts.web_searches,
     url_reads: PHASE_7A_LIMITS.maxUrlReads - state.counts.url_reads,
     transcript_searches: PHASE_7A_LIMITS.maxTranscriptSearches - state.counts.transcript_searches,
@@ -319,6 +326,28 @@ function actionArgument(action: Phase7AAction): string {
   if (action.action === "open_transcript_chunks") return action.chunk_ids.join(", ");
   if (action.action === "create_artifact") return `${action.mode}: ${action.topic}`;
   return action.source_ids.join(", ");
+}
+
+function finalProviderArtifactAction(state: AgentState): Extract<Phase7AAction, { action: "create_artifact" }> | null {
+  if (state.providerRequestCap - state.counts.provider_requests !== 1) return null;
+  if (state.counts.compositions >= PHASE_7A_LIMITS.maxCompositions) return null;
+  if (!state.workspace.evidence.some((source) => source.evidence_usable)) return null;
+  if (state.workspace.archive_queries.length === 0) return null;
+  const explicitRequest = /\b(create|make|prepare|build)\b[^.\n]{0,180}\b(headlines?|big story)\b/i.exec(state.currentMessage);
+  if (!explicitRequest) return null;
+  const requestedMode = explicitRequest[2]!.toLowerCase().startsWith("headline") ? "headlines" : "big_story";
+  const targetMatch = /\b(\d+(?:\.\d+)?)\s*[- ]?minute\b/i.exec(state.currentMessage);
+  const firstSentence = state.currentMessage.split(/(?<=[.!?])\s/)[0]?.trim() ?? state.currentMessage;
+  const parsed = phase7aActionSchema.parse({
+    action: "create_artifact",
+    public_summary: `Use the final provider request to create the requested ${requestedMode === "headlines" ? "Headlines" : "Big Story"} packet`,
+    mode: requestedMode,
+    topic: firstSentence.slice(0, 300),
+    ...(targetMatch ? { target_minutes: Number(targetMatch[1]) } : {}),
+    instruction: "Use the collected evidence and honest archive result. Preserve the requested clock and do not invent missing coverage.",
+  });
+  if (parsed.action !== "create_artifact") throw new Error("phase7a_agent_failed");
+  return parsed;
 }
 
 function withoutMachineLedger(value: unknown): unknown {
@@ -463,6 +492,8 @@ async function readUrls(
       tool: "read_url",
     });
   }
+  const attempted = new Set(normalized);
+  state.workspace.candidates = state.workspace.candidates.filter((candidate) => !attempted.has(normalizeWebUrl(candidate.url)));
   return {
     done: false,
     observation: `${usableCount} source${usableCount === 1 ? "" : "s"} became usable evidence; ${unavailableCount} unavailable.`,
@@ -681,11 +712,16 @@ export async function runPhase7AAgentTurn(options: {
     startedAtMs: deps.clockMs?.() ?? performance.now(),
     startedAtIso,
     traceSteps: [],
+    controllerFailure: null,
     seenWebQueries: new Set(),
     seenReadUrls: new Set(),
     seenArchiveQueries: new Set(),
     seenTranscriptChunks: new Set(),
     costCapUsd: Math.min(PHASE_7A_LIMITS.costCapUsd, Math.max(0, deps.costCapUsd ?? PHASE_7A_LIMITS.costCapUsd)),
+    providerRequestCap: Math.min(
+      PHASE_7A_LIMITS.maxProviderRequests,
+      Math.max(1, Math.floor(deps.providerRequestCap ?? PHASE_7A_LIMITS.maxProviderRequests)),
+    ),
   };
   appendTurn(state, "user", state.currentMessage, [], deps);
   emit(state, deps, { kind: "run", label: "Research turn started", detail: "The agent is reading the conversation and evidence workspace", status: "running" });
@@ -695,27 +731,39 @@ export async function runPhase7AAgentTurn(options: {
     while (state.counts.controller_turns < PHASE_7A_LIMITS.maxControllerTurns) {
       assertActive(state, deps);
       const decisionId = `evt_${state.runId}_decision_${state.counts.controller_turns + 1}`;
-      emit(state, deps, { id: decisionId, kind: "agent", label: "Choosing the next research step", detail: lastObservation ?? "Reviewing the request and saved evidence", status: "running" });
-      reserveProvider(state, 1, RESERVATIONS.controller);
-      state.counts.controller_turns += 1;
-      let usageRecorded = false;
-      let decision;
-      try {
-        decision = await deps.controller.decide({
-          workspace: state.workspace,
-          currentMessage: state.currentMessage,
-          remaining: remaining(state),
-          lastObservation,
-        }, { timeoutMs: remainingTime(state, deps), signal: deps.signal });
-        addModelUsage(state, "luna_controller", RESERVATIONS.controller, decision.receipt);
-        usageRecorded = true;
-      } catch (error) {
-        if (!usageRecorded) addUsage(state, "luna_controller", RESERVATIONS.controller);
-        throw error;
+      const finalArtifact = finalProviderArtifactAction(state);
+      let action: Phase7AAction;
+      if (finalArtifact) {
+        action = finalArtifact;
+        emit(state, deps, { id: decisionId, kind: "agent", label: "Final request reserved for the packet", detail: action.public_summary, status: "complete" });
+      } else {
+        emit(state, deps, { id: decisionId, kind: "agent", label: "Choosing the next research step", detail: lastObservation ?? "Reviewing the request and saved evidence", status: "running" });
+        reserveProvider(state, 1, RESERVATIONS.controller);
+        state.counts.controller_turns += 1;
+        let usageRecorded = false;
+        let decision;
+        try {
+          decision = await deps.controller.decide({
+            workspace: state.workspace,
+            currentMessage: state.currentMessage,
+            remaining: remaining(state),
+            lastObservation,
+          }, { timeoutMs: remainingTime(state, deps), signal: deps.signal });
+          addModelUsage(state, "luna_controller", RESERVATIONS.controller, decision.receipt);
+          usageRecorded = true;
+        } catch (error) {
+          if (error instanceof Phase7AControllerOutputError) {
+            addModelUsage(state, "luna_controller", RESERVATIONS.controller, error.receipt);
+            state.controllerFailure = error.failure;
+            usageRecorded = true;
+          }
+          if (!usageRecorded) addUsage(state, "luna_controller", RESERVATIONS.controller);
+          throw error;
+        }
+        state.workspace.research_state = decision.value.research_state;
+        action = decision.value.action;
+        emit(state, deps, { id: decisionId, kind: "agent", label: "Next step chosen", detail: action.public_summary, status: "complete" });
       }
-      state.workspace.research_state = decision.value.research_state;
-      const action = decision.value.action;
-      emit(state, deps, { id: decisionId, kind: "agent", label: "Next step chosen", detail: action.public_summary, status: "complete" });
       const limitationCount = state.limitations.length;
       try {
         const outcome = await executeAction(state, deps, action);
@@ -756,7 +804,10 @@ export async function runPhase7AAgentTurn(options: {
       emit(state, deps, { kind: "run", label: "Research turn stopped", detail: "No automatic retry was started", status: "stopped" });
     } else {
       state.status = "failed";
-      emit(state, deps, { kind: "run", label: "Research turn failed safely", detail: code, status: "failed" });
+      const detail = state.controllerFailure
+        ? "The planning model returned an invalid next step. Collected research was preserved."
+        : code;
+      emit(state, deps, { kind: "run", label: "Research stopped before completion", detail, status: "failed" });
     }
   }
 
@@ -772,6 +823,7 @@ export async function runPhase7AAgentTurn(options: {
     source_ids: state.workspace.evidence.map((item) => item.source_id),
     artifact_revision: state.workspace.artifact_revision,
     limitations: state.limitations,
+    controller_failure: state.controllerFailure,
   });
   state.workspace.run_traces.push(trace);
   state.workspace.run_traces = state.workspace.run_traces.slice(-PHASE_7A_LIMITS.maxRunTraces);

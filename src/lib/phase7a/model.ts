@@ -6,12 +6,13 @@ import {
   phase7aControllerOutputSchema,
   phase7aControllerOutputToDecision,
   type Phase7AControllerDecision,
+  type Phase7AControllerFailure,
   type Phase7AWorkspace,
 } from "./contracts.ts";
 import { PHASE_7A_SYSTEM_PROMPT, phase7aDecisionPrompt } from "./prompts.ts";
 
 export const PHASE_7A_MODEL_REQUEST_TIMEOUT_MS = 120_000;
-export const PHASE_7A_CONTROLLER_MAX_OUTPUT_TOKENS = 2_000;
+export const PHASE_7A_CONTROLLER_MAX_OUTPUT_TOKENS = 8_000;
 
 export type Phase7AModelAdapter = {
   decide(input: {
@@ -21,6 +22,62 @@ export type Phase7AModelAdapter = {
     lastObservation?: string;
   }, options?: { timeoutMs?: number; signal?: AbortSignal }): Promise<Phase5ModelResult<Phase7AControllerDecision>>;
 };
+
+export class Phase7AControllerOutputError extends Error {
+  readonly failure: Phase7AControllerFailure;
+  readonly receipt: Phase5ModelReceipt;
+
+  constructor(failure: Phase7AControllerFailure, receipt: Phase5ModelReceipt) {
+    super(failure.code);
+    this.name = "Phase7AControllerOutputError";
+    this.failure = failure;
+    this.receipt = receipt;
+  }
+}
+
+function safeZodIssues(error: z.ZodError): string[] {
+  return error.issues.slice(0, 8).map((issue) => {
+    const path = issue.path.length ? issue.path.join(".") : "$";
+    return `${path}:${issue.code}`.slice(0, 160);
+  });
+}
+
+function receiptFor(
+  result: Awaited<ReturnType<typeof readOpenRouterStream>>,
+  outputStatus: Phase5ModelReceipt["output_status"],
+): Phase5ModelReceipt {
+  return {
+    model: result.model!,
+    provider: result.provider,
+    prompt_tokens: result.usage?.prompt_tokens,
+    completion_tokens: result.usage?.completion_tokens,
+    total_tokens: result.usage?.total_tokens,
+    cost_usd: result.usage?.cost,
+    latency_ms: Number(result.elapsedMs.toFixed(2)),
+    generation_id: result.id,
+    finish_reason: result.finishReason,
+    response_characters: result.text.length,
+    output_status: outputStatus,
+    reasoning_tokens: result.usage?.completion_tokens_details?.reasoning_tokens,
+  };
+}
+
+function controllerOutputError(
+  code: Phase7AControllerFailure["code"],
+  stage: Phase7AControllerFailure["stage"],
+  receipt: Phase5ModelReceipt,
+  issues: string[] = [],
+): Phase7AControllerOutputError {
+  return new Phase7AControllerOutputError({
+    code,
+    stage,
+    issues,
+    generation_id: receipt.generation_id,
+    provider: receipt.provider,
+    finish_reason: receipt.finish_reason,
+    response_characters: receipt.response_characters,
+  }, receipt);
+}
 
 function controllerRequest(prompt: string): Phase2Request {
   const model = PHASE_5_MODELS.light;
@@ -91,33 +148,49 @@ export function createOpenRouterPhase7AModel(options: {
           throw new Error("phase7a_route_mismatch");
         }
         if (!result.done) throw new Error("phase7a_incomplete_stream");
-        const outputStatus: Phase5ModelReceipt["output_status"] = result.finishReason && result.finishReason !== "stop"
-          ? result.finishReason === "length" ? "truncated" : "incomplete"
-          : result.text.length === 0 ? "empty" : "parsed";
+        if (result.finishReason && result.finishReason !== "stop") {
+          const outputStatus = result.finishReason === "length" ? "truncated" : "incomplete";
+          const receipt = receiptFor(result, outputStatus);
+          throw controllerOutputError(
+            outputStatus === "truncated" ? "phase7a_controller_truncated_output" : "phase7a_controller_incomplete_output",
+            "completion",
+            receipt,
+          );
+        }
+        if (result.text.length === 0) {
+          throw controllerOutputError("phase7a_controller_empty_output", "completion", receiptFor(result, "empty"));
+        }
+        let json: unknown;
+        try {
+          json = JSON.parse(result.text);
+        } catch {
+          throw controllerOutputError("phase7a_controller_invalid_json", "json", receiptFor(result, "invalid_json"));
+        }
+        const transport = phase7aControllerOutputSchema.safeParse(json);
+        if (!transport.success) {
+          throw controllerOutputError(
+            "phase7a_controller_transport_invalid",
+            "transport",
+            receiptFor(result, "parsed"),
+            safeZodIssues(transport.error),
+          );
+        }
         let parsed: Phase7AControllerDecision;
         try {
-          if (outputStatus !== "parsed") throw new Error("not_parsed");
-          parsed = phase7aControllerOutputToDecision(phase7aControllerOutputSchema.parse(JSON.parse(result.text)));
-        } catch {
-          throw new Error(outputStatus === "truncated" ? "phase7a_model_truncated_output" : "phase7a_controller_invalid");
+          parsed = phase7aControllerOutputToDecision(transport.data);
+        } catch (error) {
+          throw controllerOutputError(
+            "phase7a_controller_action_invalid",
+            "action",
+            receiptFor(result, "parsed"),
+            error instanceof z.ZodError ? safeZodIssues(error) : [],
+          );
         }
+        const receipt = receiptFor(result, "parsed");
         return {
           value: parsed,
           output_status: "parsed",
-          receipt: {
-            model: result.model,
-            provider: result.provider,
-            prompt_tokens: result.usage?.prompt_tokens,
-            completion_tokens: result.usage?.completion_tokens,
-            total_tokens: result.usage?.total_tokens,
-            cost_usd: result.usage?.cost,
-            latency_ms: Number(result.elapsedMs.toFixed(2)),
-            generation_id: result.id,
-            finish_reason: result.finishReason,
-            response_characters: result.text.length,
-            output_status: "parsed",
-            reasoning_tokens: result.usage?.completion_tokens_details?.reasoning_tokens,
-          },
+          receipt,
         };
       } catch (error) {
         if (callOptions?.signal?.aborted) throw new Error("phase7a_run_stopped");

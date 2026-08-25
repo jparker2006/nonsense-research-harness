@@ -1,6 +1,6 @@
 # Nonsense Research Harness — v0 Specification
 
-Status: Approved by Jake on 2026-08-23 and amended on 2026-08-24 after Phase 7A.1. The local chat-first adaptive agent and its first single-workspace visual pass are implemented and proven. Durable storage, authentication, deployment, subagents, and final visual polish remain outside the completed scope.
+Status: Approved by Jake on 2026-08-23 and amended on 2026-08-24 after Phase 7A.2. The local chat-first adaptive agent, first single-workspace visual pass, and controller-completion reliability repair are implemented and proven. Durable storage, authentication, deployment, subagents, and final visual polish remain outside the completed scope.
 
 Authoritative project root: `/Users/jakeparker/Desktop/Nonsense Podcast Project`
 
@@ -68,6 +68,7 @@ The route body is capped at 24 KB. Extra keys, malformed requests, unknown actio
 2. Luna reviews recent conversation, saved evidence, unread candidates, archive matches, the current artifact, and exact remaining limits.
 3. Luna selects exactly one typed action; code executes it and streams a safe public summary into the research tape.
 4. The loop reassesses after each observation until it answers or creates a requested artifact.
+   When exactly one provider request remains, code reserves it for an explicitly requested artifact only if usable evidence exists and the archive has already been searched; ordinary chat remains controller-driven.
 5. Ordinary answers appear as cited assistant messages. A requested Headlines or Big Story packet appears in the artifact view with a source ledger and copy-to-Markdown control.
 6. The user asks a follow-up in the same composer. The agent may answer from saved evidence or perform new bounded research; it does not fake a refinement.
 7. Stop cancels the active request where possible and preserves evidence plus the last validated artifact in the current process.

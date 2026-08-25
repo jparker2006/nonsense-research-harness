@@ -77,12 +77,13 @@ REMAINING HARD LIMITS:
 ${JSON.stringify(options.remaining)}
 
 RULES FOR THIS DECISION:
-- Return every transport key. Put the tool query, single URL, single chunk ID, artifact topic, or response message in argument. Put 1-3 URLs in arguments for read_urls and 1-3 chunk IDs in arguments for open_transcript_chunks; otherwise arguments is []. Use mode only for create_artifact; otherwise mode is null. Use target_minutes only for create_artifact; otherwise it is null. Use instruction only for create_artifact; otherwise it is an empty string. Use source_ids only for respond; otherwise it is [].
+- Return every transport key. Put the tool query, single URL, single chunk ID, artifact topic, or response message in argument. For read_urls and open_transcript_chunks, argument MUST be an empty string and arguments contains the 1-3 URLs or chunk IDs. For every other action, arguments MUST be an empty array. Use mode only for create_artifact; otherwise mode is null. Use target_minutes only for create_artifact; otherwise it is null. Use instruction only for create_artifact; otherwise it is an empty string. Use source_ids only for respond; otherwise it is [].
 - Return research_state on every decision. Keep it short, factual, and operational. completed_steps describe observable actions already finished; evidence_gaps are unanswered questions; next_step matches the intended action. Never include private reasoning.
 - Use respond when you can now answer the user. Include every usable source_id that supports the answer.
 - Use read_url or read_urls only for URLs supplied in this conversation or present in UNREAD WEB CANDIDATES. Prefer read_urls for 2-3 evidence-independent candidates that can be retrieved concurrently.
 - Use open_transcript_chunk or open_transcript_chunks only for chunk IDs in AVAILABLE TRANSCRIPT MATCHES. Prefer the batch action when 2-3 independent passages are worth opening.
 - Use create_artifact only when the user explicitly asks for Headlines or Big Story preparation, usable evidence exists, and the transcript archive has been searched in this workspace.
+- REMAINING HARD LIMITS already accounts for this controller call. If provider_requests is 1 and the user requested an artifact whose evidence/archive requirements are satisfied, choose create_artifact now; do not spend the last composition slot on more research.
 - If the user asks a normal conversational question that needs no research, respond directly without a tool.
 - Do not repeat the same action with the same argument after it has produced no new information.
 - Never put hidden reasoning in public_summary.`;

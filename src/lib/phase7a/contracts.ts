@@ -103,15 +103,22 @@ export const phase7aResearchStateSchema = z.object({
 // strict object with every key present. The conditional action contract is
 // enforced after parsing this transport shape.
 export const phase7aControllerOutputSchema = z.object({
-  action: z.enum(["web_search", "read_url", "read_urls", "search_transcripts", "open_transcript_chunk", "open_transcript_chunks", "create_artifact", "respond"]),
-  public_summary: publicSummary,
-  argument: z.string().trim().min(1).max(5_000),
-  arguments: z.array(z.string().trim().min(1).max(2_000)).max(PHASE_7A_LIMITS.maxBatchTargets),
-  mode: z.enum(["headlines", "big_story"]).nullable(),
-  target_minutes: z.number().min(1).max(120).nullable(),
-  instruction: z.string().max(1_200),
-  source_ids: z.array(z.string().max(180)).max(8),
-  research_state: phase7aResearchStateSchema,
+  action: z.enum(["web_search", "read_url", "read_urls", "search_transcripts", "open_transcript_chunk", "open_transcript_chunks", "create_artifact", "respond"])
+    .describe("Exactly one allowed controller action."),
+  public_summary: publicSummary.describe("A short user-visible description of the selected action."),
+  argument: z.string().max(5_000)
+    .describe("The query, single URL, single chunk ID, artifact topic, or response. Use an empty string for batch actions."),
+  arguments: z.array(z.string().trim().min(1).max(2_000)).max(PHASE_7A_LIMITS.maxBatchTargets)
+    .describe("One to three URLs or chunk IDs for a batch action. Use an empty array otherwise."),
+  mode: z.enum(["headlines", "big_story"]).nullable()
+    .describe("Artifact mode for create_artifact; null otherwise."),
+  target_minutes: z.number().min(1).max(120).nullable()
+    .describe("Requested artifact duration for create_artifact; null otherwise."),
+  instruction: z.string().max(1_200)
+    .describe("Extra artifact instructions for create_artifact; an empty string otherwise."),
+  source_ids: z.array(z.string().max(180)).max(8)
+    .describe("Retrieved source IDs supporting respond; an empty array otherwise."),
+  research_state: phase7aResearchStateSchema.describe("Concise public operational research state, never private reasoning."),
 }).strict();
 
 export const phase7aControllerDecisionSchema = z.object({
@@ -205,6 +212,16 @@ export const phase7aTraceStepSchema = z.object({
   status: z.enum(["complete", "partial", "failed"]),
 }).strict();
 
+export const phase7aControllerFailureSchema = z.object({
+  code: z.string().regex(/^phase7a_controller_[a-z0-9_]+$/),
+  stage: z.enum(["completion", "json", "transport", "action"]),
+  issues: z.array(z.string().max(160)).max(8),
+  generation_id: z.string().max(180).optional(),
+  provider: z.string().max(180).optional(),
+  finish_reason: z.string().max(80).optional(),
+  response_characters: z.number().int().nonnegative(),
+}).strict();
+
 export const phase7aRunTraceSchema = z.object({
   run_id: z.string().max(160),
   started_at: z.string(),
@@ -216,6 +233,7 @@ export const phase7aRunTraceSchema = z.object({
   source_ids: z.array(z.string().max(180)).max(PHASE_7A_LIMITS.maxEvidenceSources),
   artifact_revision: z.number().int().nonnegative(),
   limitations: z.array(z.string().max(240)).max(20),
+  controller_failure: phase7aControllerFailureSchema.nullable().default(null),
 }).strict();
 
 export const phase7aWorkspaceSchema = z.object({
@@ -298,6 +316,7 @@ export type Phase7ATranscriptMatch = z.infer<typeof phase7aTranscriptMatchSchema
 export type Phase7ACounts = z.infer<typeof phase7aCountsSchema>;
 export type Phase7AActivity = z.infer<typeof phase7aActivitySchema>;
 export type Phase7ARunTrace = z.infer<typeof phase7aRunTraceSchema>;
+export type Phase7AControllerFailure = z.infer<typeof phase7aControllerFailureSchema>;
 export type Phase7AWorkspace = z.infer<typeof phase7aWorkspaceSchema>;
 export type Phase7AAssistantMessage = z.infer<typeof phase7aAssistantMessageSchema>;
 export type Phase7ASource = z.infer<typeof phase7aSourceSchema>;

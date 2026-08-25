@@ -7,11 +7,13 @@ import { phase5ArtifactSchema } from "../src/lib/phase5/contracts.ts";
 import {
   PHASE_7A_LIMITS,
   phase7aActionSchema,
+  phase7aControllerOutputSchema,
+  phase7aControllerOutputToDecision,
   phase7aRequestSchema,
   type Phase7AAction,
 } from "../src/lib/phase7a/contracts.ts";
 import { createPhase7AFixtureDependencies } from "../src/lib/phase7a/fixture.ts";
-import { createOpenRouterPhase7AModel } from "../src/lib/phase7a/model.ts";
+import { createOpenRouterPhase7AModel, PHASE_7A_CONTROLLER_MAX_OUTPUT_TOKENS, Phase7AControllerOutputError } from "../src/lib/phase7a/model.ts";
 import { PHASE_7A_SYSTEM_PROMPT } from "../src/lib/phase7a/prompts.ts";
 import { clearPhase7AWorkspacesForTest, createPhase7AWorkspace } from "../src/lib/phase7a/session-store.ts";
 import { runPhase7AWorkflow } from "../src/lib/phase7a/workflow.ts";
@@ -34,6 +36,39 @@ function requestFor(body: unknown) {
 
 function action<T extends Phase7AAction>(value: T): T {
   return phase7aActionSchema.parse(value) as T;
+}
+
+function controllerEnvelope(overrides: Record<string, unknown> = {}) {
+  return {
+    action: "respond",
+    public_summary: "Answer directly",
+    argument: "Hello.",
+    arguments: [],
+    mode: null,
+    target_minutes: null,
+    instruction: "",
+    source_ids: [],
+    research_state: {
+      objective: "Answer the current request.",
+      completed_steps: [],
+      evidence_gaps: [],
+      next_step: "Respond directly.",
+    },
+    ...overrides,
+  };
+}
+
+function controllerStreamFetch(content: string, finishReason = "stop"): typeof fetch {
+  return async () => {
+    const payload = JSON.stringify({
+      id: "gen_phase7a_failure_fixture",
+      model: "openai/gpt-5.6-luna",
+      provider: "OpenAI",
+      choices: [{ delta: { content }, finish_reason: finishReason }],
+      usage: { prompt_tokens: 100, completion_tokens: 20, total_tokens: 120, cost: 0.0042 },
+    });
+    return new Response(`data: ${payload}\n\ndata: [DONE]\n\n`, { status: 200, headers: { "content-type": "text/event-stream" } });
+  };
 }
 
 function researchActions(mode?: "headlines" | "big_story"): Phase7AAction[] {
@@ -430,6 +465,55 @@ describe("Phase 7A chat-first agent", () => {
     expect(result.limitations).toContain("phase7a_web_search_limit");
   });
 
+  it("enforces a lower proof-specific provider request cap and exposes it to the controller", async () => {
+    const dependencies = createPhase7AFixtureDependencies([
+      action({ action: "web_search", public_summary: "Try a provider-backed search", query: "bounded provider cap" }),
+    ]);
+    dependencies.providerRequestCap = 1;
+    const originalDecide = dependencies.controller.decide;
+    let observedRemaining: number | undefined;
+    dependencies.controller.decide = async (input, options) => {
+      observedRemaining = input.remaining.provider_requests;
+      return originalDecide(input, options);
+    };
+    const result = await runPhase7AWorkflow({
+      workspace: createPhase7AWorkspace("session_request_cap"),
+      message: "Use one controller request and then try to search.",
+    }, dependencies);
+    expect(observedRemaining).toBe(0);
+    expect(result.status).toBe("failed");
+    expect(result.counts.provider_requests).toBe(1);
+    expect(result.counts.web_searches).toBe(0);
+    expect(result.limitations).toContain("phase7a_provider_request_limit");
+  });
+
+  it("reserves the final provider request for an explicitly requested packet", async () => {
+    const workspace = createPhase7AWorkspace("session_final_artifact_slot");
+    workspace.archive_queries = ["food safety recalls"];
+    const dependencies = createPhase7AFixtureDependencies([
+      action({ action: "read_url", public_summary: "Read the supplied source", url: suppliedUrl }),
+    ]);
+    dependencies.providerRequestCap = 2;
+    const result = await runPhase7AWorkflow({
+      workspace,
+      message: `${suppliedUrl} Read this and create an 8-minute Headlines prep packet.`,
+      runId: "run_final_artifact_slot",
+    }, dependencies);
+    expect(result.status).toBe("complete");
+    expect(result.artifact?.mode).toBe("headlines");
+    expect(result.counts).toMatchObject({
+      controller_turns: 1,
+      provider_requests: 2,
+      url_reads: 1,
+      compositions: 1,
+    });
+    expect(result.events).toContainEqual(expect.objectContaining({
+      label: "Final request reserved for the packet",
+      status: "complete",
+    }));
+    expect(result.trace.steps.map((step) => step.action)).toEqual(["read_url", "create_artifact"]);
+  });
+
   it("propagates a stop with zero paid work and an honest terminal message", async () => {
     const controller = new AbortController();
     controller.abort();
@@ -449,6 +533,144 @@ describe("Phase 7A chat-first agent", () => {
     expect(() => phase7aRequestSchema.parse({ action: "message", session_id: "session_valid", message: "hello", extra: true })).toThrow();
     expect(() => phase7aActionSchema.parse({ action: "respond", public_summary: "answer", message: "hello", source_ids: [], tool: "shell" })).toThrow();
     expect(() => phase7aActionSchema.parse({ action: "shell", public_summary: "run code", command: "pwd" })).toThrow();
+  });
+
+  it("round-trips every controller action and accepts neutral batch fields", () => {
+    const cases = [
+      controllerEnvelope({ action: "web_search", argument: "latest recall" }),
+      controllerEnvelope({ action: "read_url", argument: "https://one.example/article" }),
+      controllerEnvelope({ action: "read_urls", argument: "", arguments: ["https://one.example/article", "https://two.example/article"] }),
+      controllerEnvelope({ action: "search_transcripts", argument: "food safety recalls" }),
+      controllerEnvelope({ action: "open_transcript_chunk", argument: "chunk_one" }),
+      controllerEnvelope({ action: "open_transcript_chunks", argument: "", arguments: ["chunk_one", "chunk_two"] }),
+      controllerEnvelope({ action: "create_artifact", argument: "Foodborne illness recall", mode: "headlines", target_minutes: 8, instruction: "Keep it clock-aware." }),
+      controllerEnvelope({ action: "respond", argument: "The answer.", source_ids: ["web_one"] }),
+    ];
+    expect(cases.map((value) => phase7aControllerOutputToDecision(phase7aControllerOutputSchema.parse(value)).action.action)).toEqual([
+      "web_search",
+      "read_url",
+      "read_urls",
+      "search_transcripts",
+      "open_transcript_chunk",
+      "open_transcript_chunks",
+      "create_artifact",
+      "respond",
+    ]);
+  });
+
+  it.each([
+    ["phase7a_controller_invalid_json", "json", "invalid_json", "{SECRET_RAW_OUTPUT_TOKEN"],
+    ["phase7a_controller_transport_invalid", "transport", "parsed", JSON.stringify(controllerEnvelope({ research_state: undefined }))],
+    ["phase7a_controller_action_invalid", "action", "parsed", JSON.stringify(controllerEnvelope({ action: "read_urls", argument: "", arguments: [] }))],
+    ["phase7a_controller_truncated_output", "completion", "truncated", JSON.stringify(controllerEnvelope())],
+  ] as const)("classifies %s and preserves its paid receipt", async (code, stage, outputStatus, content) => {
+    const model = createOpenRouterPhase7AModel({
+      apiKey: "test-key",
+      liveAuthorized: true,
+      fetchImpl: controllerStreamFetch(content, code === "phase7a_controller_truncated_output" ? "length" : "stop"),
+    });
+    let thrown: unknown;
+    try {
+      await model.decide({ workspace: createPhase7AWorkspace(`session_${stage}`), currentMessage: "Research this.", remaining: {} });
+    } catch (error) {
+      thrown = error;
+    }
+    expect(thrown).toBeInstanceOf(Phase7AControllerOutputError);
+    const failure = thrown as Phase7AControllerOutputError;
+    expect(failure.failure).toMatchObject({ code, stage, response_characters: content.length });
+    expect(failure.receipt).toMatchObject({ cost_usd: 0.0042, output_status: outputStatus, generation_id: "gen_phase7a_failure_fixture" });
+    expect(JSON.stringify(failure.failure)).not.toContain(content);
+  });
+
+  it("records an invalid paid controller response once with safe diagnostics and no retry", async () => {
+    const dependencies = createPhase7AFixtureDependencies([]);
+    dependencies.controller = createOpenRouterPhase7AModel({
+      apiKey: "test-key",
+      liveAuthorized: true,
+      fetchImpl: controllerStreamFetch(JSON.stringify(controllerEnvelope({ action: "read_urls", argument: "", arguments: [] }))),
+    });
+    const result = await runPhase7AWorkflow({
+      workspace: createPhase7AWorkspace("session_controller_receipt"),
+      message: "Research this.",
+      runId: "run_controller_receipt",
+    }, dependencies);
+    expect(result.status).toBe("failed");
+    expect(result.counts).toMatchObject({ controller_turns: 1, provider_requests: 1 });
+    expect(result.accounted_cost_usd).toBe(0.0042);
+    expect(result.usage).toHaveLength(1);
+    expect(result.usage[0]).toMatchObject({ reported_cost_usd: 0.0042, accounted_cost_usd: 0.0042, receipt_missing: false });
+    expect(result.trace.controller_failure).toMatchObject({
+      code: "phase7a_controller_action_invalid",
+      stage: "action",
+      issues: ["urls:too_small"],
+      generation_id: "gen_phase7a_failure_fixture",
+    });
+    expect(result.events.at(-1)).toMatchObject({
+      label: "Research stopped before completion",
+      detail: "The planning model returned an invalid next step. Collected research was preserved.",
+      status: "failed",
+    });
+  });
+
+  it("completes the web-search to batch-read to archive to Headlines path deterministically", async () => {
+    const urls = ["https://one.example/recall", "https://two.example/context"];
+    const dependencies = createPhase7AFixtureDependencies([
+      action({ action: "web_search", public_summary: "Find current recall reporting", query: "current foodborne illness recall" }),
+      action({ action: "read_urls", public_summary: "Read the primary and independent sources", urls }),
+      action({ action: "search_transcripts", public_summary: "Search prior Nonsense coverage", query: "food safety recalls regulation" }),
+      action({ action: "open_transcript_chunk", public_summary: "Open the strongest archive passage", chunk_id: chunkId }),
+      action({ action: "create_artifact", public_summary: "Create the eight-minute Headlines packet", mode: "headlines", topic: "Foodborne illness recall", target_minutes: 8, instruction: "Keep the clock visible." }),
+    ]);
+    dependencies.tools.webSearch = async ({ query }) => ({
+      status: "complete",
+      query,
+      sources: urls.map((url, index) => ({
+        source_id: `candidate_completion_${index}`,
+        source_kind: "search_candidate" as const,
+        availability: "candidate" as const,
+        url,
+        title: index === 0 ? "Official recall" : "Independent context",
+        excerpt: "A bounded search-result lead.",
+        retrieved_at: "2026-08-24T00:00:00.000Z",
+        trust: "untrusted_external_content" as const,
+        evidence_usable: false,
+        receipt: {},
+      })),
+      retrieved_at: "2026-08-24T00:00:00.000Z",
+      receipt: { provider_model: "fixture", provider_name: "fixture", total_tokens: 0, cost_usd: 0, web_search_proof: "citations_and_request_bound" },
+    });
+    dependencies.tools.readUrl = async ({ url }) => ({
+      source_id: `web_completion_${urls.indexOf(url)}`,
+      source_kind: "retrieved_page",
+      availability: "complete",
+      url,
+      requested_url: url,
+      final_url: url,
+      title: url === urls[0] ? "Official recall" : "Independent context",
+      excerpt: "Current evidence about the fictional fixture recall.",
+      text: "Current evidence about the fictional fixture recall and its regulatory context.",
+      retrieved_at: "2026-08-24T00:00:00.000Z",
+      trust: "untrusted_external_content",
+      evidence_usable: true,
+      receipt: {},
+    });
+    const result = await runPhase7AWorkflow({
+      workspace: createPhase7AWorkspace("session_controller_completion"),
+      message: "Research this recall and make an eight-minute Headlines packet.",
+      runId: "run_controller_completion",
+    }, dependencies);
+    expect(result.artifact?.mode).toBe("headlines");
+    expect(result.counts).toMatchObject({
+      controller_turns: 5,
+      web_searches: 1,
+      url_reads: 2,
+      transcript_searches: 1,
+      transcript_opens: 1,
+      compositions: 1,
+    });
+    expect(result.workspace.candidates).toEqual([]);
+    expect(result.trace.controller_failure).toBeNull();
+    expect(result.limitations).not.toContain("phase7a_controller_invalid");
   });
 
   it("uses the concise server prompt and strict OpenRouter controller policy", async () => {
@@ -483,12 +705,21 @@ describe("Phase 7A chat-first agent", () => {
     const result = await model.decide({ workspace: createPhase7AWorkspace("session_model_policy"), currentMessage: "hello", remaining: {}, lastObservation: undefined });
     expect(result.value.action.action).toBe("respond");
     expect(result.value.research_state.objective).toBe("Answer the greeting.");
-    const request = observed as { messages: Array<{ role: string; content: string }>; provider: Record<string, unknown>; response_format: unknown; model: string };
+    const request = observed as {
+      messages: Array<{ role: string; content: string }>;
+      provider: Record<string, unknown>;
+      response_format: { json_schema: { schema: { properties: { argument: Record<string, unknown> } } } };
+      model: string;
+    };
     expect(request.model).toBe("openai/gpt-5.6-luna");
     expect(request.messages[0]?.content).toBe(PHASE_7A_SYSTEM_PROMPT);
     expect(request.messages[0]?.content).toContain("equal partners CJ Little and Jeff Parker");
     expect(request.provider).toMatchObject({ allow_fallbacks: false, require_parameters: true, data_collection: "deny" });
     expect(request.response_format).toBeTruthy();
+    expect(observed).toMatchObject({ max_tokens: PHASE_7A_CONTROLLER_MAX_OUTPUT_TOKENS });
+    expect(PHASE_7A_CONTROLLER_MAX_OUTPUT_TOKENS).toBe(8_000);
+    expect(request.response_format.json_schema.schema.properties.argument).toMatchObject({ type: "string", maxLength: 5_000 });
+    expect(request.response_format.json_schema.schema.properties.argument).not.toHaveProperty("minLength");
   });
 
   it("keeps fixtures test-only and streams an injected chat route without leaking raw evidence", async () => {
@@ -514,6 +745,26 @@ describe("Phase 7A chat-first agent", () => {
     await expect(invalid.json()).resolves.toMatchObject({ code: "phase7a_invalid_request" });
     const oversized = await route(requestFor({ phase7a: { action: "message", session_id: "session_oversized", message: "x".repeat(24_000) } }));
     expect(oversized.status).toBe(413);
+  });
+
+  it("streams an explicit terminal controller failure with its real receipt and no retry", async () => {
+    const dependencies = createPhase7AFixtureDependencies([]);
+    dependencies.controller = createOpenRouterPhase7AModel({
+      apiKey: "test-key",
+      liveAuthorized: true,
+      fetchImpl: controllerStreamFetch(JSON.stringify(controllerEnvelope({ action: "read_urls", argument: "", arguments: [] }))),
+    });
+    const route = createPhase7AChatRoute({ dependencies: () => dependencies });
+    const response = await route(requestFor({ phase7a: { action: "message", session_id: "session_route_controller_failure", message: "Research this." } }));
+    expect(response.status).toBe(200);
+    const stream = await response.text();
+    expect(stream).toContain("phase7a_controller_action_invalid");
+    expect(stream).toContain("The planning model selected an invalid research action.");
+    expect(stream).toContain("Research stopped before completion");
+    expect(stream).toContain('\"accounted_cost_usd\":0.0042');
+    expect(stream).toContain('\"provider_requests\":1');
+    expect(stream).toContain('\"state\":\"failed\"');
+    expect(stream).not.toContain("SECRET_RAW_OUTPUT_TOKEN");
   });
 
   it("rejects a concurrent paid turn for the same local session", async () => {

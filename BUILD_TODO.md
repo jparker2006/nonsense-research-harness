@@ -1,6 +1,6 @@
 # Nonsense Research Harness — Build TODO
 
-Status: Phases 1–6, Phase 7A, and Phase 7A.1 **PASSED**. Phase 7A is the first reusable local product: a blank chat connects to a bounded adaptive Luna controller, the real safe web/archive tools, an ephemeral evidence workspace, and optional validated Grok Headlines/Big Story artifacts. Phase 7A.1 repaired live hybrid transcript authorization, added a structured research notebook, bounded parallel reads, sanitized run traces, and replaced the two-rail shell with one restrained Glox-inspired workspace. Persistence, auth, deployment, subagents, and final visual polish remain deferred. See `docs/PHASE_7A_RESULT.md` and `docs/PHASE_7A_1_RESULT.md`.
+Status: Phases 1–6 and Phase 7A through Phase 7A.2 **PASSED**. Phase 7A is the first reusable local product: a blank chat connects to a bounded adaptive Luna controller, the real safe web/archive tools, an ephemeral evidence workspace, and optional validated Grok Headlines/Big Story artifacts. Phase 7A.1 hardened the runtime and replaced the two-rail shell; Phase 7A.2 made controller failures diagnosable, fixed local hydration, removed stale unread candidates, and reserved the final provider slot for an explicitly requested packet. Persistence, auth, deployment, subagents, and final visual polish remain deferred. See `docs/PHASE_7A_RESULT.md`, `docs/PHASE_7A_1_RESULT.md`, and `docs/PHASE_7A_2_RESULT.md`.
 
 ## Intended v0 outcome
 
@@ -364,7 +364,7 @@ The frozen scope and evidence are in `docs/PHASE_7A_1_PLAN.md` and `docs/PHASE_7
 - [x] Full supply-chain, lint, typecheck, test, and production-build gate passes on the final tree.
 - [x] No deployment, persistence, authentication, subagent, new model, corpus mutation, or additional paid call was added.
 
-## Phase 7A session and follow-up repair — CODE PASSED; LIVE CONTROLLER FOLLOW-UP OPEN
+## Phase 7A session and follow-up repair — PASSED
 
 The exact repair and replacement-browser evidence are in `docs/PHASE_7A_SESSION_REPAIR_RESULT.md` and `reports/phase-7a-session-repair-live.json`.
 
@@ -374,7 +374,28 @@ The exact repair and replacement-browser evidence are in `docs/PHASE_7A_SESSION_
 - [x] Add regressions for distinct fresh conversations, stable follow-ups, a later-turn repeated web search, a later-turn URL reread, and a normalized duplicate within one run.
 - [x] Pass the full deterministic supply-chain, lint, typecheck, 175-test, and production-build gate.
 - [x] Execute one authorized replacement live browser run with zero retries; the attached UI completed a current web search with five candidates.
-- [ ] Harden and diagnose the separate Luna controller-output validation failure that occurred on the next decision. The replacement run produced no archive search or artifact and is not a successful end-to-end proof.
+- [x] Harden and diagnose the separate Luna controller-output failure without automatic retry or raw-output retention. Phase 7A.2 closes the resulting completion blocker.
+
+## Phase 7A.2 — Controller completion reliability — PASSED
+
+The frozen plan, result, and live evidence are in `docs/PHASE_7A_2_PLAN.md`, `docs/PHASE_7A_2_RESULT.md`, and `reports/phase-7a-2-live.json`.
+
+- [x] Classify controller completion, JSON, transport, and action failures separately and preserve bounded safe diagnostics plus real paid receipts.
+- [x] Raise the Luna controller completion allowance to 8,000 tokens while retaining exact model/provider policy, turn timeout, dollar ceiling, and zero automatic retries.
+- [x] Permit neutral unused transport fields while preserving strict action-specific validation.
+- [x] Remove attempted URLs from the unread-candidate prompt and permit evidence-backed rereads only on legitimate later turns.
+- [x] Add an enforced proof-specific provider-request cap and reserve the final provider slot for an explicitly requested artifact after usable evidence and archive search exist.
+- [x] Stream specific terminal failures, stop visible spinners, expand failed activity, and preserve collected research for follow-up.
+- [x] Allow documented `127.0.0.1` development hydration without weakening the production route.
+- [x] Pass the 34-test focused suite and full 185-test supply-chain/lint/typecheck/test/build gate.
+- [x] Complete the frozen browser prompt with current FDA/CDC evidence, an honest archive no-match, a validated cited eight-minute Headlines packet, exactly 12 requests, displayed `$0.1625`, zero repairs, and zero console warnings/errors.
+
+### Phase 7A.2 gate — STOP
+
+- [x] The live UI reaches a visible terminal state and exposes the packet, receipt, tools, sources, archive result, and limitations.
+- [x] Repeated-action protection remains per run; fresh conversations and legitimate later-turn research remain allowed.
+- [x] Already-read candidates are not offered as unread, and the last provider slot cannot be consumed by another controller turn when a requested packet is ready to compose.
+- [x] No persistence, auth, deployment, subagent, new model, corpus mutation, hosted infrastructure, or provider fallback was added.
 
 ## Phase 7B — Durable private workspaces — NOT STARTED
 
@@ -454,4 +475,4 @@ Do not pull these into a phase unless the usefulness evaluation identifies a con
 
 ## First next action
 
-Have Jake review the connected first-pass interface visually, then run Phase 8 usefulness comparisons before adding persistence or deployment. Compare Phase 7A.1 against the frozen Phase 5 workflow and plain Gemini/Grok on identical inputs; do not deploy automatically.
+Have Jake review the connected artifact and interaction visually, then freeze the smallest Phase 8 usefulness comparison before adding persistence or deployment. Compare the corrected Phase 7A.2 harness against plain Gemini/Grok on identical inputs; do not deploy automatically.
