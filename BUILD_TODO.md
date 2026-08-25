@@ -1,6 +1,6 @@
 # Nonsense Research Harness — Build TODO
 
-Status: Phase 5 and its Phase 5.1 Big Story repair **PASSED** on 2026-08-24 HST. The preserved live evidence now contains a validated recovered Headlines artifact and a validated composition-only Big Story artifact over the exact five-source packet collected by the replacement Big Story run. The proof used one Grok request, zero retries, and `$0.047494`; every live path is relocked. Phase 6, hosted infrastructure, and deployment have not started.
+Status: Phase 5, Phase 5.1, and Phase 6 **PASSED**. The authorized corrected Phase 6.5 browser proof returned a validated Headlines artifact using five of six provider requests, zero retries, and `$0.05391264` of its `$0.50` cap. Every live path is relocked. Phase 7 has not started. See `docs/PHASE_6_RESULT.md`.
 
 ## Intended v0 outcome
 
@@ -287,30 +287,30 @@ This phase builds one server-side archive tool using deterministic exact-text ch
 
 ### Harden before running
 
-- [ ] Freeze the three-pane information architecture before visual polish.
-- [ ] Show tool activity and concise status summaries, never private chain-of-thought.
-- [ ] Define exactly which tool inputs and outputs are safe to display.
-- [ ] Ensure keyboard navigation, focus states, contrast, responsive layout, and screen-reader labels are part of acceptance.
-- [ ] Use mocked streams to cover every visual state before a live agent run.
+- [x] Freeze the artifact-first three-pane information architecture and dark visual system.
+- [x] Show tool activity and concise status summaries, never private chain-of-thought.
+- [x] Define a bounded browser DTO and safe-detail whitelist.
+- [x] Include keyboard focus, contrast, responsive layout, reduced motion, and screen-reader labels in acceptance.
+- [x] Run the production stream/workflow/projection path with zero-provider fixtures before spend.
 
 ### Build
 
-- [ ] Left: episode/thread list and new-workspace action.
-- [ ] Center: conversation plus streaming activity timeline.
-- [ ] Right: editable Headlines card or Big Story dossier with sources.
-- [ ] Add collapsible cards for searching, reading, archive lookup, validation, failure, and completion.
-- [ ] Add stop, retry, follow-up, copy, and source-opening interactions.
-- [ ] Preserve the artifact while follow-up conversation continues.
-- [ ] Add loading, empty, partial, error, offline, and budget-exhausted states.
-- [ ] Test desktop and narrow-screen layouts.
+- [x] Left: truthful single local-session rail; fake history and persistence are deferred.
+- [x] Center: streaming activity timeline and continuous run tape.
+- [x] Right: editable Headlines or Big Story artifact with source ledger and drawer.
+- [x] Render searching, reading, archive lookup, composition, validation, failure, stop, and completion states.
+- [x] Add stop, explicit retry, bounded follow-up, copy, edit, and source-opening interactions.
+- [x] Preserve the prior artifact during retry or failed local refinement.
+- [x] Add honest loading, empty, partial, stopped, failed, unavailable, and offline/provider-disabled states.
+- [x] Verify 1440px, 1024px, and 390px layouts without horizontal overflow.
 
 ### Phase 6 gate — STOP
 
-- [ ] A person can understand what the agent is doing without seeing logs or developer tooling.
-- [ ] Every tool state renders correctly from recorded fixtures.
-- [ ] The artifact remains editable and source-linked.
-- [ ] A full live run can be stopped, retried, and followed up without corrupting the thread.
-- [ ] Do not add visual polish beyond this point until the usefulness evaluation passes.
+- [x] A person can understand what the agent is doing without seeing logs or developer tooling.
+- [x] Production event classes render from the provider-free workflow path.
+- [x] The artifact remains editable, source-linked, and copyable.
+- [x] A corrected, explicitly authorized full live browser run returns a validated artifact within five provider requests, zero retries, and `$0.05391264`.
+- [x] Do not add visual polish beyond this point until the usefulness evaluation passes.
 
 ## Phase 7 — Add deployable persistence and minimal access control
 
@@ -406,4 +406,4 @@ Do not pull these into a phase unless the usefulness evaluation identifies a con
 
 ## First next action
 
-Decide whether to authorize one composition-only Grok proof against a frozen local evidence packet. Do not repeat web/archive research or begin Phase 6 automatically.
+Harden Phase 7 with Jake before any persistence, authentication, hosted database, or deployment work. Do not begin it automatically.

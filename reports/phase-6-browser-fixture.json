@@ -1,0 +1,48 @@
+{
+  "schema_version": "1.0",
+  "phase": "6.4",
+  "status": "passed",
+  "execution": "fixture",
+  "provider_requests": 0,
+  "accounted_cost_usd": 0,
+  "checked_at": "2026-08-24T16:04:00-10:00",
+  "production_path": {
+    "route": "/api/chat",
+    "workflow": "nonsense-phase5-agent",
+    "projection": "phase6 browser DTO",
+    "stream": "AI SDK UI message stream"
+  },
+  "viewports": [
+    { "width": 1440, "height": 900, "horizontal_overflow": false, "session_rail": true, "activity_rail": true, "artifact": true },
+    { "width": 1024, "height": 768, "horizontal_overflow": false, "session_rail": true, "activity_rail": true, "artifact": true },
+    { "width": 390, "height": 844, "horizontal_overflow": false, "session_rail": false, "activity_artifact_tabs": true, "artifact": true }
+  ],
+  "interactions": {
+    "headlines_fixture": "passed",
+    "big_story_fixture": "passed",
+    "streamed_activity_events": 13,
+    "source_drawer": "passed",
+    "controlled_title_edit": "passed",
+    "markdown_copy": "passed",
+    "stop": "passed",
+    "manual_retry_control_after_stop": "passed",
+    "follow_up_revision": "passed",
+    "mobile_tabs": "passed",
+    "visible_focus": "passed",
+    "native_control_semantics": "passed",
+    "reduced_motion_stylesheet_gate": "passed"
+  },
+  "accessibility": {
+    "document_title": "Nonsense Research Desk",
+    "language": "en",
+    "h1_count_with_artifact": 1,
+    "unlabeled_interactive_controls": 0,
+    "aria_live_regions": 1,
+    "console_errors": 0,
+    "console_warnings": 0
+  },
+  "limitations": [
+    "Screenshots were visually inspected in the in-app browser but are not stored in the repository.",
+    "Browser automation verified visible focus and native controls; exhaustive assistive-technology testing remains outside Phase 6."
+  ]
+}

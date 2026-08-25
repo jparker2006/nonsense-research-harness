@@ -237,6 +237,7 @@ export async function webSearch(
     liveAuthorized?: boolean;
     fetchImpl?: typeof fetch;
     now?: () => Date;
+    signal?: AbortSignal;
   } = {},
 ): Promise<WebSearchResult> {
   const retrievedAt = (options.now?.() ?? new Date()).toISOString();
@@ -285,7 +286,7 @@ export async function webSearch(
         "content-type": "application/json",
       },
       body: JSON.stringify(buildWebSearchRequest(validated)),
-      signal: controller.signal,
+      signal: options.signal ? AbortSignal.any([controller.signal, options.signal]) : controller.signal,
     });
     const stream = await parseWebSearchStream(response);
     observedReceipt = stream.receipt;
@@ -331,7 +332,9 @@ export async function webSearch(
       receipt: stream.receipt,
     };
   } catch (error) {
-    const code = controller.signal.aborted
+    const code = options.signal?.aborted
+      ? "stopped"
+      : controller.signal.aborted
       ? "timeout"
       : error instanceof SearchProviderHttpError
         ? "provider_http_error"

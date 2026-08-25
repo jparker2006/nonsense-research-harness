@@ -1,0 +1,55 @@
+{
+  "schema_version": "1.0",
+  "phase": "6.5",
+  "status": "failed",
+  "gate_passed": false,
+  "source_report": "reports/phase-6-live.json",
+  "source_report_sha256": "73f1c3b558bcf50c46468d53bb9cf02b9e6ba5ae7264346a77df7f1818a21ea3",
+  "browser_terminal_state": "failed",
+  "browser_summary": "Run failed safely",
+  "artifact_rendered": false,
+  "safe_event_sequence": [
+    { "id": "evt_001", "kind": "run", "status": "running", "label": "Research run started", "detail": "mode: headlines" },
+    { "id": "evt_002", "kind": "tool", "tool": "read_url", "status": "running", "label": "Tool started", "detail": "Reading supplied source" },
+    { "id": "evt_003", "kind": "tool", "tool": "read_url", "status": "unavailable", "label": "Tool unavailable", "detail": "source id: web_372ffbd683912aac2d46 · availability: unavailable" },
+    { "id": "evt_004", "kind": "tool", "tool": "web_search", "status": "running", "label": "Tool started", "detail": "query: site:science.nasa.gov/earth/earth-observatory/lake-bonneville-a-lake-that-was/ Lake Bonneville shorelines" },
+    { "id": "evt_005", "kind": "tool", "tool": "web_search", "status": "unavailable", "label": "Tool unavailable", "detail": "result count: 0 · search status: unavailable" },
+    { "id": "evt_006", "kind": "tool", "tool": "search_transcripts", "status": "running", "label": "Tool started", "detail": "query: Lake Bonneville shorelines Bonneville Flood" },
+    { "id": "evt_007", "kind": "tool", "tool": "search_transcripts", "status": "complete", "label": "Tool completed", "detail": "result count: 0 · retrieval status: no_match" },
+    { "id": "evt_008", "kind": "run", "status": "failed", "label": "Research run failed safely", "detail": "No usable evidence was collected" }
+  ],
+  "receipt": {
+    "provider_requests_upper_bound": 4,
+    "automatic_retries": 0,
+    "reported_and_accounted_cost_usd": 0.0204924,
+    "elapsed_ms": 36374.58,
+    "luna_turns": 1,
+    "grok_turns": 0,
+    "web_searches": 1,
+    "url_reads": 1,
+    "transcript_searches": 1,
+    "transcript_opens": 0,
+    "repairs": 0
+  },
+  "browser": {
+    "route_streamed": true,
+    "stop_control_visible_while_running": true,
+    "terminal_state_visible_without_logs": true,
+    "console_errors": 0,
+    "console_warnings": 0
+  },
+  "diagnosis": {
+    "primary_code": "phase6_wrong_frozen_case",
+    "submitted_url": "https://science.nasa.gov/earth/earth-observatory/lake-bonneville-a-lake-that-was/",
+    "authoritative_phase5_url": "https://science.nasa.gov/earth/earth-observatory/what-lake-bonneville-left-behind/",
+    "direct_read_failure": "http_unavailable",
+    "web_search_result": "unavailable",
+    "archive_result": "no_match",
+    "terminal_error": "evidence:no_usable_sources"
+  },
+  "authority": {
+    "replacement_run_authorized": false,
+    "second_attempt_executed": false,
+    "live_ui_locked_after_attempt": true
+  }
+}

@@ -15,7 +15,7 @@ import {
 export const PHASE_5_LIVE_CALLS_DISABLED = true;
 export const PHASE_5_MODEL_REQUEST_TIMEOUT_MS = 120_000;
 
-export type Phase5ModelCallOptions = { timeoutMs?: number };
+export type Phase5ModelCallOptions = { timeoutMs?: number; signal?: AbortSignal };
 
 export type Phase5ModelReceipt = {
   model: string;
@@ -144,6 +144,7 @@ async function runStructured(options: {
   schemaName: string;
   maxTokens: number;
   timeoutMs?: number;
+  signal?: AbortSignal;
   testOnlyLockedBypass: boolean;
 }): Promise<Phase5ModelResult<unknown>> {
   if (!options.apiKey.trim()) throw new Error("phase5_missing_key");
@@ -161,9 +162,14 @@ async function runStructured(options: {
         "x-title": "Nonsense Research Harness Phase 5",
       },
       body: JSON.stringify(request),
-      signal: AbortSignal.timeout(
-        Math.max(1, Math.min(options.timeoutMs ?? PHASE_5_MODEL_REQUEST_TIMEOUT_MS, PHASE_5_MODEL_REQUEST_TIMEOUT_MS)),
-      ),
+      signal: options.signal
+        ? AbortSignal.any([
+            options.signal,
+            AbortSignal.timeout(Math.max(1, Math.min(options.timeoutMs ?? PHASE_5_MODEL_REQUEST_TIMEOUT_MS, PHASE_5_MODEL_REQUEST_TIMEOUT_MS))),
+          ])
+        : AbortSignal.timeout(
+            Math.max(1, Math.min(options.timeoutMs ?? PHASE_5_MODEL_REQUEST_TIMEOUT_MS, PHASE_5_MODEL_REQUEST_TIMEOUT_MS)),
+          ),
     });
     const result = await readOpenRouterStream(response, startedAt);
     const expected = PHASE_5_MODELS[options.tier].id;
@@ -204,6 +210,7 @@ async function runStructured(options: {
       },
     };
   } catch (error) {
+    if (options.signal?.aborted) throw new Error("phase5_run_stopped");
     if (error instanceof Error && error.message.startsWith("phase5_")) throw error;
     throw new Error(error instanceof DOMException && error.name === "TimeoutError" ? "phase5_model_timeout" : "phase5_model_unavailable");
   }
@@ -213,11 +220,17 @@ export function createOpenRouterPhase5Model(options: {
   apiKey?: string;
   liveAuthorized?: boolean;
   fetchImpl?: typeof fetch;
+  phase6LiveProof?: boolean;
 }): Phase5ModelAdapter {
   const apiKey = options.apiKey?.trim() ?? "";
   const liveAuthorized = options.liveAuthorized === true;
   const fetchImpl = options.fetchImpl ?? fetch;
-  const testOnlyLockedBypass = process.env.NODE_ENV === "test" && options.fetchImpl !== undefined;
+  const testOnlyLockedBypass =
+    (process.env.NODE_ENV === "test" && options.fetchImpl !== undefined) ||
+    (options.phase6LiveProof === true &&
+      process.env.NODE_ENV !== "production" &&
+      process.env.PHASE6_EXECUTE_LIVE === "approved" &&
+      process.env.PHASE6_LIVE_PROOF === "approved");
   return {
     async plan(input, callOptions) {
       const result = await runStructured({
@@ -229,6 +242,7 @@ export function createOpenRouterPhase5Model(options: {
         schemaName: "phase5_research_plan",
         maxTokens: PHASE_5_LIMITS.lunaMaxOutputTokens,
         timeoutMs: callOptions?.timeoutMs,
+        signal: callOptions?.signal,
         testOnlyLockedBypass,
         prompt: `Plan research for one podcast preparation packet. Return one or two precise current-web queries and one or two concise transcript-archive queries. Prefer exact names, claims, dates, and domains from the input. Archive queries must contain only content/topic terms; omit the show name and generic words such as podcast or transcript. The two hosts are equal; do not choose a host or invent dialogue.\n\nINPUT:\n${JSON.stringify(input)}`,
       });
@@ -249,6 +263,7 @@ export function createOpenRouterPhase5Model(options: {
         schemaName: `phase5_${input.mode}_artifact`,
         maxTokens: PHASE_5_LIMITS.grokMaxOutputTokens,
         timeoutMs: callOptions?.timeoutMs,
+        signal: callOptions?.signal,
         testOnlyLockedBypass,
         prompt: `${artifactInstructions(input.mode)}\n\nINPUT:\n${JSON.stringify(input)}\n\nRESEARCH PLAN:\n${JSON.stringify(plan)}\n\nEVIDENCE:\n${evidenceForPrompt(evidence)}`,
       });
@@ -264,6 +279,7 @@ export function createOpenRouterPhase5Model(options: {
         schemaName: `phase5_${input.mode}_artifact_repair`,
         maxTokens: PHASE_5_LIMITS.grokMaxOutputTokens,
         timeoutMs: callOptions?.timeoutMs,
+        signal: callOptions?.signal,
         testOnlyLockedBypass,
         prompt: `${artifactInstructions(input.mode)} Repair the parseable artifact exactly once using the validation errors. Do not add evidence or IDs.\n\nINPUT:\n${JSON.stringify(input)}\n\nPLAN:\n${JSON.stringify(plan)}\n\nEVIDENCE:\n${evidenceForPrompt(evidence)}\n\nINVALID ARTIFACT:\n${JSON.stringify(artifact)}\n\nVALIDATION ERRORS:\n${JSON.stringify(validationErrors)}`,
       });

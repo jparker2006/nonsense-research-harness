@@ -11,17 +11,18 @@ import type { Phase5ToolAdapter } from "./workflow.ts";
 export function createLivePhase5Tools(options: {
   apiKey?: string;
   liveAuthorized?: boolean;
+  signal?: AbortSignal;
 }): Phase5ToolAdapter {
   const apiKey = options.apiKey?.trim() ?? "";
   const liveAuthorized = options.liveAuthorized === true;
   let activeReceipts: ProviderReceipt[] = [];
   const provider = apiKey && liveAuthorized
-    ? createOpenRouterTranscriptProvider(apiKey, (receipt) => activeReceipts.push(receipt))
+    ? createOpenRouterTranscriptProvider(apiKey, (receipt) => activeReceipts.push(receipt), options.signal)
     : undefined;
   const transcripts = new TranscriptRetrievalService({ provider });
   return {
     webSearch(input) {
-      return webSearch(input, { apiKey, liveAuthorized });
+      return webSearch(input, { apiKey, liveAuthorized, signal: options.signal });
     },
     readUrl(input) {
       if (!liveAuthorized) {
@@ -35,7 +36,7 @@ export function createLivePhase5Tools(options: {
           }),
         );
       }
-      return readUrl(input);
+      return readUrl(input, { signal: options.signal });
     },
     async searchTranscripts(input) {
       activeReceipts = [];

@@ -19,15 +19,16 @@ export type TranscriptProvider = {
 export function createOpenRouterTranscriptProvider(
   apiKey: string,
   onReceipt?: (receipt: ProviderReceipt) => void,
+  signal?: AbortSignal,
 ): TranscriptProvider {
   return {
     async embedQuery(query) {
-      const result = await embedTexts(apiKey, [query]);
+      const result = await embedTexts(apiKey, [query], fetch, signal);
       onReceipt?.(result.receipt);
       return result.vectors[0] ?? [];
     },
     async rerank(query, documents) {
-      const result = await rerankDocuments(apiKey, query, documents, documents.length);
+      const result = await rerankDocuments(apiKey, query, documents, documents.length, fetch, signal);
       onReceipt?.(result.receipt);
       return result.results;
     },

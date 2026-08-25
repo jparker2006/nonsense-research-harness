@@ -1,0 +1,210 @@
+{
+  "schema_version": "1.0",
+  "phase": "6.5",
+  "route_started_at": "2026-08-25T01:59:58.418Z",
+  "completed_at": "2026-08-25T02:00:34.944Z",
+  "gate": {
+    "cost_cap_usd": 0.5,
+    "provider_request_cap": 6,
+    "automatic_retries": 0
+  },
+  "observed_provider_requests_upper_bound": 4,
+  "result": {
+    "run_id": "run_1f740e1d-75f2-47f6-b323-b0b04bf59066",
+    "status": "failed",
+    "input": {
+      "mode": "headlines",
+      "topic": "Lake Bonneville: the vanished lake whose shorelines still mark the mountains",
+      "links": [
+        "https://science.nasa.gov/earth/earth-observatory/lake-bonneville-a-lake-that-was/"
+      ],
+      "notes": "Find the cleanest version of the story, the argument, and what to cut if time is tight.",
+      "target_minutes": 8
+    },
+    "plan": {
+      "web_queries": [
+        "site:science.nasa.gov/earth/earth-observatory/lake-bonneville-a-lake-that-was/ \"Lake Bonneville\" shorelines",
+        "\"Lake Bonneville\" \"Bonneville Flood\" shoreline dates Utah geology"
+      ],
+      "archive_queries": [
+        "Lake Bonneville shorelines Bonneville Flood",
+        "Lake Bonneville Ice Age Utah"
+      ]
+    },
+    "artifact": null,
+    "evidence": [
+      {
+        "source_id": "web_372ffbd683912aac2d46",
+        "source_type": "provided_link",
+        "availability": "unavailable",
+        "evidence_usable": false,
+        "title": null,
+        "url": "https://science.nasa.gov/earth/earth-observatory/lake-bonneville-a-lake-that-was/",
+        "retrieved_at": "2026-08-25T02:00:06.009Z",
+        "excerpt": null,
+        "failure_code": "http_unavailable"
+      }
+    ],
+    "validation_errors": [
+      "evidence:no_usable_sources"
+    ],
+    "events": [
+      {
+        "event_id": "evt_001",
+        "run_id": "run_1f740e1d-75f2-47f6-b323-b0b04bf59066",
+        "type": "run_started",
+        "created_at": "2026-08-25T01:59:58.567Z",
+        "summary": "Research run started",
+        "status": "running",
+        "detail": {
+          "mode": "headlines"
+        }
+      },
+      {
+        "event_id": "evt_002",
+        "run_id": "run_1f740e1d-75f2-47f6-b323-b0b04bf59066",
+        "type": "tool_started",
+        "created_at": "2026-08-25T02:00:06.008Z",
+        "summary": "Reading supplied source",
+        "tool": "read_url",
+        "status": "running",
+        "detail": {
+          "url": "https://science.nasa.gov/earth/earth-observatory/lake-bonneville-a-lake-that-was/"
+        }
+      },
+      {
+        "event_id": "evt_003",
+        "run_id": "run_1f740e1d-75f2-47f6-b323-b0b04bf59066",
+        "type": "tool_failed",
+        "created_at": "2026-08-25T02:00:07.010Z",
+        "summary": "Source could not be used as evidence",
+        "tool": "read_url",
+        "status": "failed",
+        "detail": {
+          "source_id": "web_372ffbd683912aac2d46",
+          "availability": "unavailable"
+        }
+      },
+      {
+        "event_id": "evt_004",
+        "run_id": "run_1f740e1d-75f2-47f6-b323-b0b04bf59066",
+        "type": "tool_started",
+        "created_at": "2026-08-25T02:00:07.010Z",
+        "summary": "Searching the current web",
+        "tool": "web_search",
+        "status": "running",
+        "detail": {
+          "query": "site:science.nasa.gov/earth/earth-observatory/lake-bonneville-a-lake-that-was/ \"Lake Bonneville\" shorelines"
+        }
+      },
+      {
+        "event_id": "evt_005",
+        "run_id": "run_1f740e1d-75f2-47f6-b323-b0b04bf59066",
+        "type": "tool_failed",
+        "created_at": "2026-08-25T02:00:29.962Z",
+        "summary": "Current search returned no usable candidates",
+        "tool": "web_search",
+        "status": "failed",
+        "detail": {
+          "query": "site:science.nasa.gov/earth/earth-observatory/lake-bonneville-a-lake-that-was/ \"Lake Bonneville\" shorelines",
+          "result_count": 0,
+          "search_status": "unavailable"
+        }
+      },
+      {
+        "event_id": "evt_006",
+        "run_id": "run_1f740e1d-75f2-47f6-b323-b0b04bf59066",
+        "type": "tool_started",
+        "created_at": "2026-08-25T02:00:29.963Z",
+        "summary": "Searching prior Nonsense coverage",
+        "tool": "search_transcripts",
+        "status": "running",
+        "detail": {
+          "query": "Lake Bonneville shorelines Bonneville Flood"
+        }
+      },
+      {
+        "event_id": "evt_007",
+        "run_id": "run_1f740e1d-75f2-47f6-b323-b0b04bf59066",
+        "type": "tool_completed",
+        "created_at": "2026-08-25T02:00:34.934Z",
+        "summary": "Archive search completed",
+        "tool": "search_transcripts",
+        "status": "complete",
+        "detail": {
+          "query": "Lake Bonneville shorelines Bonneville Flood",
+          "result_count": 0,
+          "retrieval_status": "no_match"
+        }
+      },
+      {
+        "event_id": "evt_008",
+        "run_id": "run_1f740e1d-75f2-47f6-b323-b0b04bf59066",
+        "type": "run_failed",
+        "created_at": "2026-08-25T02:00:34.940Z",
+        "summary": "No usable evidence was collected",
+        "status": "failed"
+      }
+    ],
+    "usage": [
+      {
+        "action": "luna_research_plan",
+        "model": "openai/gpt-5.6-luna",
+        "provider": "OpenAI",
+        "prompt_tokens": 211,
+        "completion_tokens": 602,
+        "total_tokens": 813,
+        "reported_cost_usd": 0.0007646,
+        "accounted_cost_usd": 0.0007646,
+        "receipt_missing": false,
+        "generation_id": "gen-1787623198-KgDuHaJ5aABxPlpn9uTy",
+        "finish_reason": "stop",
+        "response_characters": 298,
+        "output_status": "parsed",
+        "reasoning_tokens": 516
+      },
+      {
+        "action": "web_search",
+        "model": "x-ai/grok-4.6",
+        "provider": "xAI",
+        "prompt_tokens": 4740,
+        "completion_tokens": 1077,
+        "total_tokens": 5817,
+        "reported_cost_usd": 0.017486,
+        "accounted_cost_usd": 0.017486,
+        "receipt_missing": false
+      },
+      {
+        "action": "transcript_search",
+        "model": "text-embedding-3-small",
+        "provider": "Azure",
+        "prompt_tokens": 10,
+        "total_tokens": 10,
+        "reported_cost_usd": 2e-7,
+        "accounted_cost_usd": 2e-7,
+        "receipt_missing": false
+      },
+      {
+        "action": "transcript_search",
+        "model": "accounts/fireworks/models/qwen3-reranker-8b",
+        "provider": "Fireworks",
+        "total_tokens": 11208,
+        "reported_cost_usd": 0.0022416,
+        "accounted_cost_usd": 0.0022416,
+        "receipt_missing": false
+      }
+    ],
+    "counts": {
+      "luna_turns": 1,
+      "grok_turns": 0,
+      "web_searches": 1,
+      "url_reads": 1,
+      "transcript_searches": 1,
+      "transcript_opens": 0,
+      "repairs": 0
+    },
+    "repair_attempted": false,
+    "elapsed_ms": 36374.58,
+    "accounted_cost_usd": 0.0204924
+  }
+}

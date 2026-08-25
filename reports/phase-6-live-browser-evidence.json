@@ -1,0 +1,78 @@
+{
+  "schema_version": "1.0",
+  "phase": "6.5",
+  "attempt": "authorized_replacement",
+  "status": "passed",
+  "gate_passed": true,
+  "source_report": "reports/phase-6-live.json",
+  "source_report_sha256": "31dcd6576ccb9f8552d4fc890b7909f081dcd065637e1ab82601884890bdc540",
+  "browser_terminal_state": "complete",
+  "browser_summary": "Preparation packet ready",
+  "artifact_rendered": true,
+  "artifact_title": "What Lake Bonneville left behind: NASA’s Aug. 24 shorelines image",
+  "safe_event_sequence": [
+    { "id": "evt_001", "kind": "run", "status": "running", "label": "Research run started", "detail": "mode: headlines" },
+    { "id": "evt_002", "kind": "tool", "tool": "read_url", "status": "running", "label": "Tool started", "detail": "Reading supplied source" },
+    { "id": "evt_003", "kind": "tool", "tool": "read_url", "status": "complete", "label": "Tool completed", "detail": "source id: web_0f75b14faed2914ffab6 · availability: complete" },
+    { "id": "evt_004", "kind": "tool", "tool": "web_search", "status": "running", "label": "Tool started", "detail": "query: site:science.nasa.gov/earth/earth-observatory/ What Lake Bonneville Left Behind August 24, 2026" },
+    { "id": "evt_005", "kind": "tool", "tool": "web_search", "status": "complete", "label": "Tool completed", "detail": "result count: 1 · search status: complete" },
+    { "id": "evt_006", "kind": "tool", "tool": "search_transcripts", "status": "running", "label": "Tool started", "detail": "query: Lake Bonneville ancient shorelines" },
+    { "id": "evt_007", "kind": "tool", "tool": "search_transcripts", "status": "complete", "label": "Tool completed", "detail": "result count: 0 · retrieval status: no_match" },
+    { "id": "evt_008", "kind": "composition", "status": "running", "label": "Writing the preparation packet", "detail": "Composing the preparation artifact" },
+    { "id": "evt_009", "kind": "validation", "status": "running", "label": "Checking the artifact", "detail": "Validating artifact evidence and structure" },
+    { "id": "evt_010", "kind": "artifact", "status": "complete", "label": "Preparation packet ready", "detail": "source count: 1" },
+    { "id": "evt_011", "kind": "run", "status": "complete", "label": "Research run finished", "detail": "Research run completed" }
+  ],
+  "receipt": {
+    "provider_requests_upper_bound": 5,
+    "automatic_retries": 0,
+    "reported_and_accounted_cost_usd": 0.05391264,
+    "elapsed_ms": 98139.81,
+    "luna_turns": 1,
+    "grok_turns": 1,
+    "web_searches": 1,
+    "url_reads": 1,
+    "transcript_searches": 1,
+    "transcript_opens": 0,
+    "repairs": 0
+  },
+  "artifact": {
+    "mode": "headlines",
+    "schema_valid": true,
+    "deterministic_validation_errors": [],
+    "source_count": 1,
+    "source_ids": ["web_0f75b14faed2914ffab6"],
+    "archive_status": "no_relevant_archive_match",
+    "target_minutes": 8,
+    "outline_minutes": 8
+  },
+  "browser": {
+    "route_streamed": true,
+    "stop_control_visible_while_running": true,
+    "terminal_state_visible_without_logs": true,
+    "artifact_visible_without_logs": true,
+    "source_ledger_visible": true,
+    "follow_up_control_visible": true,
+    "console_errors": 0,
+    "console_warnings": 0
+  },
+  "viewport_evidence": {
+    "live_dom_snapshot": "passed",
+    "fixture_matrix": "reports/phase-6-browser-fixture.json",
+    "fixture_viewports": ["1440x900", "1024x768", "390x844"],
+    "fixture_horizontal_overflow": false,
+    "limitation": "The live artifact was inspected through the browser DOM snapshot. The stopped local server prevented a post-run screenshot and exact live viewport read; the same production component has separate three-viewport fixture evidence."
+  },
+  "authority": {
+    "replacement_run_authorized": true,
+    "replacement_attempts_executed": 1,
+    "additional_attempts_authorized": 0,
+    "live_ui_locked_after_attempt": true,
+    "phase5_model_locked_after_attempt": true
+  },
+  "limitations": [
+    "Only the supplied NASA article survived into the validated source ledger; the current-web search corroborated discovery but did not add a second independent source.",
+    "The S3–4 archive returned no relevant match, so no past-show excerpt appears and no speaker attribution was invented.",
+    "This proves the bounded Headlines path through the real browser route; Big Story remains covered by deterministic fixtures and the completed Phase 5.1 proof, not a new Phase 6 paid run."
+  ]
+}

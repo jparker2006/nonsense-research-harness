@@ -33,6 +33,7 @@ type ReadUrlDependencies = {
   resolver?: DnsResolver;
   fetchExecutor?: SafeFetchExecutor;
   now?: () => Date;
+  signal?: AbortSignal;
 };
 
 function responseContentType(response: SafeHttpResponse): string | null {
@@ -151,7 +152,11 @@ export async function readUrl(
       pinned.set(parsed.hostname.toLowerCase(), answers);
 
       httpRequests += 1;
-      const response = await execute(parsed, controller.signal);
+      if (dependencies.signal?.aborted) throw new Error("phase5_run_stopped");
+      const response = await execute(
+        parsed,
+        dependencies.signal ? AbortSignal.any([controller.signal, dependencies.signal]) : controller.signal,
+      );
       const contentType = responseContentType(response);
       lastReceipt = {
         http_status: response.status,
@@ -233,6 +238,7 @@ export async function readUrl(
       typeof error === "object" && error !== null && "code" in error
         ? String((error as { code?: unknown }).code ?? "")
         : "";
+    if (dependencies.signal?.aborted) throw new Error("phase5_run_stopped");
     const timedOut =
       controller.signal.aborted ||
       ["UND_ERR_CONNECT_TIMEOUT", "UND_ERR_HEADERS_TIMEOUT", "UND_ERR_BODY_TIMEOUT"].includes(errorCode) ||

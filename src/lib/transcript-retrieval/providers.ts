@@ -116,11 +116,12 @@ function assertLiveAuthority(apiKey: string) {
   }
   if (
     process.env.PHASE3_EXECUTE_LIVE !== "approved" &&
-    process.env.PHASE5_EXECUTE_LIVE !== "approved"
+    process.env.PHASE5_EXECUTE_LIVE !== "approved" &&
+    process.env.PHASE6_EXECUTE_LIVE !== "approved"
   ) {
     throw new Phase3ProviderError(
       "policy",
-      "Explicit live authority is required: PHASE3_EXECUTE_LIVE=approved or PHASE5_EXECUTE_LIVE=approved. No request was sent.",
+      "Explicit live authority is required: PHASE3_EXECUTE_LIVE=approved, PHASE5_EXECUTE_LIVE=approved, or PHASE6_EXECUTE_LIVE=approved. No request was sent.",
     );
   }
 }
@@ -130,6 +131,7 @@ async function requestJson(
   apiKey: string,
   body: Record<string, unknown>,
   fetchImplementation: typeof fetch,
+  signal?: AbortSignal,
 ): Promise<{ payload: Record<string, unknown>; latencyMs: number }> {
   assertLiveAuthority(apiKey);
   const startedAt = performance.now();
@@ -143,7 +145,9 @@ async function requestJson(
         "X-Title": "Nonsense Research Harness Phase 3",
       },
       body: JSON.stringify(body),
-      signal: AbortSignal.timeout(PHASE_3_PROVIDER_LIMITS.requestTimeoutMs),
+      signal: signal
+        ? AbortSignal.any([signal, AbortSignal.timeout(PHASE_3_PROVIDER_LIMITS.requestTimeoutMs)])
+        : AbortSignal.timeout(PHASE_3_PROVIDER_LIMITS.requestTimeoutMs),
     });
   } catch (error) {
     const timeout = error instanceof Error && error.name === "TimeoutError";
@@ -200,6 +204,7 @@ export async function embedTexts(
   apiKey: string,
   inputs: string[],
   fetchImplementation: typeof fetch = fetch,
+  signal?: AbortSignal,
 ): Promise<EmbeddingBatchResult> {
   if (inputs.length < 1 || inputs.length > PHASE_3_PROVIDER_LIMITS.embedding.maxInputs) {
     throw new Phase3ProviderError(
@@ -221,6 +226,7 @@ export async function embedTexts(
       provider: providerPolicy(config.provider, config.pricePerMillionTokens),
     },
     fetchImplementation,
+    signal,
   );
   const data = Array.isArray(payload.data) ? payload.data : [];
   if (data.length !== inputs.length) {
@@ -252,6 +258,7 @@ export async function rerankDocuments(
   documents: string[],
   topN = documents.length,
   fetchImplementation: typeof fetch = fetch,
+  signal?: AbortSignal,
 ): Promise<RerankBatchResult> {
   const config = PHASE_3_PROVIDER_LIMITS.rerank;
   if (!query.trim()) throw new Phase3ProviderError("configuration", "Rerank query must be non-empty.");
@@ -275,6 +282,7 @@ export async function rerankDocuments(
       provider: providerPolicy(config.provider, config.pricePerMillionTokens),
     },
     fetchImplementation,
+    signal,
   );
   const rawResults = Array.isArray(payload.results) ? payload.results : [];
   const results = rawResults.map((raw) => {

@@ -53,11 +53,13 @@ export type Phase5WorkflowDependencies = {
   tools: Phase5ToolAdapter;
   now?: () => Date;
   clockMs?: () => number;
+  signal?: AbortSignal;
+  onEvent?: (event: Phase5ActivityEvent) => void;
 };
 
 const internalStateSchema = z.object({
   run_id: z.string(),
-  status: z.enum(["running", "complete", "partial", "failed"]),
+  status: z.enum(["running", "complete", "partial", "stopped", "failed"]),
   input: phase5InputSchema,
   plan: researchPlanSchema.nullable(),
   raw_artifact: z.unknown().nullable(),
@@ -113,6 +115,7 @@ function elapsed(state: InternalState, deps: Phase5WorkflowDependencies): number
 }
 
 function assertTime(state: InternalState, deps: Phase5WorkflowDependencies) {
+  if (deps.signal?.aborted) throw new Error("phase5_run_stopped");
   if (elapsed(state, deps) > PHASE_5_LIMITS.wholeRunTimeoutMs) throw new Error("phase5_run_timeout");
 }
 
@@ -125,6 +128,10 @@ function remainingTime(state: InternalState, deps: Phase5WorkflowDependencies): 
 function safeFailureCode(error: unknown, fallback: string): string {
   const message = error instanceof Error ? error.message : "";
   return /^phase5_[a-z0-9_]+$/.test(message) ? message : fallback;
+}
+
+function stopped(error: unknown): boolean {
+  return error instanceof Error && error.message === "phase5_run_stopped";
 }
 
 function failState(
@@ -140,6 +147,14 @@ function failState(
   }
 }
 
+function stopState(state: InternalState, deps: Phase5WorkflowDependencies) {
+  state.status = "stopped";
+  if (!state.validation_errors.includes("phase5_run_stopped")) state.validation_errors.push("phase5_run_stopped");
+  if (!state.events.some((item) => item.type === "run_stopped")) {
+    event(state, deps, "run_stopped", "Research run stopped by the user", { status: "stopped" });
+  }
+}
+
 function event(
   state: InternalState,
   deps: Phase5WorkflowDependencies,
@@ -147,7 +162,7 @@ function event(
   summary: string,
   options: Pick<Phase5ActivityEvent, "tool" | "status" | "detail"> = {},
 ) {
-  state.events.push({
+  const next = phase5ActivityEventSchema.parse({
     event_id: `evt_${String(state.events.length + 1).padStart(3, "0")}`,
     run_id: state.run_id,
     type,
@@ -155,6 +170,8 @@ function event(
     summary: summary.slice(0, 300),
     ...options,
   });
+  state.events.push(next);
+  deps.onEvent?.(next);
 }
 
 function reserve(state: InternalState, amount: number) {
@@ -321,10 +338,18 @@ async function readOne(
       {
         tool: "read_url",
         status: page.evidence_usable ? "complete" : "failed",
-        detail: { source_id: page.source_id, availability: page.availability },
+        detail: {
+          source_id: page.source_id,
+          availability: page.availability,
+          ...(page.failure?.code ? { code: page.failure.code } : {}),
+        },
       },
     );
   } catch (error) {
+    if (stopped(error)) {
+      stopState(state, deps);
+      return;
+    }
     const code = safeFailureCode(error, "read_unavailable");
     upsertEvidence(
       state,
@@ -356,16 +381,19 @@ async function research(state: InternalState, deps: Phase5WorkflowDependencies):
   try {
     assertTime(state, deps);
   } catch (error) {
-    state.status = "failed";
-    state.validation_errors = [error instanceof Error ? error.message : "phase5_run_timeout"];
-    event(state, deps, "run_failed", "Research run exceeded its time boundary", { status: "failed" });
+    if (stopped(error)) stopState(state, deps);
+    else {
+      state.status = "failed";
+      state.validation_errors = [error instanceof Error ? error.message : "phase5_run_timeout"];
+      event(state, deps, "run_failed", "Research run exceeded its time boundary", { status: "failed" });
+    }
     return state;
   }
   reserve(state, RESERVATIONS.luna);
   increment(state, "luna_turns", PHASE_5_LIMITS.maxLunaTurns);
   let planResult;
   try {
-    planResult = await deps.model.plan(state.input, { timeoutMs: remainingTime(state, deps) });
+    planResult = await deps.model.plan(state.input, { timeoutMs: remainingTime(state, deps), signal: deps.signal });
     modelUsage(state, "luna_research_plan", RESERVATIONS.luna, planResult.receipt);
     const outputFailure = phase5ModelOutputFailure(planResult.output_status);
     if (outputFailure) throw new Error(outputFailure);
@@ -376,24 +404,27 @@ async function research(state: InternalState, deps: Phase5WorkflowDependencies):
     });
   } catch (error) {
     if (!planResult) modelUsage(state, "luna_research_plan", RESERVATIONS.luna);
-    state.status = "failed";
-    state.validation_errors = [safeFailureCode(error, planResult ? "phase5_planner_invalid" : "phase5_planner_failed")];
-    event(state, deps, "run_failed", "Research planning failed safely", { status: "failed" });
+    if (stopped(error)) stopState(state, deps);
+    else {
+      state.status = "failed";
+      state.validation_errors = [safeFailureCode(error, planResult ? "phase5_planner_invalid" : "phase5_planner_failed")];
+      event(state, deps, "run_failed", "Research planning failed safely", { status: "failed" });
+    }
     return state;
   }
 
   for (const url of state.input.links) {
     if (state.counts.url_reads >= PHASE_5_LIMITS.maxUrlReads) break;
     await readOne(state, deps, url, "provided_link");
-    if (state.status === "failed") return state;
+    if (["failed", "stopped"].includes(state.status)) return state;
   }
 
   const webQueries = state.plan.web_queries.slice(0, state.input.mode === "big_story" ? 2 : 1);
   for (const query of webQueries) {
     if (state.counts.web_searches >= PHASE_5_LIMITS.maxWebSearches) break;
-    assertTime(state, deps);
     let usageRecorded = false;
     try {
+      assertTime(state, deps);
       reserve(state, RESERVATIONS.webSearch);
       increment(state, "web_searches", PHASE_5_LIMITS.maxWebSearches);
       event(state, deps, "tool_started", "Searching the current web", {
@@ -420,7 +451,12 @@ async function research(state: InternalState, deps: Phase5WorkflowDependencies):
         {
           tool: "web_search",
           status: ["complete", "partial"].includes(search.status) ? "complete" : "failed",
-          detail: { query, result_count: search.sources.length, search_status: search.status },
+          detail: {
+            query,
+            result_count: search.sources.length,
+            search_status: search.status,
+            ...(search.failure?.code ? { code: search.failure.code } : {}),
+          },
         },
       );
       for (const candidate of search.sources) {
@@ -429,6 +465,10 @@ async function research(state: InternalState, deps: Phase5WorkflowDependencies):
         await readOne(state, deps, candidate.url, "web");
       }
     } catch (error) {
+      if (stopped(error)) {
+        stopState(state, deps);
+        return state;
+      }
       const code = safeFailureCode(error, "web_search_unavailable");
       if (!usageRecorded && state.counts.web_searches > 0) addUsage(state, "web_search", RESERVATIONS.webSearch);
       event(state, deps, "tool_failed", "Current search failed safely", {
@@ -454,9 +494,9 @@ async function research(state: InternalState, deps: Phase5WorkflowDependencies):
   const maximumOpensPerArchiveQuery = state.input.mode === "big_story" ? 2 : PHASE_5_LIMITS.maxTranscriptOpens;
   for (const query of archiveQueries) {
     if (state.counts.transcript_searches >= PHASE_5_LIMITS.maxTranscriptSearches) break;
-    assertTime(state, deps);
     let usageRecorded = false;
     try {
+      assertTime(state, deps);
       reserve(state, RESERVATIONS.transcriptSearch);
       increment(state, "transcript_searches", PHASE_5_LIMITS.maxTranscriptSearches);
       event(state, deps, "tool_started", "Searching prior Nonsense coverage", {
@@ -513,6 +553,10 @@ async function research(state: InternalState, deps: Phase5WorkflowDependencies):
         }
       }
     } catch (error) {
+      if (stopped(error)) {
+        stopState(state, deps);
+        return state;
+      }
       const code = safeFailureCode(error, "transcript_search_unavailable");
       if (!usageRecorded && state.counts.transcript_searches > 0) {
         addUsage(state, "transcript_search", RESERVATIONS.transcriptSearch);
@@ -536,7 +580,7 @@ async function research(state: InternalState, deps: Phase5WorkflowDependencies):
 }
 
 async function compose(state: InternalState, deps: Phase5WorkflowDependencies): Promise<InternalState> {
-  if (state.status === "failed" || !state.plan) return state;
+  if (["failed", "stopped"].includes(state.status) || !state.plan) return state;
   if (!state.evidence.some((source) => source.evidence_usable)) {
     state.status = "failed";
     state.validation_errors.push("evidence:no_usable_sources");
@@ -552,6 +596,7 @@ async function compose(state: InternalState, deps: Phase5WorkflowDependencies): 
     event(state, deps, "composition_started", "Composing the preparation artifact", { status: "running" });
     const result = await deps.model.compose(state.input, state.plan, state.evidence, {
       timeoutMs: remainingTime(state, deps),
+      signal: deps.signal,
     });
     modelUsage(state, "grok_composition", RESERVATIONS.grok, result.receipt);
     const outputFailure = phase5ModelOutputFailure(result.output_status);
@@ -565,15 +610,18 @@ async function compose(state: InternalState, deps: Phase5WorkflowDependencies): 
     if (callStarted && !state.usage.some((item) => item.action === "grok_composition")) {
       modelUsage(state, "grok_composition", RESERVATIONS.grok);
     }
-    state.status = "failed";
-    state.validation_errors = [safeFailureCode(error, "phase5_composition_failed")];
-    event(state, deps, "run_failed", "Artifact composition failed safely", { status: "failed" });
+    if (stopped(error)) stopState(state, deps);
+    else {
+      state.status = "failed";
+      state.validation_errors = [safeFailureCode(error, "phase5_composition_failed")];
+      event(state, deps, "run_failed", "Artifact composition failed safely", { status: "failed" });
+    }
   }
   return state;
 }
 
 async function validateAndRepair(state: InternalState, deps: Phase5WorkflowDependencies): Promise<InternalState> {
-  if (state.status === "failed" || !state.plan) return state;
+  if (["failed", "stopped"].includes(state.status) || !state.plan) return state;
   event(state, deps, "validation_started", "Validating artifact evidence and structure", { status: "running" });
   state.raw_artifact = canonicalizeArtifactSourceLedger(
     hydrateArtifactSourceLedger(state.raw_artifact, state.evidence),
@@ -602,7 +650,7 @@ async function validateAndRepair(state: InternalState, deps: Phase5WorkflowDepen
         state.evidence,
         withoutMachineLedger(state.raw_artifact),
         validation.errors,
-        { timeoutMs: remainingTime(state, deps) },
+        { timeoutMs: remainingTime(state, deps), signal: deps.signal },
       );
       modelUsage(state, "grok_repair", RESERVATIONS.grok, repaired.receipt);
       const outputFailure = phase5ModelOutputFailure(repaired.output_status);
@@ -618,6 +666,10 @@ async function validateAndRepair(state: InternalState, deps: Phase5WorkflowDepen
     } catch (error) {
       if (repairCallStarted && !state.usage.some((item) => item.action === "grok_repair")) {
         modelUsage(state, "grok_repair", RESERVATIONS.grok);
+      }
+      if (stopped(error)) {
+        stopState(state, deps);
+        return state;
       }
       state.validation_errors.push(safeFailureCode(error, "phase5_repair_failed"));
     }

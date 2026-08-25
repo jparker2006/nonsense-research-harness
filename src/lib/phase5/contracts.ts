@@ -179,7 +179,7 @@ export const phase5ActivityEventSchema = z.object({
   created_at: z.string(),
   summary: z.string().min(1).max(300),
   tool: z.enum(["web_search", "read_url", "search_transcripts", "open_transcript_chunk"]).optional(),
-  status: z.enum(["running", "complete", "partial", "failed"]).optional(),
+  status: z.enum(["running", "complete", "partial", "stopped", "failed"]).optional(),
   detail: z.record(z.string(), z.union([z.string(), z.number(), z.boolean(), z.null()])).optional(),
 });
 
@@ -212,7 +212,7 @@ export const phase5CountsSchema = z.object({
 
 export const phase5RunResultSchema = z.object({
   run_id: z.string(),
-  status: z.enum(["complete", "partial", "failed"]),
+  status: z.enum(["complete", "partial", "stopped", "failed"]),
   input: phase5InputSchema,
   plan: researchPlanSchema.nullable(),
   artifact: phase5ArtifactSchema.nullable(),
