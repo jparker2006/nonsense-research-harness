@@ -364,6 +364,18 @@ The frozen scope and evidence are in `docs/PHASE_7A_1_PLAN.md` and `docs/PHASE_7
 - [x] Full supply-chain, lint, typecheck, test, and production-build gate passes on the final tree.
 - [x] No deployment, persistence, authentication, subagent, new model, corpus mutation, or additional paid call was added.
 
+## Phase 7A session and follow-up repair — CODE PASSED; LIVE CONTROLLER FOLLOW-UP OPEN
+
+The exact repair and replacement-browser evidence are in `docs/PHASE_7A_SESSION_REPAIR_RESULT.md` and `reports/phase-7a-session-repair-live.json`.
+
+- [x] Replace the fixed browser session with a fresh cryptographically random ID for each new conversation, stable only until **New research**.
+- [x] Scope normalized query, URL, and transcript-chunk repeat guards to one agent run while retaining bounded prior-turn history as controller context.
+- [x] Permit legitimate later-turn refreshes and rereads without duplicating stored evidence or falsely exhausting the evidence cap.
+- [x] Add regressions for distinct fresh conversations, stable follow-ups, a later-turn repeated web search, a later-turn URL reread, and a normalized duplicate within one run.
+- [x] Pass the full deterministic supply-chain, lint, typecheck, 175-test, and production-build gate.
+- [x] Execute one authorized replacement live browser run with zero retries; the attached UI completed a current web search with five candidates.
+- [ ] Harden and diagnose the separate Luna controller-output validation failure that occurred on the next decision. The replacement run produced no archive search or artifact and is not a successful end-to-end proof.
+
 ## Phase 7B — Durable private workspaces — NOT STARTED
 
 - [ ] Decide whether persistence/auth is worth building only after Phase 8 usefulness testing.

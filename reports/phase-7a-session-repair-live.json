@@ -1,0 +1,42 @@
+{
+  "phase": "7A session and follow-up repair",
+  "date_hst": "2026-08-24",
+  "route": "http://127.0.0.1:3210/",
+  "authorization": {
+    "replacement_browser_runs": 1,
+    "automatic_retries": 0
+  },
+  "prompt": "Find the most significant current U.S. foodborne-illness outbreak or recall. Research it using current web sources, prioritizing the CDC, FDA, and strong original reporting. Search the Season 3–4 Nonsense transcripts for relevant past conversations about food safety, recalls, regulation, or similar incidents. Tell me what is genuinely interesting or arguable, then create an 8-minute Headlines prep packet with citations, conversation questions, and a clock-aware outline.",
+  "browser": {
+    "stream_remained_attached": true,
+    "console_warnings_or_errors": 0,
+    "stale_session_repeat_failure": false
+  },
+  "observed_sequence": [
+    "Research turn started.",
+    "The Luna controller selected current web search.",
+    "Current web search completed with five candidates.",
+    "The Luna controller was asked to choose the next step with five unread candidates available.",
+    "The run failed safely with phase7a_controller_invalid."
+  ],
+  "web_search": {
+    "status": "complete",
+    "query": "current U.S. foodborne illness outbreak recall August 2026 CDC FDA latest strong original reporting",
+    "candidate_count": 5
+  },
+  "terminal": {
+    "status": "failed",
+    "error": "phase7a_controller_invalid",
+    "provider_requests": 3,
+    "accounted_cost_usd": 0.0604,
+    "automatic_retries": 0,
+    "archive_search_completed": false,
+    "artifact_created": false
+  },
+  "limitations": [
+    "The replacement proves the new browser session did not inherit the stale workspace and that the corrected client remained attached to the live stream.",
+    "It does not prove a complete research turn: the second controller response failed strict structured-output validation before source reading, archive search, or artifact creation.",
+    "The controller adapter currently maps JSON parsing, transport-schema validation, and action-specific conversion failures to the same phase7a_controller_invalid code, so the exact failing layer is unavailable from this run.",
+    "No retry or additional provider request was made after the terminal failure."
+  ]
+}

@@ -15,6 +15,7 @@ import { createOpenRouterPhase7AModel } from "../src/lib/phase7a/model.ts";
 import { PHASE_7A_SYSTEM_PROMPT } from "../src/lib/phase7a/prompts.ts";
 import { clearPhase7AWorkspacesForTest, createPhase7AWorkspace } from "../src/lib/phase7a/session-store.ts";
 import { runPhase7AWorkflow } from "../src/lib/phase7a/workflow.ts";
+import { createPhase7ABrowserSessionId, getOrCreatePhase7ABrowserSessionId } from "../src/lib/phase7a/browser-session.ts";
 import { PHASE_6_FROZEN_HEADLINES_CASE } from "../src/lib/phase6/frozen-case.ts";
 
 const root = resolve(import.meta.dirname, "..");
@@ -63,6 +64,30 @@ function researchActions(mode?: "headlines" | "big_story"): Phase7AAction[] {
 describe("Phase 7A chat-first agent", () => {
   beforeEach(() => clearPhase7AWorkspacesForTest());
   afterEach(() => clearPhase7AWorkspacesForTest());
+
+  it("creates a unique valid session for every new browser conversation", () => {
+    const first = createPhase7ABrowserSessionId(() => "11111111-1111-4111-8111-111111111111");
+    const second = createPhase7ABrowserSessionId(() => "22222222-2222-4222-8222-222222222222");
+    expect(first).not.toBe(second);
+    expect(phase7aRequestSchema.parse({ action: "message", session_id: first, message: "hello" }).session_id).toBe(first);
+    expect(phase7aRequestSchema.parse({ action: "message", session_id: second, message: "hello" }).session_id).toBe(second);
+  });
+
+  it("keeps one session stable until New research clears the conversation holder", () => {
+    const holder: { current: string | null } = { current: null };
+    const ids = [
+      "33333333-3333-4333-8333-333333333333",
+      "44444444-4444-4444-8444-444444444444",
+    ];
+    let index = 0;
+    const create = () => createPhase7ABrowserSessionId(() => ids[index++]!);
+    const first = getOrCreatePhase7ABrowserSessionId(holder, create);
+    expect(getOrCreatePhase7ABrowserSessionId(holder, create)).toBe(first);
+    holder.current = null;
+    const second = getOrCreatePhase7ABrowserSessionId(holder, create);
+    expect(second).not.toBe(first);
+    expect(index).toBe(2);
+  });
 
   it("answers ordinary chat without forcing research or an artifact", async () => {
     const result = await runPhase7AWorkflow({
@@ -275,6 +300,65 @@ describe("Phase 7A chat-first agent", () => {
     expect(second.workspace.turns.filter((turn) => turn.role === "user")).toHaveLength(2);
     expect(second.workspace.evidence.map((source) => source.source_id)).toContain(webSourceId);
     expect(second.assistant_message?.text).not.toContain("not independently researched");
+  });
+
+  it("allows the same web query in a later user turn but rejects it inside one run", async () => {
+    const query = "current foodborne illness recall";
+    const first = await runPhase7AWorkflow({
+      workspace: createPhase7AWorkspace("session_repeat_scope"),
+      message: "Search for the latest recall.",
+      runId: "run_repeat_scope_one",
+    }, createPhase7AFixtureDependencies([
+      action({ action: "web_search", public_summary: "Search the current web", query }),
+      action({ action: "respond", public_summary: "Return the current leads", message: "I found current leads that still need source reading.", source_ids: [] }),
+    ]));
+    expect(first.status).toBe("complete");
+
+    const second = await runPhase7AWorkflow({
+      workspace: first.workspace,
+      message: "Run that current search again for this follow-up.",
+      runId: "run_repeat_scope_two",
+    }, createPhase7AFixtureDependencies([
+      action({ action: "web_search", public_summary: "Refresh the same current-web query", query }),
+      action({ action: "respond", public_summary: "Return the refreshed leads", message: "The follow-up search completed without inheriting the prior run's duplicate lock.", source_ids: [] }),
+    ]));
+    expect(second.status).toBe("complete");
+    expect(second.counts.web_searches).toBe(1);
+    expect(second.limitations).not.toContain("phase7a_repeated_action");
+    expect(second.workspace.web_queries).toEqual([query]);
+
+    const repeatedInsideRun = await runPhase7AWorkflow({
+      workspace: second.workspace,
+      message: "Repeat forever inside this turn.",
+      runId: "run_repeat_scope_three",
+    }, createPhase7AFixtureDependencies([
+      action({ action: "web_search", public_summary: "Search once", query }),
+      action({ action: "web_search", public_summary: "Repeat without new evidence", query: `  ${query.toUpperCase()}  ` }),
+    ]));
+    expect(repeatedInsideRun.status).toBe("failed");
+    expect(repeatedInsideRun.counts.web_searches).toBe(1);
+    expect(repeatedInsideRun.limitations).toContain("phase7a_repeated_action");
+  });
+
+  it("allows an authorized URL to be reread in a later user turn", async () => {
+    const first = await runPhase7AWorkflow({
+      workspace: createPhase7AWorkspace("session_reread_scope"),
+      message: `Read ${suppliedUrl}`,
+    }, createPhase7AFixtureDependencies([
+      action({ action: "read_url", public_summary: "Read the supplied source", url: suppliedUrl }),
+      action({ action: "respond", public_summary: "Confirm the first read", message: "The first read completed.", source_ids: [webSourceId] }),
+    ]));
+    const second = await runPhase7AWorkflow({
+      workspace: first.workspace,
+      message: `Reread ${suppliedUrl} for this follow-up.`,
+    }, createPhase7AFixtureDependencies([
+      action({ action: "read_url", public_summary: "Reread the supplied source", url: suppliedUrl }),
+      action({ action: "respond", public_summary: "Confirm the follow-up read", message: "The follow-up reread completed.", source_ids: [webSourceId] }),
+    ]));
+    expect(second.status).toBe("complete");
+    expect(second.counts.url_reads).toBe(1);
+    expect(second.limitations).not.toContain("phase7a_repeated_action");
+    expect(second.workspace.evidence.filter((source) => source.source_id === webSourceId)).toHaveLength(1);
   });
 
   it("preserves the last valid artifact when a later turn fails", async () => {

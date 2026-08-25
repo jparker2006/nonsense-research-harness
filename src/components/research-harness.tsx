@@ -17,7 +17,7 @@ import {
   UserRound,
   X,
 } from "lucide-react";
-import { type FormEvent, useState } from "react";
+import { type FormEvent, useRef, useState } from "react";
 import {
   artifactToMarkdown,
   phase7aActivitySchema,
@@ -37,6 +37,7 @@ import {
   type Phase7ARun,
   type Phase7AUIMessage,
 } from "@/lib/phase7a/client";
+import { getOrCreatePhase7ABrowserSessionId } from "@/lib/phase7a/browser-session";
 
 const PHASE7A_TRANSPORT = new AssistantChatTransport<Phase7AUIMessage>({
   api: "/api/chat",
@@ -200,7 +201,7 @@ function SourceDrawer({ source, close }: { source: BrowserSource; close: () => v
 }
 
 export function ResearchHarness() {
-  const [sessionId, setSessionId] = useState("session_phase7a_local");
+  const sessionId = useRef<string | null>(null);
   const [turns, setTurns] = useState<ChatTurn[]>([]);
   const [activities, setActivities] = useState<Phase7AActivity[]>([]);
   const [sources, setSources] = useState<Record<string, BrowserSource>>({});
@@ -237,7 +238,8 @@ export function ResearchHarness() {
   const running = run?.state === "running";
 
   function send(message: string) {
-    const request: Phase7ARequest = { action: "message", session_id: sessionId, message };
+    const activeSessionId = getOrCreatePhase7ABrowserSessionId(sessionId);
+    const request: Phase7ARequest = { action: "message", session_id: activeSessionId, message };
     setTurns((current) => [...current, { id: `local_${Date.now()}`, role: "user", text: message, source_ids: [] }]);
     setActivities([]);
     setReceipt(null);
@@ -253,7 +255,7 @@ export function ResearchHarness() {
 
   function newResearch() {
     if (running) return;
-    setSessionId(`session_phase7a_${Date.now()}`);
+    sessionId.current = null;
     setTurns([]);
     setActivities([]);
     setSources({});

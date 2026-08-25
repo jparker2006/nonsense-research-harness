@@ -67,6 +67,10 @@ type AgentState = {
   startedAtMs: number;
   startedAtIso: string;
   traceSteps: Phase7ARunTrace["steps"];
+  seenWebQueries: Set<string>;
+  seenReadUrls: Set<string>;
+  seenArchiveQueries: Set<string>;
+  seenTranscriptChunks: Set<string>;
   costCapUsd: number;
 };
 
@@ -112,6 +116,15 @@ function safeCode(error: unknown, fallback: string): string {
 
 function addLimitation(state: AgentState, code: string): void {
   if (!state.limitations.includes(code)) state.limitations.push(code.slice(0, 240));
+}
+
+function queryKey(query: string): string {
+  return query.trim().replace(/\s+/g, " ").toLowerCase();
+}
+
+function appendRecentUniqueQuery(history: string[], query: string, limit: number): string[] {
+  const key = queryKey(query);
+  return [...history.filter((item) => queryKey(item) !== key), query].slice(-limit);
 }
 
 function emit(
@@ -408,11 +421,12 @@ async function readUrls(
   const allowed = rawUrls.map((url) => allowedReadUrl(state, url));
   const normalized = allowed.map((item) => item.url);
   if (new Set(normalized).size !== normalized.length) throw new Error("phase7a_repeated_action");
+  if (normalized.some((url) => state.seenReadUrls.has(url))) throw new Error("phase7a_repeated_action");
   if (state.counts.url_reads + allowed.length > PHASE_7A_LIMITS.maxUrlReads) throw new Error("phase7a_url_read_limit");
-  if (state.workspace.evidence.length + allowed.length > PHASE_7A_LIMITS.maxEvidenceSources) throw new Error("phase7a_evidence_limit");
-  if (allowed.some((item) => state.workspace.evidence.some((source) => source.url && normalizeWebUrl(source.url) === item.url))) {
-    throw new Error("phase7a_repeated_action");
-  }
+  const existingUrls = new Set(state.workspace.evidence.flatMap((source) => source.url ? [normalizeWebUrl(source.url)] : []));
+  const newEvidenceCount = normalized.filter((url) => !existingUrls.has(url)).length;
+  if (state.workspace.evidence.length + newEvidenceCount > PHASE_7A_LIMITS.maxEvidenceSources) throw new Error("phase7a_evidence_limit");
+  normalized.forEach((url) => state.seenReadUrls.add(url));
 
   const pending = allowed.map((item, index) => {
     const ordinal = state.counts.url_reads + index + 1;
@@ -461,14 +475,15 @@ async function openTranscriptChunks(
   chunkIds: string[],
 ): Promise<{ done: false; observation: string }> {
   if (new Set(chunkIds).size !== chunkIds.length) throw new Error("phase7a_repeated_action");
+  if (chunkIds.some((chunkId) => state.seenTranscriptChunks.has(chunkId))) throw new Error("phase7a_repeated_action");
   if (state.counts.transcript_opens + chunkIds.length > PHASE_7A_LIMITS.maxTranscriptOpens) throw new Error("phase7a_transcript_open_limit");
-  if (state.workspace.evidence.length + chunkIds.length > PHASE_7A_LIMITS.maxEvidenceSources) throw new Error("phase7a_evidence_limit");
+  const existingChunks = new Set(state.workspace.evidence.flatMap((source) => source.chunk_id ? [source.chunk_id] : []));
+  const newEvidenceCount = chunkIds.filter((chunkId) => !existingChunks.has(chunkId)).length;
+  if (state.workspace.evidence.length + newEvidenceCount > PHASE_7A_LIMITS.maxEvidenceSources) throw new Error("phase7a_evidence_limit");
   if (chunkIds.some((chunkId) => !state.workspace.transcript_matches.some((match) => match.chunk_id === chunkId))) {
     throw new Error("phase7a_chunk_not_allowed");
   }
-  if (chunkIds.some((chunkId) => state.workspace.evidence.some((item) => item.chunk_id === chunkId))) {
-    throw new Error("phase7a_repeated_action");
-  }
+  chunkIds.forEach((chunkId) => state.seenTranscriptChunks.add(chunkId));
 
   const pending = chunkIds.map((chunkId, index) => {
     const ordinal = state.counts.transcript_opens + index + 1;
@@ -527,12 +542,14 @@ async function executeAction(state: AgentState, deps: Phase7AAgentDependencies, 
 
   if (action.action === "web_search") {
     if (state.counts.web_searches >= PHASE_7A_LIMITS.maxWebSearches) throw new Error("phase7a_web_search_limit");
-    if (state.workspace.web_queries.includes(action.query)) throw new Error("phase7a_repeated_action");
+    const key = queryKey(action.query);
+    if (state.seenWebQueries.has(key)) throw new Error("phase7a_repeated_action");
+    state.seenWebQueries.add(key);
     const eventId = `evt_${state.runId}_web_${state.counts.web_searches + 1}`;
     emit(state, deps, { id: eventId, kind: "tool", label: "Search current web", detail, status: "running", tool: "web_search" });
     reserveProvider(state, 1, RESERVATIONS.webSearch);
     state.counts.web_searches += 1;
-    state.workspace.web_queries.push(action.query);
+    state.workspace.web_queries = appendRecentUniqueQuery(state.workspace.web_queries, action.query, 12);
     let usageRecorded = false;
     try {
       const result = await deps.tools.webSearch({ query: action.query, limit: 5 });
@@ -571,12 +588,14 @@ async function executeAction(state: AgentState, deps: Phase7AAgentDependencies, 
 
   if (action.action === "search_transcripts") {
     if (state.counts.transcript_searches >= PHASE_7A_LIMITS.maxTranscriptSearches) throw new Error("phase7a_transcript_search_limit");
-    if (state.workspace.archive_queries.includes(action.query)) throw new Error("phase7a_repeated_action");
+    const key = queryKey(action.query);
+    if (state.seenArchiveQueries.has(key)) throw new Error("phase7a_repeated_action");
+    state.seenArchiveQueries.add(key);
     const eventId = `evt_${state.runId}_archive_${state.counts.transcript_searches + 1}`;
     emit(state, deps, { id: eventId, kind: "tool", label: "Search Nonsense archive", detail, status: "running", tool: "search_transcripts" });
     reserveProvider(state, 2, RESERVATIONS.transcriptSearch);
     state.counts.transcript_searches += 1;
-    state.workspace.archive_queries.push(action.query);
+    state.workspace.archive_queries = appendRecentUniqueQuery(state.workspace.archive_queries, action.query, 8);
     let usageRecorded = false;
     try {
       const envelope = await deps.tools.searchTranscripts({ query: action.query, limit: 5 });
@@ -662,6 +681,10 @@ export async function runPhase7AAgentTurn(options: {
     startedAtMs: deps.clockMs?.() ?? performance.now(),
     startedAtIso,
     traceSteps: [],
+    seenWebQueries: new Set(),
+    seenReadUrls: new Set(),
+    seenArchiveQueries: new Set(),
+    seenTranscriptChunks: new Set(),
     costCapUsd: Math.min(PHASE_7A_LIMITS.costCapUsd, Math.max(0, deps.costCapUsd ?? PHASE_7A_LIMITS.costCapUsd)),
   };
   appendTurn(state, "user", state.currentMessage, [], deps);

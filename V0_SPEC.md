@@ -267,6 +267,7 @@ The application uses a generated, server-only search index derived from processe
 ## 12. Persistence and deployment contract
 
 - Phase 7A is intentionally local and ephemeral: at most eight workspaces remain in one process for six hours. A server restart loses them, and a fresh browser does not hydrate an existing server workspace until it sends another message.
+- Every new browser conversation receives a cryptographically random session ID on its first send. That ID remains stable for follow-up turns in the same conversation and is discarded by **New research**; no fixed or cross-tab default session ID is allowed.
 - There is no authentication, remote database, hosted infrastructure, or deployment in the completed phase.
 - A future Phase 7B may implement the target below only after Phase 8 proves the harness is useful enough to justify persistence.
 - Target: one Next.js application deployed on Vercel.
@@ -306,6 +307,7 @@ The application uses a generated, server-only search index derived from processe
 - A post-response usage check is not a hard dollar cap. Development probes require an explicit approved budget and bounded request count; every deployed key must also have a verified provider-side spending limit or guardrail.
 - One active paid run per workspace.
 - Duplicate submission protection.
+- Repeated-action protection is scoped to one agent run. The same normalized query, authorized URL, or transcript chunk is rejected when the controller repeats it within that run, but prior-turn history remains context rather than a permanent lock: a later user follow-up may deliberately refresh the same search or reread the same evidence.
 - Usage/cost receipt stored when available.
 - Development live calls require a separately approved provider, purpose, call count, and dollar budget.
 
