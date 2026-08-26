@@ -23,9 +23,15 @@ import { PHASE_7A_ARTIFACT_PROCEDURES, phase7aArtifactInstructions } from "@/lib
 import { createPhase7AWorkspace, getPhase7AWorkspace, putPhase7AWorkspace } from "@/lib/phase7a/session-store";
 import { runPhase7AWorkflow } from "@/lib/phase7a/workflow";
 import { RESEARCH_AGENT_LIMITS } from "@/lib/research-agent/contracts";
-import { createOpenRouterManager } from "@/lib/research-agent/model";
-import { runResearchTurn, type ResearchRuntimeDependencies } from "@/lib/research-agent/runtime";
+import { createOpenRouterManager, createOpenRouterResearchModel } from "@/lib/research-agent/model";
+import { requestedArtifactMode, runResearchTurn, type ResearchRuntimeDependencies } from "@/lib/research-agent/runtime";
+import {
+  runStandardResearchTurn,
+  STANDARD_RESEARCH_LIMITS,
+  type StandardRuntimeDependencies,
+} from "@/lib/research-agent/standard";
 import { createOpenRouterResearchWorker } from "@/lib/research-agent/worker";
+import { PHASE_5_MODELS } from "@/lib/phase5/contracts";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -95,23 +101,50 @@ function safeDevelopmentDiagnostic(error: unknown) {
   return { kind: "unknown" };
 }
 
-type ChatRuntimeDependencies = Phase7AAgentDependencies | ResearchRuntimeDependencies;
+type ChatRuntimeDependencies = Phase7AAgentDependencies | ResearchRuntimeDependencies | StandardRuntimeDependencies;
 
-function liveDependencies(signal: AbortSignal, depth: "standard" | "deep" = "standard"): ResearchRuntimeDependencies {
+function liveDependencies(
+  signal: AbortSignal,
+  depth: "standard" | "deep" = "standard",
+  explicitBrief = false,
+): ResearchRuntimeDependencies | StandardRuntimeDependencies {
   const apiKey = process.env.OPENROUTER_API_KEY?.trim() ?? "";
   if (!apiKey) throw new Error("phase7a_missing_key");
   if (!phase7aLocalLiveAuthorized()) throw new Error("phase7a_live_not_authorized");
-  const policy = RESEARCH_AGENT_LIMITS.budgets[depth];
+  const policy = depth === "standard" && !explicitBrief
+    ? { ceilingUsd: STANDARD_RESEARCH_LIMITS.ceilingCostUsd }
+    : RESEARCH_AGENT_LIMITS.budgets[depth];
   const configuredCostCap = Number(process.env.RESEARCH_TURN_COST_CAP_USD ?? process.env.PHASE7A_TURN_COST_CAP_USD ?? policy.ceilingUsd);
   const costCapUsd = Number.isFinite(configuredCostCap) && configuredCostCap > 0
     ? Math.min(policy.ceilingUsd, configuredCostCap)
     : policy.ceilingUsd;
-  const configuredRequestCap = Number(process.env.RESEARCH_TURN_REQUEST_CAP ?? process.env.PHASE7A_TURN_REQUEST_CAP ?? RESEARCH_AGENT_LIMITS.maxProviderRequests);
-  const providerRequestCap = Number.isFinite(configuredRequestCap) && configuredRequestCap > 0
-    ? Math.min(RESEARCH_AGENT_LIMITS.maxProviderRequests, Math.floor(configuredRequestCap))
+  const maximumRequests = depth === "standard" && !explicitBrief
+    ? STANDARD_RESEARCH_LIMITS.maxProviderRequests
     : RESEARCH_AGENT_LIMITS.maxProviderRequests;
-  const deadlineSignal = AbortSignal.timeout(RESEARCH_AGENT_LIMITS.maxElapsedMs[depth]);
+  const configuredRequestCap = Number(process.env.RESEARCH_TURN_REQUEST_CAP ?? process.env.PHASE7A_TURN_REQUEST_CAP ?? maximumRequests);
+  const providerRequestCap = Number.isFinite(configuredRequestCap) && configuredRequestCap > 0
+    ? Math.min(maximumRequests, Math.floor(configuredRequestCap))
+    : maximumRequests;
+  const deadlineSignal = AbortSignal.timeout(depth === "standard" && !explicitBrief
+    ? STANDARD_RESEARCH_LIMITS.hardDeadlineMs
+    : RESEARCH_AGENT_LIMITS.maxElapsedMs[depth]);
   const boundedSignal = AbortSignal.any([signal, deadlineSignal]);
+  const tools = createLivePhase5Tools({ apiKey, liveAuthorized: true, signal: boundedSignal });
+  if (depth === "standard" && !explicitBrief) {
+    const model = PHASE_5_MODELS.light;
+    const provider = createOpenRouterResearchModel(apiKey, model);
+    return {
+      standardModel: provider.chat(model.id, {
+        extraBody: { reasoning: { effort: model.reasoningEffort, exclude: true } },
+        usage: { include: true },
+      }),
+      modelId: model.id,
+      tools,
+      signal: boundedSignal,
+      costCapUsd,
+      providerRequestCap,
+    };
+  }
   return {
     manager: createOpenRouterManager({ apiKey }),
     fallbackManager: createOpenRouterManager({ apiKey, fallback: true }),
@@ -128,7 +161,7 @@ function liveDependencies(signal: AbortSignal, depth: "standard" | "deep" = "sta
       artifactInstructions: phase7aArtifactInstructions,
       artifactSchemaNamePrefix: "phase7a_v2",
     }),
-    tools: createLivePhase5Tools({ apiKey, liveAuthorized: true, signal: boundedSignal }),
+    tools,
     signal: boundedSignal,
     costCapUsd,
     providerRequestCap,
@@ -137,7 +170,7 @@ function liveDependencies(signal: AbortSignal, depth: "standard" | "deep" = "sta
 
 export function createPhase7AChatRoute(options: {
   /** Legacy injected dependencies remain only for frozen route regression fixtures. */
-  dependencies?: (signal: AbortSignal, depth?: "standard" | "deep") => ChatRuntimeDependencies;
+  dependencies?: (signal: AbortSignal, depth?: "standard" | "deep", explicitBrief?: boolean) => ChatRuntimeDependencies;
 } = {}) {
   const dependencyFactory = options.dependencies ?? liveDependencies;
   const injected = options.dependencies !== undefined;
@@ -182,9 +215,10 @@ export function createPhase7AChatRoute(options: {
           });
           const workspace = getPhase7AWorkspace(parsed.session_id) ?? createPhase7AWorkspace(parsed.session_id);
           const startingArtifactRevision = workspace.artifact_revision;
-          const base = dependencyFactory(request.signal, parsed.research_depth);
+          const explicitBrief = requestedArtifactMode(parsed.message, workspace.artifact) !== null;
+          const base = dependencyFactory(request.signal, parsed.research_depth, explicitBrief);
           const shared = {
-            signal: request.signal,
+            signal: base.signal ?? request.signal,
             onEvent: (event: Parameters<NonNullable<ResearchRuntimeDependencies["onEvent"]>>[0]) => {
               if (!request.signal.aborted) writer.write({ type: "data-activity", id: event.id, data: event });
               base.onEvent?.(event);
@@ -197,7 +231,20 @@ export function createPhase7AChatRoute(options: {
                 researchDepth: parsed.research_depth,
                 runId,
               }, { ...base, ...shared })
-            : await runResearchTurn({
+            : "standardModel" in base
+              ? await runStandardResearchTurn({
+                  workspace,
+                  message: parsed.message,
+                  runId,
+                }, {
+                  ...base,
+                  ...shared,
+                  onCheckpoint: (checkpoint) => {
+                    putPhase7AWorkspace(checkpoint);
+                    base.onCheckpoint?.(checkpoint);
+                  },
+                })
+              : await runResearchTurn({
                 workspace,
                 message: parsed.message,
                 researchDepth: parsed.research_depth,

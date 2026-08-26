@@ -110,7 +110,16 @@ export class TranscriptRetrievalService {
 
   openTranscriptChunk(chunkId: string): OpenTranscriptChunkResult {
     const chunk = this.artifacts.chunksById.get(chunkId);
-    return chunk ? { status: "complete", chunk } : { status: "not_found", chunk_id: chunkId };
+    if (!chunk) return { status: "not_found", chunk_id: chunkId };
+    const adjacent_chunks = this.artifacts.chunks
+      .filter((candidate) => (
+        candidate.episode_id === chunk.episode_id
+        && candidate.segment_id === chunk.segment_id
+        && Math.abs(candidate.chunk_index - chunk.chunk_index) === 1
+      ))
+      .sort((left, right) => left.chunk_index - right.chunk_index)
+      .slice(0, 2);
+    return { status: "complete", chunk, adjacent_chunks };
   }
 
   async searchTranscripts(input: {
@@ -184,7 +193,12 @@ export class TranscriptRetrievalService {
           return candidate ? [{ ...candidate, rerank_score: item.relevanceScore }] : [];
         });
       if (ordered.length === 0) {
-        return { retrieval_status: "no_match", query, matches: [], reason: "No reranked archive match cleared the relevance threshold." };
+        return {
+          retrieval_status: "hybrid_unreranked",
+          query,
+          matches: makeMatches(fused, this.artifacts, limit, false),
+          reason: "Reranking rejected every fused candidate; the best deterministic BM25 and vector-fusion matches were retained.",
+        };
       }
       return {
         retrieval_status: "complete",

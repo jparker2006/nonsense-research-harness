@@ -327,6 +327,7 @@ describe("Phase 7A chat-first agent", () => {
     ]);
     dependencies.tools.openTranscriptChunk = ({ chunk_id }) => ({
       status: "complete",
+      adjacent_chunks: [],
       chunk: {
         schema_version: "1.0",
         chunk_id,

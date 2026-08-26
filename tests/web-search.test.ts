@@ -28,15 +28,15 @@ function citationEvent(annotations: unknown[], overrides: Record<string, unknown
   return {
     id: "generation-phase4",
     model: WEB_SEARCH_PROVIDER.model,
-    provider: "xAI",
+    provider: "OpenAI",
     choices: [{ delta: { content: "discard this prose", reasoning: "discard this too", annotations } }],
     usage: usage(),
     ...overrides,
   };
 }
 
-describe("Phase 4 bounded OpenRouter search", () => {
-  it("freezes Grok native/ZDR routing and every enforceable request-side ceiling", () => {
+describe("bounded OpenRouter search", () => {
+  it("freezes Luna Exa routing and every enforceable request-side ceiling", () => {
     const validated = validateWebSearchInput({
       query: " OpenRouter web search docs ",
       limit: 3,
@@ -44,28 +44,26 @@ describe("Phase 4 bounded OpenRouter search", () => {
     });
     const request = buildWebSearchRequest(validated);
     expect(request).toMatchObject({
-      model: "x-ai/grok-4.6",
+      model: "openai/gpt-5.6-luna",
       stream: true,
-      max_tokens: 384,
-      max_tool_calls: 1,
-      reasoning: { effort: "medium", exclude: true },
+      max_tokens: 768,
+      reasoning: { effort: "max", exclude: true },
       provider: {
         allow_fallbacks: false,
         require_parameters: true,
         data_collection: "deny",
-        zdr: true,
-        max_price: { prompt: 2, completion: 6 },
+        zdr: false,
+        max_price: { prompt: 0.2, completion: 1.2 },
       },
     });
     expect(request).not.toHaveProperty("tool_choice");
-    expect(request.tools).toEqual([
+    expect(request).not.toHaveProperty("tools");
+    expect(request.plugins).toEqual([
       {
-        type: "openrouter:web_search",
-        parameters: {
-          engine: "native",
-          max_uses: 1,
-          allowed_domains: ["openrouter.ai", "*.openrouter.ai"],
-        },
+        id: "web",
+        engine: "exa",
+        max_results: 3,
+        include_domains: ["openrouter.ai", "*.openrouter.ai"],
       },
     ]);
     expect(WEB_RESEARCH_LIMITS.searchTimeoutMs).toBe(45_000);
@@ -78,7 +76,7 @@ describe("Phase 4 bounded OpenRouter search", () => {
       { query: "a" },
       { query: "x".repeat(301) },
       { query: "valid", limit: 0 },
-      { query: "valid", limit: 6 },
+      { query: "valid", limit: 11 },
       { query: "valid", limit: 1.5 },
       { query: "valid", allowed_domains: ["https://example.com"] },
       { query: "valid", allowed_domains: ["example.com/path"] },
@@ -101,7 +99,7 @@ describe("Phase 4 bounded OpenRouter search", () => {
   it("returns normalized candidates, sanitized usage, and discards all model prose/reasoning", async () => {
     const fetchSpy = vi.fn<typeof fetch>(async (_url, init) => {
       const request = JSON.parse(String(init?.body));
-      expect(request.tools[0].parameters).toEqual({ engine: "native", max_uses: 1 });
+      expect(request.plugins[0]).toEqual({ id: "web", engine: "exa", max_results: 2 });
       return streamResponse([
         citationEvent([
           {
@@ -128,8 +126,8 @@ describe("Phase 4 bounded OpenRouter search", () => {
       status: "complete",
       retrieved_at: "2026-08-23T02:00:00.000Z",
       receipt: {
-        provider_model: "x-ai/grok-4.6",
-        provider_name: "xAI",
+        provider_model: "openai/gpt-5.6-luna",
+        provider_name: "OpenAI",
         prompt_tokens: 50,
         completion_tokens: 10,
         total_tokens: 60,
@@ -154,7 +152,7 @@ describe("Phase 4 bounded OpenRouter search", () => {
     expect(fetchSpy).toHaveBeenCalledTimes(1);
   });
 
-  it("accepts native citations plus the one-tool request bound when xAI omits the usage counter", async () => {
+  it("accepts Exa citations plus the one-tool request bound when the provider omits the usage counter", async () => {
     const result = await webSearch(
       { query: "fresh native search" },
       {
@@ -312,8 +310,8 @@ describe("Phase 4 bounded OpenRouter search", () => {
     expect(result).toMatchObject({
       status: "unavailable",
       receipt: {
-        provider_model: "x-ai/grok-4.6",
-        provider_name: "xAI",
+        provider_model: "openai/gpt-5.6-luna",
+        provider_name: "OpenAI",
         prompt_tokens: 101,
         completion_tokens: 4,
         total_tokens: 105,

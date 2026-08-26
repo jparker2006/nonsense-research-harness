@@ -106,6 +106,9 @@ export function humanizeMachineReferences(text: string, references: SourceRefere
 export function limitationLabel(limitation: string): string {
   const labels: Record<string, string> = {
     "archive:keyword_only": "Archive search used keyword matching only.",
+    "archive:hybrid_unreranked": "Archive results used BM25 and vector fusion because reranking could not be trusted.",
+    "archive:unavailable": "Archive semantic retrieval was unavailable.",
+    "read_url:search_excerpt_fallback": "A page could not be opened; only its limited Exa search excerpt was available.",
     phase7a_model_unavailable: "The planning model was unavailable.",
     phase7a_web_search_limit: "The turn reached its web-search boundary.",
     phase7a_provider_request_limit: "The turn reached its provider-request boundary.",
@@ -147,6 +150,7 @@ export function researchReceiptSummary(receipt: Phase7AReceipt | null): string {
   if (!receipt) return "Observable work";
   const work: string[] = [];
   if (receipt.counts.web_searches) work.push(`${receipt.counts.web_searches} web search${receipt.counts.web_searches === 1 ? "" : "es"}`);
+  if (receipt.counts.web_candidates) work.push(`${receipt.counts.web_candidates} candidates`);
   if (receipt.counts.url_reads) work.push(`${receipt.counts.url_reads} source read${receipt.counts.url_reads === 1 ? "" : "s"}`);
   if (receipt.counts.transcript_searches) work.push("archive searched");
   if (receipt.counts.transcript_opens) work.push(`${receipt.counts.transcript_opens} archive passage${receipt.counts.transcript_opens === 1 ? "" : "s"}`);

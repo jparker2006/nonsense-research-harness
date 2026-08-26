@@ -1,6 +1,6 @@
 # Nonsense Research Harness — Build TODO
 
-Status: Phases 1–6 and Phase 7A through Phase 7A.4 **PASSED at their approved gates**. Phase 7A.4 is the current reusable local product: a normal conversation connects to a bounded adaptive Luna controller, the real safe web/archive tools, an ephemeral evidence workspace, concise claim-cited answers, and optional validated Grok Headlines/Big Story briefs ranked by editorial priority. The first paid Phase 7A.4 live UI acceptance remains Jake-owned; no provider call was made during its deterministic implementation. Persistence, auth, deployment, subagents, and a history sidebar remain deferred. See `docs/PHASE_7A_4_SPEC.md` and `docs/PHASE_7A_4_RESULT.md`.
+Status: Earlier phase gates remain historical evidence. **Standard Research v2 is the current ordinary-chat runtime and PASSED on 2026-08-26.** Normal chat now uses one GPT-5.6 Luna Max loop with concurrent OpenRouter Exa discovery, safe/partial source opening, optional exact archive retrieval, compact time-reserved synthesis, and validated clickable citations. Explicit Headlines/Big Story briefs still use their validated Grok path; Deep Research still uses the manager/worker graph. Persistence, auth, deployment, and a history sidebar remain deferred. See `docs/STANDARD_RESEARCH_V2_RESULT.md`.
 
 ## Intended v0 outcome
 
@@ -23,8 +23,29 @@ The product prepares conversation material. It does not choose the final stories
 - Phase 6 streams the real bounded Phase 5 workflow through the browser workbench. Its corrected live Headlines proof completed with a validated artifact using five of six provider requests, zero retries, and `$0.05391264` of its `$0.50` cap. The interface and Big Story path also pass deterministic fixtures; no deployed persistence exists yet.
 - Phase 7A replaces the form/fixture default with a live-only chat route, a typed observe-decide-act loop, genuine follow-ups, in-memory evidence reuse, and optional artifact creation. Deterministic fixtures are test injection only; missing provider authorization is explicitly unavailable.
 - Phase 7A.1 keeps that architecture but makes it sturdier and easier to inspect: the controller carries a bounded public research notebook, code can read up to three already-authorized web or archive targets concurrently, and the workspace retains up to eight sanitized run traces. The UI is now one light research workspace with inline activity, chat/artifact views, and a source drawer instead of permanent side rails.
-- Phase 7A.4 makes conversation—not a packet—the primary product. Standard and Deep research share one bounded tool-using architecture; answers use validated claim-level citations, requested briefs use editorial priorities rather than invented timing, and compact grouped work plus user-respecting auto-follow replace the activity rail.
-- The active Phase 7A system, controller, Deep research, and brief prompts are readable Markdown sources in `prompts/phase7a/`; code still owns permissions, tools, schemas, citations, budgets, and validation.
+- Conversation—not a packet—is the primary product. Ordinary Standard now uses the Luna-only runtime recorded in `docs/STANDARD_RESEARCH_V2_RESULT.md`; explicit briefs and Deep Research retain their separately validated paths.
+- Active Standard instructions are in `prompts/research-agent/STANDARD_AGENT.md`; Deep/manager and brief prompts remain readable Markdown under `prompts/research-agent/` and `prompts/phase7a/`. Code still owns permissions, tools, schemas, citations, budgets, and validation.
+
+## Standard Research v2 — PASSED
+
+- [x] Route ordinary Standard chat directly to one GPT-5.6 Luna Max native tool loop with no Grok plan, review, answer, or fallback call.
+- [x] Batch up to six adaptive OpenRouter Exa queries concurrently, ten results each, sixty de-duplicated candidates maximum.
+- [x] Keep the full candidate registry server-side while returning a compact shortlist to Luna.
+- [x] Open selected URLs through the safe reader and use an explicitly partial Exa excerpt only when direct opening fails.
+- [x] Let Luna optionally search the 59-episode S3–S4 archive and open exact chunks with adjacent context.
+- [x] Reserve synthesis time, compact the final context, inject the exact current date, and enforce legal-status/freshness research policy.
+- [x] Validate citation aliases and reject internal IDs, unsupported aliases, and leaked tool protocol before rendering.
+- [x] Preserve Grok for explicit briefs and preserve the existing Deep graph.
+- [x] Pass the full 247-test `pnpm gate` without changing corpus/retrieval bytes.
+- [x] Pass a watched 62-second, $0.0602 current-web case and a watched 23-second, $0.0082 archive-heavy case.
+- [x] Beat the supplied Opus reference on grounding/source transparency while remaining at least comparable on the core conclusion and relevance; do not claim universal model superiority.
+- [x] Record all failed proofs, total $0.7827 spend, architecture, limitations, and exact hashes in `docs/STANDARD_RESEARCH_V2_RESULT.md`.
+
+### Standard Research v2 gate — STOP
+
+- [x] No push, deployment, persistence, broad UI redesign, new model, or corpus change occurred.
+- [x] Ordinary Standard no longer uses the manager/worker graph.
+- [x] The final commit must be the exact passing local commit reported in the handoff.
 
 ## Phase rules
 
@@ -46,8 +67,8 @@ The application/runtime stack passed Phase 1. The pinned provider/model boundary
 - Agent UI: `assistant-ui`, adapted from the maintained Mastra UI examples
 - Agent/workflow runtime: Mastra
 - Model gateway: OpenRouter
-- Models: a deterministic two-tier pair — GPT-5.6 Luna/max for light structured/tool work and Grok 4.6/medium for heavy research and synthesis
-- Model tools: OpenRouter web search plus three local tools
+- Models: GPT-5.6 Luna/max owns ordinary Standard research; Grok 4.6/medium remains limited to explicit preparation briefs and the existing Deep manager/composer path
+- Model tools: concurrent OpenRouter Exa discovery plus safe URL reading and local transcript search/opening
 - Deployed persistence: remote libSQL/Turso
 - Deployment target: one Vercel application
 - Development observability: Mastra traces/Studio or equivalent local traces

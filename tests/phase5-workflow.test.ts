@@ -325,6 +325,7 @@ describe("Phase 5 Mastra workflow", () => {
       const index = Number(chunk_id.split("_").at(-1));
       return {
         status: "complete",
+        adjacent_chunks: [],
         chunk: {
           ...fixtureChunk,
           chunk_id,

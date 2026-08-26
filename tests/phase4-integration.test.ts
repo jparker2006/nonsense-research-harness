@@ -10,8 +10,8 @@ const root = process.cwd();
 
 function streamResponse(): Response {
   const chunk = {
-    model: "x-ai/grok-4.6",
-    provider: "xAI",
+    model: "openai/gpt-5.6-luna",
+    provider: "OpenAI",
     choices: [
       {
         delta: {

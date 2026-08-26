@@ -9,10 +9,11 @@ import type { WebSearchInput, WebSearchResult, WebSourceReceipt, WebSourceRecord
 
 export const WEB_SEARCH_PROVIDER = Object.freeze({
   endpoint: "https://openrouter.ai/api/v1/chat/completions",
-  model: "x-ai/grok-4.6",
-  engine: "native",
-  reasoningEffort: "medium" as const,
-  maxPricePerMillion: Object.freeze({ prompt: 2, completion: 6 }),
+  model: "openai/gpt-5.6-luna",
+  engine: "exa",
+  transport: "web_plugin" as const,
+  reasoningEffort: "max" as const,
+  maxPricePerMillion: Object.freeze({ prompt: 0.2, completion: 1.2 }),
 });
 
 type SearchAnnotation = { url: string; title?: string; content?: string };
@@ -64,7 +65,7 @@ export function validateWebSearchInput(input: WebSearchInput) {
   if (query.length < 3 || query.length > 300) throw new Error("Query must contain 3 to 300 characters.");
   const limit = input.limit ?? WEB_RESEARCH_LIMITS.searchMaxResults;
   if (!Number.isInteger(limit) || limit < 1 || limit > WEB_RESEARCH_LIMITS.searchMaxResults) {
-    throw new Error("Result limit must be an integer from 1 to 5.");
+    throw new Error("Result limit must be an integer from 1 to 10.");
   }
   if (input.allowed_domains?.length && input.excluded_domains?.length) {
     throw new Error("Allowed and excluded domains cannot be combined.");
@@ -85,29 +86,29 @@ export function validateWebSearchInput(input: WebSearchInput) {
 }
 
 export function buildWebSearchRequest(input: ReturnType<typeof validateWebSearchInput>) {
-  const parameters: Record<string, unknown> = {
+  const plugin: Record<string, unknown> = {
+    id: "web",
     engine: WEB_SEARCH_PROVIDER.engine,
-    max_uses: 1,
+    max_results: input.limit,
   };
-  if (input.allowed_domains) parameters.allowed_domains = input.allowed_domains;
-  if (input.excluded_domains) parameters.excluded_domains = input.excluded_domains;
+  if (input.allowed_domains) plugin.include_domains = input.allowed_domains;
+  if (input.excluded_domains) plugin.exclude_domains = input.excluded_domains;
   return {
     model: WEB_SEARCH_PROVIDER.model,
     messages: [
       {
         role: "user",
-        content: `Use the web-search server tool exactly once for this query. Return no uncited claims.\n\n${input.query}`,
+        content: `Search query: ${input.query}\n\nThis is candidate discovery, not synthesis. Return a compact list of up to ${input.limit} useful results; for every result include its title and a one-sentence relevance note with an attached URL citation. Do not answer the broader research question and do not include any uncited result.`,
       },
     ],
     stream: true,
     max_tokens: WEB_RESEARCH_LIMITS.searchMaxOutputTokens,
-    max_tool_calls: WEB_RESEARCH_LIMITS.searchMaxToolCalls,
-    tools: [{ type: "openrouter:web_search", parameters }],
+    plugins: [plugin],
     provider: {
       allow_fallbacks: false,
       require_parameters: true,
       data_collection: "deny",
-      zdr: true,
+      zdr: false,
       max_price: WEB_SEARCH_PROVIDER.maxPricePerMillion,
     },
     reasoning: { effort: WEB_SEARCH_PROVIDER.reasoningEffort, exclude: true },
@@ -310,7 +311,7 @@ export async function webSearch(
     }
     if (stream.receipt.web_search_requests === 1) {
       stream.receipt.web_search_proof = "usage";
-    } else if (WEB_SEARCH_PROVIDER.engine === "native" && sources.length > 0) {
+    } else if (sources.length > 0) {
       stream.receipt.web_search_proof = "citations_and_request_bound";
     } else {
       throw new Error("search_not_proven");

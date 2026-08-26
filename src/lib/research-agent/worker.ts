@@ -199,9 +199,9 @@ export function createResearchWorkerWithModel(options: {
             webSearchAttempts += 1;
             let reservation: string | undefined;
             try {
-              reservation = input.budget.reserve({ role: "web_search", action: `worker:${input.task.task_id}:search_web`, amount: WORKER_RESERVATIONS.webSearchUsd, model: PHASE_5_MODELS.heavy.id });
+              reservation = input.budget.reserve({ role: "web_search", action: `worker:${input.task.task_id}:search_web`, amount: WORKER_RESERVATIONS.webSearchUsd, model: PHASE_5_MODELS.light.id });
               counts.web_searches += 1;
-              const result = await input.tools.webSearch({ query, limit: 5 });
+              const result = await input.tools.webSearch({ query, limit: 10 });
               usageReceipts.push(input.budget.settle(reservation, {
                 provider: result.receipt.provider_name,
                 prompt_tokens: result.receipt.prompt_tokens,
@@ -355,7 +355,14 @@ export function createResearchWorkerWithModel(options: {
             counts.transcript_opens += ids.length;
             if (ids.some((id) => !transcriptMatches.has(id))) throw new Error("research_chunk_not_allowed");
             const settled = await Promise.allSettled(ids.map((chunk_id) => Promise.resolve(input.tools.openTranscriptChunk({ chunk_id }))));
-            const results: Array<{ source_id?: string; chunk_id: string; status: string; title?: string | null; excerpt?: string | null }> = [];
+            const results: Array<{
+              source_id?: string;
+              chunk_id: string;
+              status: string;
+              title?: string | null;
+              excerpt?: string | null;
+              adjacent_context?: Array<{ chunk_id: string; position: "before" | "after"; text: string }>;
+            }> = [];
             for (const [index, result] of settled.entries()) {
               const chunkId = ids[index]!;
               if (result.status === "rejected") {
@@ -363,14 +370,26 @@ export function createResearchWorkerWithModel(options: {
                 results.push({ chunk_id: chunkId, status: "unavailable" });
                 continue;
               }
-              const source = archiveEvidence(result.value);
-              if (!source) {
-                failures.push(`open_transcript_chunks:${result.value.status}`);
-                results.push({ chunk_id: chunkId, status: result.value.status });
+              const opened = result.value;
+              if (opened.status !== "complete") {
+                failures.push(`open_transcript_chunks:${opened.status}`);
+                results.push({ chunk_id: chunkId, status: opened.status });
                 continue;
               }
+              const source = archiveEvidence(opened)!;
               upsertEvidence(source);
-              results.push({ source_id: source.source_id, chunk_id: chunkId, status: "complete", title: source.title, excerpt: source.content });
+              results.push({
+                source_id: source.source_id,
+                chunk_id: chunkId,
+                status: "complete",
+                title: source.title,
+                excerpt: source.content,
+                adjacent_context: opened.adjacent_chunks.map((chunk) => ({
+                  chunk_id: chunk.chunk_id,
+                  position: chunk.chunk_index < opened.chunk.chunk_index ? "before" : "after",
+                  text: chunk.text.slice(0, 2_000),
+                })),
+              });
             }
             const usable = results.filter((result) => result.source_id).length;
             emit({ tool: "open_transcript_chunks", status: usable ? (usable === results.length ? "complete" : "partial") : "unavailable", detail: `${usable}/${results.length} archive passages opened` });

@@ -1,5 +1,7 @@
 # Nonsense Research Harness — Manager–Worker Architecture Result
 
+> **Current-runtime note (2026-08-26):** this document remains the historical proof for Deep Research and the manager/worker graph. Ordinary Standard chat has since moved to the Luna-only architecture in `docs/STANDARD_RESEARCH_V2_RESULT.md`. Explicit briefs still use their validated Grok path.
+
 Status: **PASSED — deterministic gate and watched live browser proof complete**
 
 Date: 2026-08-26 (Pacific/Honolulu)

@@ -598,7 +598,7 @@ async function executeAction(state: AgentState, deps: Phase7AAgentDependencies, 
     state.workspace.web_queries = appendRecentUniqueQuery(state.workspace.web_queries, action.query, 12);
     let usageRecorded = false;
     try {
-      const result = await deps.tools.webSearch({ query: action.query, limit: 5 });
+      const result = await deps.tools.webSearch({ query: action.query, limit: 10 });
       addUsage(state, "web_search", RESERVATIONS.webSearch, {
         model: result.receipt.provider_model,
         provider: result.receipt.provider_name,

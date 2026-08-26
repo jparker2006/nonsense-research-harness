@@ -290,7 +290,7 @@ export function fixtureTools(options: {
     openTranscriptChunk(input) {
       options.onCall?.("openTranscriptChunk");
       return input.chunk_id === FIXTURE_CHUNK_ID
-        ? { status: "complete", chunk: fixtureChunk }
+        ? { status: "complete", chunk: fixtureChunk, adjacent_chunks: [] }
         : { status: "not_found", chunk_id: input.chunk_id };
     },
   };

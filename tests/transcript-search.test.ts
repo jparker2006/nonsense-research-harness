@@ -68,8 +68,32 @@ describe("Phase 3 server-side transcript retrieval service", () => {
     expect(service.openTranscriptChunk("alpha:c001")).toMatchObject({
       status: "complete",
       chunk: { chunk_id: "alpha:c001", text: expect.stringContaining("clock") },
+      adjacent_chunks: [],
     });
     expect(service.openTranscriptChunk("missing")).toEqual({ status: "not_found", chunk_id: "missing" });
+  });
+
+  it("opens bounded adjacent context without changing the exact selected chunk", () => {
+    const chunks = [
+      { ...chunk("context:c000", "before words"), chunk_index: 0, segment_id: "shared:segment", episode_id: "shared:episode" },
+      { ...chunk("context:c001", "selected exact words"), chunk_index: 1, segment_id: "shared:segment", episode_id: "shared:episode" },
+      { ...chunk("context:c002", "after words"), chunk_index: 2, segment_id: "shared:segment", episode_id: "shared:episode" },
+      { ...chunk("other:c001", "different segment"), chunk_index: 1, segment_id: "other:segment", episode_id: "shared:episode" },
+    ];
+    const artifacts: RetrievalArtifacts = {
+      ...syntheticArtifacts(),
+      chunks,
+      chunksById: new Map(chunks.map((item) => [item.chunk_id, item])),
+      bm25: buildBm25Index(chunks),
+      vectors: undefined,
+      dimensions: undefined,
+    };
+    const opened = new TranscriptRetrievalService({ artifacts }).openTranscriptChunk("context:c001");
+    expect(opened).toMatchObject({
+      status: "complete",
+      chunk: { chunk_id: "context:c001", text: "selected exact words" },
+      adjacent_chunks: [{ chunk_id: "context:c000" }, { chunk_id: "context:c002" }],
+    });
   });
 
   it("returns bounded hybrid results with filters and exact excerpts", async () => {
@@ -92,6 +116,20 @@ describe("Phase 3 server-side transcript retrieval service", () => {
     expect(result.retrieval_status).toBe("hybrid_unreranked");
     expect(result.matches[0]?.chunk_id).toBe("alpha:c001");
     expect(JSON.stringify(result)).not.toContain("private reranker failure");
+  });
+
+  it("keeps fused hybrid results when reranking rejects every plausible candidate", async () => {
+    const emptyReranker: TranscriptProvider = {
+      async embedQuery() { return [1, 0]; },
+      async rerank() { return []; },
+    };
+    const result = await new TranscriptRetrievalService({ artifacts: syntheticArtifacts(), provider: emptyReranker })
+      .searchTranscripts({ query: "clock concept" });
+    expect(result).toMatchObject({
+      retrieval_status: "hybrid_unreranked",
+      matches: [{ chunk_id: "alpha:c001" }],
+      reason: expect.stringContaining("retained"),
+    });
   });
 
   it("degrades to honest keyword-only, unavailable, and no-match states", async () => {

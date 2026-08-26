@@ -230,7 +230,7 @@ export function createPhase6FixtureDependencies(signal?: AbortSignal): Phase5Wor
       };
     },
     openTranscriptChunk(input) {
-      return input.chunk_id === CHUNK_ID ? { status: "complete", chunk } : { status: "not_found", chunk_id: input.chunk_id };
+      return input.chunk_id === CHUNK_ID ? { status: "complete", chunk, adjacent_chunks: [] } : { status: "not_found", chunk_id: input.chunk_id };
     },
   };
   return { model, tools, signal };

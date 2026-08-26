@@ -231,7 +231,7 @@ function suppliedUrls(workspace: Phase7AWorkspace): string[] {
   return [...urls];
 }
 
-function requestedArtifactMode(message: string, existing: Phase7AWorkspace["artifact"]): "headlines" | "big_story" | null {
+export function requestedArtifactMode(message: string, existing: Phase7AWorkspace["artifact"]): "headlines" | "big_story" | null {
   const hasBriefWord = /\b(brief|packet|prep|preparation|artifact)\b/i.test(message);
   if (hasBriefWord && /\bheadlines?\b/i.test(message)) return "headlines";
   if (hasBriefWord && /\bbig story\b/i.test(message)) return "big_story";

@@ -16,10 +16,9 @@ export const WEB_RESEARCH_LIMITS = Object.freeze({
   bodyTimeoutMs: 5_000,
   wholeRunTimeoutMs: 12_000,
   searchTimeoutMs: 45_000,
-  searchMaxResults: 5,
+  searchMaxResults: 10,
   searchMaxCharactersPerResult: 1_200,
-  searchMaxOutputTokens: 384,
-  searchMaxToolCalls: 1,
+  searchMaxOutputTokens: 768,
   phaseBudgetUsd: 0.1,
   providerRequests: 1,
 });

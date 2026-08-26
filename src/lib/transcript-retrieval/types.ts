@@ -118,6 +118,7 @@ export type OpenTranscriptChunkResult =
   | {
       status: "complete";
       chunk: RetrievalChunk;
+      adjacent_chunks: RetrievalChunk[];
     }
   | {
       status: "not_found";
