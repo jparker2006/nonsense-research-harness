@@ -20,8 +20,10 @@ import {
 import { createPhase7AFixtureDependencies } from "../src/lib/phase7a/fixture.ts";
 import { createOpenRouterPhase7AModel, PHASE_7A_CONTROLLER_MAX_OUTPUT_TOKENS, Phase7AControllerOutputError } from "../src/lib/phase7a/model.ts";
 import {
+  PHASE_7A_ARTIFACT_PROCEDURES,
   PHASE_7A_DEEP_RESEARCH_INSTRUCTION,
   PHASE_7A_SYSTEM_PROMPT,
+  phase7aArtifactInstructions,
   phase7aDecisionPrompt,
 } from "../src/lib/phase7a/prompts.ts";
 import { clearPhase7AWorkspacesForTest, createPhase7AWorkspace } from "../src/lib/phase7a/session-store.ts";
@@ -919,6 +921,23 @@ describe("Phase 7A chat-first agent", () => {
     expect(standardPrompt).not.toContain(PHASE_7A_DEEP_RESEARCH_INSTRUCTION);
     expect(deepPrompt).toContain("Deep research, an existing artifact, or an older request is not current-turn artifact intent.");
     expect(deepPrompt).not.toMatch(/target_minutes|estimated_minutes/);
+    expect(deepPrompt).not.toContain("{{");
+    expect(PHASE_7A_SYSTEM_PROMPT).toBe((await readFile(resolve(root, "prompts/phase7a/SYSTEM.md"), "utf8")).trim());
+    expect(PHASE_7A_DEEP_RESEARCH_INSTRUCTION).toBe((await readFile(resolve(root, "prompts/phase7a/DEEP_RESEARCH.md"), "utf8")).trim());
+    expect(PHASE_7A_ARTIFACT_PROCEDURES.headlines).toBe((await readFile(resolve(root, "prompts/phase7a/HEADLINES_BRIEF.md"), "utf8")).trim());
+    expect(PHASE_7A_ARTIFACT_PROCEDURES.big_story).toBe((await readFile(resolve(root, "prompts/phase7a/BIG_STORY_BRIEF.md"), "utf8")).trim());
+    const artifactTemplate = (await readFile(resolve(root, "prompts/phase7a/ARTIFACT.md"), "utf8")).trim();
+    expect(phase7aArtifactInstructions("headlines")).toBe(artifactTemplate.replace("{{MODE}}", "headlines"));
+    expect(phase7aArtifactInstructions("big_story")).toBe(artifactTemplate.replace("{{MODE}}", "big_story"));
+    expect((await readFile(resolve(root, "prompts/phase7a/CONTROLLER.md"), "utf8"))).toContain("{{CURRENT_MESSAGE}}");
+
+    const literalPlaceholderMessage = phase7aDecisionPrompt({
+      workspace: createPhase7AWorkspace("session_literal_placeholder"),
+      currentMessage: "Explain the literal text {{EVIDENCE}}.",
+      researchDepth: "standard",
+      remaining: {},
+    });
+    expect(literalPlaceholderMessage).toContain("CURRENT USER MESSAGE:\nExplain the literal text {{EVIDENCE}}.");
   });
 
   it("gives Luna short usable-evidence aliases and resolves them before strict citation validation", async () => {

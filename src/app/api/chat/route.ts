@@ -5,7 +5,6 @@ import { createLivePhase5Tools } from "@/lib/phase5/live-tools";
 import { createOpenRouterPhase5Model } from "@/lib/phase5/model";
 import type { Phase7AAgentDependencies } from "@/lib/phase7a/agent";
 import {
-  phase7aArtifactInstructions,
   phase7aBigStoryGeneratedArtifactSchema,
   phase7aHeadlinesGeneratedArtifactSchema,
 } from "@/lib/phase7a/artifact";
@@ -20,7 +19,7 @@ import {
   type Phase7AUIMessage,
 } from "@/lib/phase7a/contracts";
 import { createOpenRouterPhase7AModel, phase7aLocalLiveAuthorized } from "@/lib/phase7a/model";
-import { PHASE_7A_ARTIFACT_PROCEDURES } from "@/lib/phase7a/prompts";
+import { PHASE_7A_ARTIFACT_PROCEDURES, phase7aArtifactInstructions } from "@/lib/phase7a/prompts";
 import { createPhase7AWorkspace, getPhase7AWorkspace, putPhase7AWorkspace } from "@/lib/phase7a/session-store";
 import { runPhase7AWorkflow } from "@/lib/phase7a/workflow";
 

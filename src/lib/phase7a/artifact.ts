@@ -71,10 +71,6 @@ export const phase7aArtifactSchema = z.discriminatedUnion("mode", [
 
 export type Phase7AArtifact = z.infer<typeof phase7aArtifactSchema>;
 
-export function phase7aArtifactInstructions(mode: "headlines" | "big_story"): string {
-  return `Return the strict ${mode} preparation brief without source_ledger; code constructs that ledger from cited evidence IDs. Be concise and use only supplied evidence. Every sourced field must cite real source_ids. Search candidates and unavailable sources cannot support claims. Archive quotes must be exact substrings with exact episode_id, segment_id, and chunk_id. Never attribute unlabeled archive words to CJ or Jeff, invent dialogue, choose the final show topic, write a finished on-air script, assign episode minutes, or lock a running order. Rank every outline item as must_cover, strong_material, optional_detail, or cut_first. Include at least one must_cover and one cut_first item. For Big Story, use compact research_cards and include at least one key_evidence card and one interpretation card.`;
-}
-
 export function phase7aArtifactFromLegacyFixture(value: unknown): unknown {
   if (!value || typeof value !== "object" || Array.isArray(value)) return value;
   const artifact = value as Record<string, unknown>;

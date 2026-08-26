@@ -24,6 +24,7 @@ The product prepares conversation material. It does not choose the final stories
 - Phase 7A replaces the form/fixture default with a live-only chat route, a typed observe-decide-act loop, genuine follow-ups, in-memory evidence reuse, and optional artifact creation. Deterministic fixtures are test injection only; missing provider authorization is explicitly unavailable.
 - Phase 7A.1 keeps that architecture but makes it sturdier and easier to inspect: the controller carries a bounded public research notebook, code can read up to three already-authorized web or archive targets concurrently, and the workspace retains up to eight sanitized run traces. The UI is now one light research workspace with inline activity, chat/artifact views, and a source drawer instead of permanent side rails.
 - Phase 7A.4 makes conversation—not a packet—the primary product. Standard and Deep research share one bounded tool-using architecture; answers use validated claim-level citations, requested briefs use editorial priorities rather than invented timing, and compact grouped work plus user-respecting auto-follow replace the activity rail.
+- The active Phase 7A system, controller, Deep research, and brief prompts are readable Markdown sources in `prompts/phase7a/`; code still owns permissions, tools, schemas, citations, budgets, and validation.
 
 ## Phase rules
 
