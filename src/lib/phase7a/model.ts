@@ -10,7 +10,7 @@ import {
   type Phase7AResearchDepth,
   type Phase7AWorkspace,
 } from "./contracts.ts";
-import { PHASE_7A_SYSTEM_PROMPT, phase7aDecisionPrompt } from "./prompts.ts";
+import { PHASE_7A_SYSTEM_PROMPT, phase7aCitationAliases, phase7aDecisionPrompt } from "./prompts.ts";
 
 export const PHASE_7A_MODEL_REQUEST_TIMEOUT_MS = 120_000;
 export const PHASE_7A_CONTROLLER_MAX_OUTPUT_TOKENS = 8_000;
@@ -179,7 +179,17 @@ export function createOpenRouterPhase7AModel(options: {
         }
         let parsed: Phase7AControllerDecision;
         try {
-          parsed = phase7aControllerOutputToDecision(transport.data);
+          const aliases = phase7aCitationAliases(input.workspace);
+          const resolvedTransport = transport.data.action === "respond"
+            ? {
+                ...transport.data,
+                response_blocks: transport.data.response_blocks.map((block) => ({
+                  ...block,
+                  source_ids: block.source_ids.map((sourceId) => aliases.sourceIdByAlias.get(sourceId) ?? sourceId),
+                })),
+              }
+            : transport.data;
+          parsed = phase7aControllerOutputToDecision(resolvedTransport);
         } catch (error) {
           throw controllerOutputError(
             "phase7a_controller_action_invalid",

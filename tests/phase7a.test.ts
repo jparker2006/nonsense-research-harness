@@ -920,6 +920,57 @@ describe("Phase 7A chat-first agent", () => {
     expect(deepPrompt).not.toMatch(/target_minutes|estimated_minutes/);
   });
 
+  it("gives Luna short usable-evidence aliases and resolves them before strict citation validation", async () => {
+    const workspace = createPhase7AWorkspace("session_citation_aliases");
+    workspace.evidence.push({
+      source_id: "web_opaque_retrieved_source_2fbe64e4d1",
+      source_type: "web",
+      availability: "complete",
+      evidence_usable: true,
+      title: "Retrieved source",
+      url: "https://example.com/retrieved",
+      excerpt: "The retrieved source supports this claim.",
+      content: "The retrieved source supports this claim.",
+    });
+    workspace.candidates.push({
+      source_id: "web_unread_candidate_73cf99",
+      url: "https://example.com/unread",
+      title: "Unread candidate",
+      excerpt: "A search-result excerpt is not evidence.",
+      query: "fixture query",
+    });
+    const prompt = phase7aDecisionPrompt({
+      workspace,
+      currentMessage: "Answer from the retrieved evidence.",
+      researchDepth: "standard",
+      remaining: {},
+    });
+    expect(prompt).toContain('"citation_alias":"evidence_1"');
+    expect(prompt).not.toContain("web_opaque_retrieved_source_2fbe64e4d1");
+    expect(prompt).not.toContain("web_unread_candidate_73cf99");
+
+    const dependencies = createPhase7AFixtureDependencies([]);
+    dependencies.controller = createOpenRouterPhase7AModel({
+      apiKey: "test-key",
+      liveAuthorized: true,
+      fetchImpl: controllerStreamFetch(JSON.stringify(controllerEnvelope({
+        public_summary: "Answer from retrieved evidence",
+        response_blocks: [{ text: "The retrieved source supports this claim.", source_ids: ["evidence_1"] }],
+      }))),
+    });
+    const result = await runPhase7AWorkflow({
+      workspace,
+      message: "Answer from the retrieved evidence.",
+    }, dependencies);
+    expect(result.status).toBe("complete");
+    expect(result.assistant_message?.blocks).toEqual([{
+      text: "The retrieved source supports this claim.",
+      source_ids: ["web_opaque_retrieved_source_2fbe64e4d1"],
+    }]);
+    expect(result.counts.controller_turns).toBe(1);
+    expect(result.limitations).not.toContain("phase7a_invalid_citation");
+  });
+
   it("keeps fixtures test-only and streams an injected chat route without leaking raw evidence", async () => {
     const route = createPhase7AChatRoute({ dependencies: () => createPhase7AFixtureDependencies([
       action({ action: "read_url", public_summary: "Read supplied page", url: suppliedUrl }),

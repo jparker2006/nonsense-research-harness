@@ -442,6 +442,17 @@ The approved product contract is in `docs/PHASE_7A_4_SPEC.md`; the exact impleme
 - [x] Frozen corpus files and historical reports remain byte-unchanged.
 - [ ] Jake submits the exact localhost acceptance prompt from `docs/PHASE_7A_4_RESULT.md` and decides whether the product is ready for Phase 8 usefulness comparison.
 
+### Phase 7A.4 citation repair — DETERMINISTIC GATE PASSED
+
+The first user-owned acceptance run completed five article reads, one web search, and an honest archive no-match, then failed safely when Luna cited an identifier outside the retrieved usable-evidence set. Exact evidence and the repair are recorded in `docs/PHASE_7A_4_CITATION_REPAIR_RESULT.md`.
+
+- [x] Preserve the strict usable-evidence citation validator and zero automatic retries.
+- [x] Give the controller short deterministic aliases only for usable evidence and resolve them to exact internal source IDs in code.
+- [x] Remove citeable IDs from unread candidates and opaque internal IDs from the controller evidence/conversation view.
+- [x] Add an exact regression proving alias resolution, candidate isolation, one-request completion, and fail-closed validation.
+- [x] Pass the focused test, lint, typecheck, full regression, production-build, corpus-integrity, and browser-console gates with `$0.00` repair spend.
+- [ ] Jake completes one replacement live acceptance run with the same frozen prompt before Phase 8.
+
 ## Phase 7B — Durable private workspaces — NOT STARTED
 
 - [ ] Decide whether persistence/auth is worth building only after Phase 8 usefulness testing.

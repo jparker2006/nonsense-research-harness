@@ -118,9 +118,10 @@ export const phase7aControllerOutputSchema = z.object({
     .describe("Extra artifact instructions for create_artifact; an empty string otherwise."),
   response_blocks: z.array(z.object({
     text: z.string().trim().min(1).max(2_000),
-    source_ids: z.array(z.string().trim().min(3).max(180)).max(8),
+    source_ids: z.array(z.string().trim().min(3).max(180)).max(8)
+      .describe("Only exact citation_alias values shown on usable evidence; never unread-candidate or internal source IDs."),
   }).strict()).max(12)
-    .describe("Natural answer paragraphs with claim-level retrieved citations for respond; an empty array otherwise."),
+    .describe("Natural answer paragraphs with claim-level usable-evidence citation aliases for respond; an empty array otherwise."),
   research_state: phase7aResearchStateSchema.describe("Concise public operational research state, never private reasoning."),
 }).strict();
 
