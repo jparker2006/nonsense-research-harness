@@ -5,26 +5,27 @@ import {
   evidenceSourceSchema,
   phase5UsageSchema,
 } from "../phase5/contracts.ts";
+import { researchNotebookSchema } from "../research-agent/contracts.ts";
 import { phase7aArtifactSchema as phase7aPreparationArtifactSchema, type Phase7AArtifact } from "./artifact.ts";
 
 export const PHASE_7A_LIMITS = Object.freeze({
   maxRequestBytes: 24_000,
   maxSessionIdCharacters: 96,
   maxMessageCharacters: 12_000,
-  maxControllerTurns: 10,
-  maxProviderRequests: 20,
+  maxControllerTurns: 64,
+  maxProviderRequests: 120,
   maxWebSearches: 3,
   maxUrlReads: 8,
   maxTranscriptSearches: 2,
   maxTranscriptOpens: 6,
-  maxGrokTurns: 2,
+  maxGrokTurns: 32,
   maxCompositions: 1,
   maxRepairs: 1,
-  maxEvidenceSources: 24,
+  maxEvidenceSources: 64,
   maxCandidates: 18,
   maxTranscriptMatches: 18,
   maxConversationTurns: 24,
-  maxActivityEvents: 100,
+  maxActivityEvents: 240,
   maxBatchTargets: 3,
   maxNotebookCompletedSteps: 12,
   maxNotebookEvidenceGaps: 8,
@@ -32,7 +33,7 @@ export const PHASE_7A_LIMITS = Object.freeze({
   maxSessions: 8,
   sessionTtlMs: 6 * 60 * 60 * 1_000,
   wholeTurnTimeoutMs: 300_000,
-  costCapUsd: 1,
+  costCapUsd: 2,
   liveProofTotalCostCapUsd: 2,
   automaticRetries: 0,
 });
@@ -199,7 +200,7 @@ export const phase7aConversationTurnSchema = z.object({
   turn_id: z.string().max(160),
   role: z.enum(["user", "assistant"]),
   text: z.string().max(PHASE_7A_LIMITS.maxMessageCharacters),
-  source_ids: z.array(z.string().max(180)).max(8).default([]),
+  source_ids: z.array(z.string().max(180)).max(12).default([]),
   created_at: z.string(),
 });
 
@@ -247,7 +248,21 @@ export const phase7aActivitySchema = z.object({
 
 export const phase7aTraceStepSchema = z.object({
   sequence: z.number().int().positive(),
-  action: z.enum(["web_search", "read_url", "read_urls", "search_transcripts", "open_transcript_chunk", "open_transcript_chunks", "create_artifact", "respond"]),
+  action: z.enum([
+    "web_search",
+    "read_url",
+    "read_urls",
+    "search_transcripts",
+    "open_transcript_chunk",
+    "open_transcript_chunks",
+    "create_artifact",
+    "respond",
+    "plan_research",
+    "run_task",
+    "review_research",
+    "submit_answer",
+    "fallback",
+  ]),
   public_summary: publicSummary,
   target: z.string().max(500),
   observation: z.string().max(500),
@@ -291,6 +306,7 @@ export const phase7aWorkspaceSchema = z.object({
   run_traces: z.array(phase7aRunTraceSchema).max(PHASE_7A_LIMITS.maxRunTraces),
   artifact: phase7aPreparationArtifactSchema.nullable(),
   artifact_revision: z.number().int().nonnegative(),
+  research_notebook: researchNotebookSchema.nullable().default(null),
   updated_at_ms: z.number().nonnegative(),
 });
 
@@ -298,10 +314,10 @@ export const phase7aAssistantMessageSchema = z.object({
   message_id: z.string().max(160),
   run_id: z.string().max(160),
   text: z.string().trim().min(1).max(5_000),
-  source_ids: z.array(z.string().max(180)).max(8),
+  source_ids: z.array(z.string().max(180)).max(12),
   blocks: z.array(z.object({
     text: z.string().trim().min(1).max(2_000),
-    source_ids: z.array(z.string().max(180)).max(8),
+    source_ids: z.array(z.string().max(180)).max(12),
   }).strict()).min(1).max(12),
   created_at: z.string(),
 });
@@ -333,7 +349,7 @@ export const phase7aReceiptSchema = z.object({
 
 export const phase7aErrorSchema = z.object({
   run_id: z.string().max(160).optional(),
-  code: z.string().regex(/^phase7a_[a-z0-9_]+$/),
+  code: z.string().regex(/^(?:phase7a|research)_[a-z0-9_:-]+$/),
   message: z.string().min(1).max(300),
   retryable: z.boolean(),
 });

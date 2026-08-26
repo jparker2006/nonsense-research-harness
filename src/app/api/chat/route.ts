@@ -18,10 +18,14 @@ import {
   phase7aSourceSchema,
   type Phase7AUIMessage,
 } from "@/lib/phase7a/contracts";
-import { createOpenRouterPhase7AModel, phase7aLocalLiveAuthorized } from "@/lib/phase7a/model";
+import { phase7aLocalLiveAuthorized } from "@/lib/phase7a/model";
 import { PHASE_7A_ARTIFACT_PROCEDURES, phase7aArtifactInstructions } from "@/lib/phase7a/prompts";
 import { createPhase7AWorkspace, getPhase7AWorkspace, putPhase7AWorkspace } from "@/lib/phase7a/session-store";
 import { runPhase7AWorkflow } from "@/lib/phase7a/workflow";
+import { RESEARCH_AGENT_LIMITS } from "@/lib/research-agent/contracts";
+import { createOpenRouterManager } from "@/lib/research-agent/model";
+import { runResearchTurn, type ResearchRuntimeDependencies } from "@/lib/research-agent/runtime";
+import { createOpenRouterResearchWorker } from "@/lib/research-agent/worker";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -29,7 +33,7 @@ export const dynamic = "force-dynamic";
 const activeSessions = new Set<string>();
 
 function safeError(error: unknown, runId?: string) {
-  const code = error instanceof Error && /^phase7a_[a-z0-9_]+$/.test(error.message)
+  const code = error instanceof Error && /^(?:phase7a|research)_[a-z0-9_:-]+$/.test(error.message)
     ? error.message
     : "phase7a_request_failed";
   const messages: Record<string, string> = {
@@ -52,6 +56,14 @@ function safeError(error: unknown, runId?: string) {
     phase7a_budget_exhausted: "The turn reached its $1.00 cost boundary.",
     phase7a_provider_request_limit: "The turn reached its provider-request boundary.",
     phase7a_run_stopped: "The research turn was stopped.",
+    research_budget_exhausted: "The research turn reached its safety ceiling after preserving the latest checkpoint.",
+    research_answer_reserve_protected: "New research stopped so the agent could preserve enough capacity to answer.",
+    research_provider_request_limit: "The research turn reached its provider-request safety boundary.",
+    research_run_stopped: "The research turn was stopped and completed checkpoints were preserved.",
+    research_run_timeout: "The research turn reached its elapsed-time safety boundary and preserved completed work.",
+    research_manager_plan_invalid: "The research manager returned an invalid plan. No unsupported research was started.",
+    research_manager_review_invalid: "The research manager returned an invalid coverage review. Completed research was preserved.",
+    research_manager_answer_invalid: "The research manager returned an invalid final answer. Completed research was preserved.",
   };
   return phase7aErrorSchema.parse({
     ...(runId ? { run_id: runId } : {}),
@@ -61,20 +73,49 @@ function safeError(error: unknown, runId?: string) {
   });
 }
 
-function liveDependencies(signal: AbortSignal): Phase7AAgentDependencies {
+function safeDevelopmentDiagnostic(error: unknown) {
+  if (error instanceof ZodError) {
+    return {
+      kind: "validation",
+      issues: error.issues.slice(0, 12).map((issue) => ({
+        code: issue.code,
+        path: issue.path.map(String).join("."),
+      })),
+    };
+  }
+  if (error instanceof Error) {
+    return {
+      kind: "error",
+      name: error.name.slice(0, 80),
+      code: /^(?:phase7a|research)_[a-z0-9_:-]+$/.test(error.message)
+        ? error.message
+        : "unclassified_runtime_error",
+    };
+  }
+  return { kind: "unknown" };
+}
+
+type ChatRuntimeDependencies = Phase7AAgentDependencies | ResearchRuntimeDependencies;
+
+function liveDependencies(signal: AbortSignal, depth: "standard" | "deep" = "standard"): ResearchRuntimeDependencies {
   const apiKey = process.env.OPENROUTER_API_KEY?.trim() ?? "";
   if (!apiKey) throw new Error("phase7a_missing_key");
   if (!phase7aLocalLiveAuthorized()) throw new Error("phase7a_live_not_authorized");
-  const configuredCostCap = Number(process.env.PHASE7A_TURN_COST_CAP_USD ?? PHASE_7A_LIMITS.costCapUsd);
+  const policy = RESEARCH_AGENT_LIMITS.budgets[depth];
+  const configuredCostCap = Number(process.env.RESEARCH_TURN_COST_CAP_USD ?? process.env.PHASE7A_TURN_COST_CAP_USD ?? policy.ceilingUsd);
   const costCapUsd = Number.isFinite(configuredCostCap) && configuredCostCap > 0
-    ? Math.min(PHASE_7A_LIMITS.costCapUsd, configuredCostCap)
-    : PHASE_7A_LIMITS.costCapUsd;
-  const configuredRequestCap = Number(process.env.PHASE7A_TURN_REQUEST_CAP ?? PHASE_7A_LIMITS.maxProviderRequests);
+    ? Math.min(policy.ceilingUsd, configuredCostCap)
+    : policy.ceilingUsd;
+  const configuredRequestCap = Number(process.env.RESEARCH_TURN_REQUEST_CAP ?? process.env.PHASE7A_TURN_REQUEST_CAP ?? RESEARCH_AGENT_LIMITS.maxProviderRequests);
   const providerRequestCap = Number.isFinite(configuredRequestCap) && configuredRequestCap > 0
-    ? Math.min(PHASE_7A_LIMITS.maxProviderRequests, Math.floor(configuredRequestCap))
-    : PHASE_7A_LIMITS.maxProviderRequests;
+    ? Math.min(RESEARCH_AGENT_LIMITS.maxProviderRequests, Math.floor(configuredRequestCap))
+    : RESEARCH_AGENT_LIMITS.maxProviderRequests;
+  const deadlineSignal = AbortSignal.timeout(RESEARCH_AGENT_LIMITS.maxElapsedMs[depth]);
+  const boundedSignal = AbortSignal.any([signal, deadlineSignal]);
   return {
-    controller: createOpenRouterPhase7AModel({ apiKey, liveAuthorized: true }),
+    manager: createOpenRouterManager({ apiKey }),
+    fallbackManager: createOpenRouterManager({ apiKey, fallback: true }),
+    worker: createOpenRouterResearchWorker({ apiKey }),
     composer: createOpenRouterPhase5Model({
       apiKey,
       liveAuthorized: true,
@@ -87,15 +128,16 @@ function liveDependencies(signal: AbortSignal): Phase7AAgentDependencies {
       artifactInstructions: phase7aArtifactInstructions,
       artifactSchemaNamePrefix: "phase7a_v2",
     }),
-    tools: createLivePhase5Tools({ apiKey, liveAuthorized: true, signal }),
-    signal,
+    tools: createLivePhase5Tools({ apiKey, liveAuthorized: true, signal: boundedSignal }),
+    signal: boundedSignal,
     costCapUsd,
     providerRequestCap,
   };
 }
 
 export function createPhase7AChatRoute(options: {
-  dependencies?: (signal: AbortSignal) => Phase7AAgentDependencies;
+  /** Legacy injected dependencies remain only for frozen route regression fixtures. */
+  dependencies?: (signal: AbortSignal, depth?: "standard" | "deep") => ChatRuntimeDependencies;
 } = {}) {
   const dependencyFactory = options.dependencies ?? liveDependencies;
   const injected = options.dependencies !== undefined;
@@ -140,20 +182,34 @@ export function createPhase7AChatRoute(options: {
           });
           const workspace = getPhase7AWorkspace(parsed.session_id) ?? createPhase7AWorkspace(parsed.session_id);
           const startingArtifactRevision = workspace.artifact_revision;
-          const base = dependencyFactory(request.signal);
-          const result = await runPhase7AWorkflow({
-            workspace,
-            message: parsed.message,
-            researchDepth: parsed.research_depth,
-            runId,
-          }, {
-            ...base,
+          const base = dependencyFactory(request.signal, parsed.research_depth);
+          const shared = {
             signal: request.signal,
-            onEvent: (event) => {
+            onEvent: (event: Parameters<NonNullable<ResearchRuntimeDependencies["onEvent"]>>[0]) => {
               if (!request.signal.aborted) writer.write({ type: "data-activity", id: event.id, data: event });
               base.onEvent?.(event);
             },
-          });
+          };
+          const result = "controller" in base
+            ? await runPhase7AWorkflow({
+                workspace,
+                message: parsed.message,
+                researchDepth: parsed.research_depth,
+                runId,
+              }, { ...base, ...shared })
+            : await runResearchTurn({
+                workspace,
+                message: parsed.message,
+                researchDepth: parsed.research_depth,
+                runId,
+              }, {
+                ...base,
+                ...shared,
+                onCheckpoint: (checkpoint) => {
+                  putPhase7AWorkspace(checkpoint);
+                  base.onCheckpoint?.(checkpoint);
+                },
+              });
           putPhase7AWorkspace(result.workspace);
           for (const source of result.workspace.evidence) {
             writer.write({
@@ -198,7 +254,7 @@ export function createPhase7AChatRoute(options: {
             data: phase7aRunSchema.parse({ session_id: parsed.session_id, run_id: runId, state: result.status, summary }),
           });
           if (result.status === "failed") {
-            const firstCode = result.limitations.find((item) => /^phase7a_[a-z0-9_]+$/.test(item));
+            const firstCode = result.limitations.find((item) => /^(?:phase7a|research)_[a-z0-9_]+$/.test(item));
             writer.write({ type: "data-error", id: runId, data: safeError(new Error(firstCode ?? "phase7a_request_failed"), runId) });
           }
           const text = result.assistant_message?.text ?? summary;
@@ -208,6 +264,12 @@ export function createPhase7AChatRoute(options: {
           writer.write({ type: "text-end", id: textId });
           writer.write({ type: "finish", finishReason: "stop" });
         } catch (error) {
+          if (process.env.NODE_ENV === "development") {
+            // This diagnostic deliberately excludes prompts, model output,
+            // provider payloads, URLs, and secrets. It is only a typed path/code
+            // breadcrumb for failures that occur after a checkpointed runtime.
+            console.error("[nonsense-research-route]", safeDevelopmentDiagnostic(error));
+          }
           if (!request.signal.aborted) {
             const safe = safeError(error, runId);
             writer.write({ type: "data-error", id: runId, data: safe });

@@ -190,17 +190,11 @@ function workLabel(activities: Phase7AActivity[]): string {
 
 export function groupObservableWork(activities: Phase7AActivity[], running = false): ObservableWorkGroup[] {
   const groups: ObservableWorkGroup[] = [];
-  let actionSequence = 0;
   let lastKey = "";
   for (const activity of activities) {
-    if (activity.kind === "agent") {
-      actionSequence += 1;
-      lastKey = "";
-      continue;
-    }
     if (activity.kind === "run") continue;
     const semantic = activity.tool ?? activity.kind;
-    const key = `${actionSequence}:${semantic}`;
+    const key = activity.kind === "agent" ? `agent:${activity.id}` : semantic;
     const current = key === lastKey ? groups.at(-1) : undefined;
     if (current) {
       current.activities.push(activity);

@@ -472,6 +472,31 @@ The bounded implementation and verification evidence are in `docs/PHASE_7A_5_RES
 - [ ] Jake optionally requests a brief from the same conversation and confirms the compact-answer-to-brief transition is useful.
 - [ ] If accepted, freeze Phase 8 before any comparison calls; do not add persistence or deployment first.
 
+## Research manager–worker architecture — PASSED
+
+The approved architecture, implementation evidence, watched browser runs, and honest limitations are in `docs/RESEARCH_AGENT_ARCHITECTURE_SPEC.md` and `docs/RESEARCH_AGENT_ARCHITECTURE_RESULT.md`.
+
+- [x] Replace the active shallow action controller with one Grok manager that plans, returns after every wave, judges semantic completion, and synthesizes.
+- [x] Add a validated server-owned DAG and launch every dependency-ready task through a bounded parallel pool.
+- [x] Use GPT-5.6 Luna Max workers with the complete five-tool native AI SDK catalog and typed `submit_evidence` termination.
+- [x] Preserve exact evidence, claims, conflicts, gaps, corrections, receipts, fallbacks, prior answers, and artifact revision in a versioned serializable notebook.
+- [x] Remove the first-16 evidence visibility cutoff and keep canonical records separate from bounded model/browser projections.
+- [x] Keep Standard and Deep as policies of the same harness; show the Deep plan and begin automatically.
+- [x] Keep ordinary chat concise and evidence-cited; create a priority-ranked Headlines/Big Story brief only when explicitly requested.
+- [x] Add one transient manager retry, visible Luna fallback, one affected-worker retry, wave checkpoints, cancellation, and real live deadlines.
+- [x] Enforce `$0.30`/`$1.00` targets, `$0.50`/`$2.00` ceilings, protected final-answer reserves, atomic receipts, and fair parallel reservations.
+- [x] Move active system, manager, worker, mode, fallback, and answer instructions into readable Markdown.
+- [x] Pass all 25 frozen deterministic architecture scenarios and the complete repository gate without changing corpus/retrieval/historical evidence.
+- [x] Watch a useful Standard browser run and a Deep browser run through terminal answers for a conservative `$2.307606` aggregate under the authorized `$3.00`.
+- [x] Stop before persistence, deployment, new tools, a third model, subagents, broad visual redesign, or Phase 8 comparison work.
+
+### Architecture gate — STOP
+
+- [x] The real chat route uses the manager–worker runtime; legacy injected fixtures are not the live default.
+- [x] Live proof shows planning, real parallel work, underlying source reads, wave convergence, citations, receipts, limitations, and visible fallback.
+- [x] The final tree passes supply-chain review, lint, typecheck, all tests, and production build at a clean local commit.
+- [x] No push or deployment occurred.
+
 ## Phase 7B — Durable private workspaces — NOT STARTED
 
 - [ ] Decide whether persistence/auth is worth building only after Phase 8 usefulness testing.

@@ -19,7 +19,7 @@ export function phase7aCitationAliases(workspace: Phase7AWorkspace): Phase7ACita
   const aliasBySourceId = new Map<string, string>();
   const sourceIdByAlias = new Map<string, string>();
   let citationNumber = 0;
-  for (const source of workspace.evidence.slice(0, 16)) {
+  for (const source of workspace.evidence) {
     if (!source.evidence_usable || aliasBySourceId.has(source.source_id)) continue;
     citationNumber += 1;
     const alias = `evidence_${citationNumber}`;
@@ -67,7 +67,7 @@ function evidenceView(workspace: Phase7AWorkspace, aliases: Phase7ACitationAlias
   let remaining = 32_000;
   return workspace.evidence.map((source) => {
     const raw = source.content ?? source.excerpt ?? "";
-    const evidence_text = raw.slice(0, Math.min(4_000, remaining));
+    const evidence_text = raw.slice(0, Math.min(4_000, Math.max(0, remaining)));
     remaining -= evidence_text.length;
     return {
       citation_alias: aliases.aliasBySourceId.get(source.source_id) ?? null,
@@ -81,7 +81,7 @@ function evidenceView(workspace: Phase7AWorkspace, aliases: Phase7ACitationAlias
       chunk_id: source.chunk_id,
       evidence_text,
     };
-  }).filter((_, index) => index < 16 && remaining >= 0);
+  });
 }
 
 function conversationView(workspace: Phase7AWorkspace, aliases: Phase7ACitationAliases) {

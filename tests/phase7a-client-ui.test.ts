@@ -266,9 +266,9 @@ describe("Phase 7A chat-native client state", () => {
       { ...activity("run_one", "archive_one", "Search archive"), tool: "search_transcripts", detail: "sprout outbreak · 3 matches" },
     ];
     const groups = groupObservableWork(activities);
-    expect(groups.map((group) => group.label)).toEqual(["Read 2 sources", "Checked the Nonsense archive"]);
-    expect(groups[0]?.detail).toContain("FDA");
-    expect(groups[1]?.detail).toContain("3 matches");
+    expect(groups.map((group) => group.label)).toEqual(["Choosing the next step", "Read 2 sources", "Choosing the next step", "Checked the Nonsense archive"]);
+    expect(groups[1]?.detail).toContain("FDA");
+    expect(groups[3]?.detail).toContain("3 matches");
   });
 
   it("renders a natural cited answer and separate deep-research control without a packet", () => {

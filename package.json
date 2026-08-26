@@ -38,6 +38,7 @@
     "@mastra/ai-sdk": "1.9.1",
     "@mastra/core": "1.61.0",
     "@mozilla/readability": "0.6.0",
+    "@openrouter/ai-sdk-provider": "3.0.0",
     "ai": "7.0.77",
     "ipaddr.js": "2.5.0",
     "jsdom": "29.1.1",

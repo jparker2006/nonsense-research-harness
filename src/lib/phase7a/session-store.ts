@@ -26,6 +26,7 @@ export function createPhase7AWorkspace(sessionId: string, now = Date.now()): Pha
     run_traces: [],
     artifact: null,
     artifact_revision: 0,
+    research_notebook: null,
     updated_at_ms: now,
   });
 }
