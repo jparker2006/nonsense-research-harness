@@ -448,6 +448,7 @@ The first user-owned acceptance run completed five article reads, one web search
 
 - [x] Preserve the strict usable-evidence citation validator and zero automatic retries.
 - [x] Give the controller short deterministic aliases only for usable evidence and resolve them to exact internal source IDs in code.
+- [x] Constrain every provider response schema to that turn's exact alias enum; prompt guidance alone is not an acceptance mechanism.
 - [x] Remove citeable IDs from unread candidates and opaque internal IDs from the controller evidence/conversation view.
 - [x] Add an exact regression proving alias resolution, candidate isolation, one-request completion, and fail-closed validation.
 - [x] Pass the focused test, lint, typecheck, full regression, production-build, corpus-integrity, and browser-console gates with `$0.00` repair spend.

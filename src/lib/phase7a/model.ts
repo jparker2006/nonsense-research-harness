@@ -3,7 +3,7 @@ import { readOpenRouterStream, type Phase2Request } from "../openrouter-phase2.t
 import { PHASE_5_MODELS } from "../phase5/contracts.ts";
 import type { Phase5ModelReceipt, Phase5ModelResult } from "../phase5/model.ts";
 import {
-  phase7aControllerOutputSchema,
+  phase7aControllerOutputSchemaForAliases,
   phase7aControllerOutputToDecision,
   type Phase7AControllerDecision,
   type Phase7AControllerFailure,
@@ -81,7 +81,7 @@ function controllerOutputError(
   }, receipt);
 }
 
-function controllerRequest(prompt: string): Phase2Request {
+function controllerRequest(prompt: string, outputSchema: z.ZodType): Phase2Request {
   const model = PHASE_5_MODELS.light;
   return {
     model: model.id,
@@ -96,7 +96,7 @@ function controllerRequest(prompt: string): Phase2Request {
       json_schema: {
         name: "phase7a_controller_action",
         strict: true,
-        schema: z.toJSONSchema(phase7aControllerOutputSchema, { target: "draft-07", unrepresentable: "any" }),
+        schema: z.toJSONSchema(outputSchema, { target: "draft-07", unrepresentable: "any" }),
       },
     },
     provider: {
@@ -129,6 +129,8 @@ export function createOpenRouterPhase7AModel(options: {
       if (!liveAuthorized) throw new Error("phase7a_live_not_authorized");
       const startedAt = performance.now();
       try {
+        const aliases = phase7aCitationAliases(input.workspace);
+        const outputSchema = phase7aControllerOutputSchemaForAliases([...aliases.sourceIdByAlias.keys()]);
         const response = await fetchImpl("https://openrouter.ai/api/v1/chat/completions", {
           method: "POST",
           headers: {
@@ -136,7 +138,7 @@ export function createOpenRouterPhase7AModel(options: {
             "content-type": "application/json",
             "x-title": "Nonsense Research Harness Phase 7A",
           },
-          body: JSON.stringify(controllerRequest(phase7aDecisionPrompt(input))),
+          body: JSON.stringify(controllerRequest(phase7aDecisionPrompt(input), outputSchema)),
           signal: callOptions?.signal
             ? AbortSignal.any([
                 callOptions.signal,
@@ -168,7 +170,7 @@ export function createOpenRouterPhase7AModel(options: {
         } catch {
           throw controllerOutputError("phase7a_controller_invalid_json", "json", receiptFor(result, "invalid_json"));
         }
-        const transport = phase7aControllerOutputSchema.safeParse(json);
+        const transport = outputSchema.safeParse(json);
         if (!transport.success) {
           throw controllerOutputError(
             "phase7a_controller_transport_invalid",
@@ -179,13 +181,16 @@ export function createOpenRouterPhase7AModel(options: {
         }
         let parsed: Phase7AControllerDecision;
         try {
-          const aliases = phase7aCitationAliases(input.workspace);
           const resolvedTransport = transport.data.action === "respond"
             ? {
                 ...transport.data,
                 response_blocks: transport.data.response_blocks.map((block) => ({
                   ...block,
-                  source_ids: block.source_ids.map((sourceId) => aliases.sourceIdByAlias.get(sourceId) ?? sourceId),
+                  source_ids: block.source_ids.map((sourceId) => {
+                    const resolved = aliases.sourceIdByAlias.get(sourceId);
+                    if (!resolved) throw new Error("phase7a_citation_alias_invalid");
+                    return resolved;
+                  }),
                 })),
               }
             : transport.data;

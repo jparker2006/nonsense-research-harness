@@ -14,9 +14,11 @@ Jake submitted the frozen Phase 7A.4 localhost acceptance prompt. The live run s
 
 The run then failed safely before rendering its answer with `phase7a_invalid_citation`. Luna's final response referred to an identifier outside the retrieved usable-evidence set. The strict server validator correctly refused to display an unsupported citation. The browser console remained clean, and collected evidence stayed in the bounded session workspace.
 
+An initial repair hid opaque IDs and asked Luna to return short aliases, but its provider schema still accepted any string. The first replacement run repeated the same safe terminal failure after five article reads, one archive search, eight requests, and `$0.0415`. That failed replacement is preserved as evidence that prompt guidance alone was insufficient.
+
 ## Root cause
 
-The controller prompt asked Luna to copy long opaque internal source IDs into claim-level response blocks while also showing unread web candidates with their own source IDs. The distinction was described in prose and enforced by code, but the output interface made a candidate/usable-ID mix-up or opaque-ID transcription error unnecessarily easy.
+The original controller prompt asked Luna to copy long opaque internal source IDs into claim-level response blocks while also showing unread web candidates with their own source IDs. Replacing those with aliases improved the prompt, but the static JSON schema still defined citations as arbitrary strings. The distinction remained prompt guidance rather than a provider-enforced output constraint.
 
 ## Repair
 
@@ -25,6 +27,7 @@ The controller prompt asked Luna to copy long opaque internal source IDs into cl
 - Recent conversation citations are projected through the same aliases.
 - Unread web candidates retain the URL and metadata needed for `read_url` but expose no citeable identifier.
 - Luna returns the exact short aliases in response blocks; the server maps recognized aliases back to exact stored source IDs before the existing strict validation and browser stream.
+- Every controller request now builds a strict response schema whose citation enum contains only the usable aliases available on that turn. With no usable evidence, the schema permits only an empty citation array.
 - Unknown aliases, unread candidates, unavailable sources, and invented IDs still fail closed. No citation is silently dropped, and no automatic model retry was added.
 
 ## Verification
@@ -33,6 +36,7 @@ The controller prompt asked Luna to copy long opaque internal source IDs into cl
 - Proved the controller prompt contains `evidence_1` but neither internal ID.
 - Proved the OpenRouter controller adapter maps the alias back to the exact retrieved source.
 - Proved the full agent turn completes in one controller request with the exact internal citation and no `phase7a_invalid_citation` limitation.
+- Proved an unrecognized alias is rejected as an invalid controller transport before it can reach the agent citation validator.
 - Focused Phase 7A suite: **41/41 tests passed**.
 - Lint and TypeScript: **passed**.
 - Full `pnpm gate`: **passed** — supply-chain denylist, lint, typecheck, 24 files and 207 tests, and the Next.js 16.3.2 production build.

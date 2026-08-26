@@ -12,6 +12,7 @@ import {
   PHASE_7A_LIMITS,
   phase7aActionSchema,
   phase7aControllerOutputSchema,
+  phase7aControllerOutputSchemaForAliases,
   phase7aControllerOutputToDecision,
   phase7aRequestSchema,
   type Phase7AAction,
@@ -948,6 +949,18 @@ describe("Phase 7A chat-first agent", () => {
     expect(prompt).toContain('"citation_alias":"evidence_1"');
     expect(prompt).not.toContain("web_opaque_retrieved_source_2fbe64e4d1");
     expect(prompt).not.toContain("web_unread_candidate_73cf99");
+    const boundedSchema = phase7aControllerOutputSchemaForAliases(["evidence_1"]);
+    expect(boundedSchema.safeParse(controllerEnvelope({
+      response_blocks: [{ text: "Supported.", source_ids: ["evidence_1"] }],
+    })).success).toBe(true);
+    expect(boundedSchema.safeParse(controllerEnvelope({
+      response_blocks: [{ text: "Unsupported.", source_ids: ["source_1"] }],
+    })).success).toBe(false);
+    const noEvidenceSchema = phase7aControllerOutputSchemaForAliases([]);
+    expect(noEvidenceSchema.safeParse(controllerEnvelope()).success).toBe(true);
+    expect(noEvidenceSchema.safeParse(controllerEnvelope({
+      response_blocks: [{ text: "Unsupported.", source_ids: ["evidence_1"] }],
+    })).success).toBe(false);
 
     const dependencies = createPhase7AFixtureDependencies([]);
     dependencies.controller = createOpenRouterPhase7AModel({
@@ -969,6 +982,23 @@ describe("Phase 7A chat-first agent", () => {
     }]);
     expect(result.counts.controller_turns).toBe(1);
     expect(result.limitations).not.toContain("phase7a_invalid_citation");
+
+    const invalidDependencies = createPhase7AFixtureDependencies([]);
+    invalidDependencies.controller = createOpenRouterPhase7AModel({
+      apiKey: "test-key",
+      liveAuthorized: true,
+      fetchImpl: controllerStreamFetch(JSON.stringify(controllerEnvelope({
+        response_blocks: [{ text: "Unsupported.", source_ids: ["source_1"] }],
+      }))),
+    });
+    const invalid = await runPhase7AWorkflow({
+      workspace,
+      message: "Answer from the retrieved evidence.",
+    }, invalidDependencies);
+    expect(invalid.status).toBe("failed");
+    expect(invalid.limitations).toContain("phase7a_controller_transport_invalid");
+    expect(invalid.limitations).not.toContain("phase7a_invalid_citation");
+    expect(invalid.counts.controller_turns).toBe(1);
   });
 
   it("keeps fixtures test-only and streams an injected chat route without leaking raw evidence", async () => {

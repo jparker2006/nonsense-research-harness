@@ -104,6 +104,20 @@ export const phase7aResearchStateSchema = z.object({
 // Provider structured-output schemas are most portable when the root is one
 // strict object with every key present. The conditional action contract is
 // enforced after parsing this transport shape.
+function controllerResponseBlocksSchema(citationAliases?: readonly string[]) {
+  const sourceIds = citationAliases === undefined
+    ? z.array(z.string().trim().min(3).max(180)).max(8)
+    : citationAliases.length
+      ? z.array(z.enum([citationAliases[0]!, ...citationAliases.slice(1)])).max(8)
+      : z.array(z.string()).max(0);
+  return z.array(z.object({
+    text: z.string().trim().min(1).max(2_000),
+    source_ids: sourceIds
+      .describe("Only exact citation_alias values shown on usable evidence; never unread-candidate or internal source IDs."),
+  }).strict()).max(12)
+    .describe("Natural answer paragraphs with claim-level usable-evidence citation aliases for respond; an empty array otherwise.");
+}
+
 export const phase7aControllerOutputSchema = z.object({
   action: z.enum(["web_search", "read_url", "read_urls", "search_transcripts", "open_transcript_chunk", "open_transcript_chunks", "create_artifact", "respond"])
     .describe("Exactly one allowed controller action."),
@@ -116,14 +130,15 @@ export const phase7aControllerOutputSchema = z.object({
     .describe("Artifact mode for create_artifact; null otherwise."),
   instruction: z.string().max(1_200)
     .describe("Extra artifact instructions for create_artifact; an empty string otherwise."),
-  response_blocks: z.array(z.object({
-    text: z.string().trim().min(1).max(2_000),
-    source_ids: z.array(z.string().trim().min(3).max(180)).max(8)
-      .describe("Only exact citation_alias values shown on usable evidence; never unread-candidate or internal source IDs."),
-  }).strict()).max(12)
-    .describe("Natural answer paragraphs with claim-level usable-evidence citation aliases for respond; an empty array otherwise."),
+  response_blocks: controllerResponseBlocksSchema(),
   research_state: phase7aResearchStateSchema.describe("Concise public operational research state, never private reasoning."),
 }).strict();
+
+export function phase7aControllerOutputSchemaForAliases(citationAliases: readonly string[]) {
+  return phase7aControllerOutputSchema.extend({
+    response_blocks: controllerResponseBlocksSchema(citationAliases),
+  });
+}
 
 export const phase7aControllerDecisionSchema = z.object({
   action: phase7aActionSchema,
