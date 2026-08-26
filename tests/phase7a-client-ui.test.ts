@@ -290,9 +290,9 @@ describe("Phase 7A chat-native client state", () => {
       assistant: {
         message_id: "message_answer",
         run_id: "run_answer",
-        text: "The recall expanded.",
+        text: "**Conclusion:** The recall expanded; <raw HTML> is not executed.",
         source_ids: [source.source_id],
-        blocks: [{ text: "The recall expanded.", source_ids: [source.source_id] }],
+        blocks: [{ text: "**Conclusion:** The recall expanded; <raw HTML> is not executed.", source_ids: [source.source_id] }],
         created_at: "2026-08-25T00:01:00Z",
       },
       artifact: null,
@@ -313,7 +313,8 @@ describe("Phase 7A chat-native client state", () => {
       copyArtifact: () => undefined,
       copiedExchangeId: null,
     }));
-    expect(markup).toContain("The recall expanded.");
+    expect(markup).toContain("<strong>Conclusion:</strong> The recall expanded; &lt;raw HTML&gt; is not executed.");
+    expect(markup).not.toContain("**Conclusion:**");
     expect(markup).toContain("[1] FDA");
     expect(markup).toContain('aria-pressed="true"');
     expect(markup).toContain("Deep research");
@@ -334,7 +335,8 @@ describe("Phase 7A chat-native client state", () => {
     expect(css).toContain(".work-line > summary { min-height: 44px; }");
     expect(css).toContain(".chat-composer .deep-research-toggle { min-height: 44px; }");
     expect(css).toContain("@media (prefers-reduced-motion: reduce)");
-    expect(css).toContain(".work-line-label--active::after { display: none; }");
+    expect(css).toContain(".work-line-label__highlight { display: none; }");
+    expect(css).not.toContain("content: attr(data-label)");
     expect(css).not.toContain("activity-node");
     expect(css).not.toContain("background-clip: text");
   });

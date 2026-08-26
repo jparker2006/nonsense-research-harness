@@ -433,7 +433,7 @@ The approved product contract is in `docs/PHASE_7A_4_SPEC.md`; the exact impleme
 - [x] Add near-bottom auto-follow, immediate user-scroll pause, new-content-aware **Jump to latest**, and readable completion positioning.
 - [x] Prove strict browser/server contracts, claim citations, artifact intent, both v2 artifact modes, revisions, memory reuse, honest failure/degradation, grouped work, scrolling, mobile controls, and reduced motion deterministically.
 - [x] Pass the final supply-chain, lint, typecheck, 206-test, production-build, corpus-integrity, historical-evidence, browser-console, and responsive-overflow gates at `$0.00` provider spend.
-- [ ] Complete the user-owned paid Phase 7A.4 live UI acceptance prompt before beginning Phase 8 comparison runs.
+- [x] Complete the user-owned paid Phase 7A.4 live UI acceptance prompt before beginning Phase 8 comparison runs.
 
 ### Phase 7A.4 gate — STOP
 
@@ -454,6 +454,23 @@ The first user-owned acceptance run completed five article reads, one web search
 - [x] Add an exact regression proving alias resolution, candidate isolation, one-request completion, and fail-closed validation.
 - [x] Pass the focused test, lint, typecheck, full regression, production-build, corpus-integrity, and browser-console gates with `$0.00` repair spend.
 - [x] Complete one replacement live acceptance run with the same frozen prompt: Ready, four cited sources, honest archive no-match, eight requests, `$0.0336`, zero automatic retries, and zero browser errors.
+
+## Phase 7A.5 — Conversational UI polish — LOCAL GATE PASSED
+
+The bounded implementation and verification evidence are in `docs/PHASE_7A_5_RESULT.md`. Jake owns the final visual acceptance when he returns to the laptop.
+
+- [x] Render paired `**bold emphasis**` in ordinary answers without a general Markdown renderer and keep all raw HTML escaped.
+- [x] Remove duplicated active work text while preserving one minimal Codex-like left-to-right highlight and a static reduced-motion state.
+- [x] Preserve chronological work, readable citations, auto-follow, user-scroll pause, **Jump to latest**, and completion positioning.
+- [x] Reconfirm deterministic coverage for legitimate follow-ups and current-turn-explicit brief creation/revision.
+- [x] Pass focused UI tests, the full 144-version supply-chain/lint/typecheck/207-test/production-build gate, Impeccable detection, and provider-free desktop/narrow browser checks.
+- [x] Keep the agent architecture, tools, models, corpus, budgets, persistence boundary, and deployment state unchanged at `$0.00` provider spend.
+
+### Phase 7A.5 gate — WAIT FOR JAKE'S VISUAL ACCEPTANCE
+
+- [ ] Jake inspects one normal researched answer and its observable-work animation in the live UI.
+- [ ] Jake optionally requests a brief from the same conversation and confirms the compact-answer-to-brief transition is useful.
+- [ ] If accepted, freeze Phase 8 before any comparison calls; do not add persistence or deployment first.
 
 ## Phase 7B — Durable private workspaces — NOT STARTED
 
@@ -533,4 +550,4 @@ Do not pull these into a phase unless the usefulness evaluation identifies a con
 
 ## First next action
 
-Have Jake run the exact paid localhost acceptance prompt in `docs/PHASE_7A_4_RESULT.md`. If he accepts the conversational behavior, freeze the smallest Phase 8 usefulness comparison before adding persistence or deployment. Compare the Phase 7A.4 harness against plain Gemini/Grok on identical inputs; do not deploy automatically.
+Have Jake visually accept the Phase 7A.5 answer formatting and observable-work treatment when he returns to the laptop. If accepted, freeze the smallest Phase 8 usefulness comparison before adding persistence or deployment. Compare the Phase 7A harness against plain Gemini/Grok on identical inputs; do not make comparison calls or deploy automatically.

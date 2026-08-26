@@ -167,7 +167,7 @@ describe("Phase 7A browser interaction contract", () => {
     expect(send).toHaveBeenCalledWith("Research the current outbreak", "deep");
   });
 
-  it("uses a static active state when reduced motion is requested", async () => {
+  it("keeps one readable active label and exposes the sweep as decoration only", async () => {
     Object.defineProperty(window, "matchMedia", {
       configurable: true,
       value: (query: string) => ({
@@ -184,6 +184,7 @@ describe("Phase 7A browser interaction contract", () => {
     await act(async () => root.render(createElement(ConversationThread, threadProps([exchange({ activities: [activity("running")] })]))));
     const active = host.querySelector(".work-line-label--active");
     expect(active?.textContent).toBe("Searching the web");
-    expect(active?.getAttribute("data-label")).toBe("Searching the web");
+    expect(active?.getAttribute("data-label")).toBeNull();
+    expect(active?.querySelector(".work-line-label__highlight")?.getAttribute("aria-hidden")).toBe("true");
   });
 });

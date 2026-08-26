@@ -12,7 +12,7 @@ import {
   UserRound,
   X,
 } from "lucide-react";
-import { useEffect, useRef, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
 import type { BrowserArtifact, BrowserSource, Phase7AResearchDepth } from "@/lib/phase7a/client";
 import type { ResearchExchange } from "@/lib/phase7a/client-state";
 import { exchangeCreatedArtifact } from "@/lib/phase7a/client-state";
@@ -35,6 +35,24 @@ export const RESEARCH_STARTERS = [
   "Help me explore a possible Big Story. Ask what you need, then research it.",
 ];
 
+function safeInlineEmphasis(text: string): ReactNode[] {
+  const nodes: ReactNode[] = [];
+  const emphasis = /\*\*([^*\n]+)\*\*/g;
+  let cursor = 0;
+  let match: RegExpExecArray | null;
+  while ((match = emphasis.exec(text)) !== null) {
+    if (match.index > cursor) nodes.push(text.slice(cursor, match.index));
+    nodes.push(<strong key={`emphasis_${match.index}`}>{match[1]}</strong>);
+    cursor = match.index + match[0].length;
+  }
+  if (cursor < text.length) nodes.push(text.slice(cursor));
+  return nodes.length ? nodes : [text];
+}
+
+function ReadableAnswerText({ text, references }: { text: string; references: SourceReference[] }) {
+  return <>{safeInlineEmphasis(humanizeMachineReferences(text, references))}</>;
+}
+
 export function AgentWork({ exchange }: { exchange: ResearchExchange }) {
   if (!exchange.run && exchange.activities.length === 0) {
     if (exchange.error) return null;
@@ -50,7 +68,10 @@ export function AgentWork({ exchange }: { exchange: ResearchExchange }) {
         {groups.map((group) => (
           <details className={`work-line work-line--${group.status}`} key={group.id} open={["failed", "unavailable", "stopped"].includes(group.status) || undefined}>
             <summary>
-              <span className={group.status === "running" ? "work-line-label work-line-label--active" : "work-line-label"} data-label={group.status === "running" ? group.label : undefined}>{group.label}</span>
+              <span className={group.status === "running" ? "work-line-label work-line-label--active" : "work-line-label"}>
+                <span className="work-line-label__text">{group.label}</span>
+                {group.status === "running" ? <span className="work-line-label__highlight" aria-hidden="true" /> : null}
+              </span>
               {group.status === "failed" || group.status === "unavailable" || group.status === "stopped" ? <span className="work-line-status">{group.status}</span> : null}
               <ChevronRight aria-hidden="true" />
             </summary>
@@ -177,7 +198,7 @@ function AssistantMessage({ exchange, references, openSource }: { exchange: Rese
     <article className="assistant-answer assistant-message" data-answer-id={exchange.assistant.run_id}>
       <header className="answer-heading"><span className="chat-avatar"><Bot aria-hidden="true" /></span><div><span className="chat-role">Nonsense agent</span></div></header>
       <div className="assistant-prose">
-        {exchange.assistant.blocks.map((block, index) => <div className="assistant-block" key={`${exchange.assistant!.message_id}-${index}`}><p>{humanizeMachineReferences(block.text, references)}</p><CitationButtons ids={block.source_ids} references={references} open={openSource} /></div>)}
+        {exchange.assistant.blocks.map((block, index) => <div className="assistant-block" key={`${exchange.assistant!.message_id}-${index}`}><p><ReadableAnswerText text={block.text} references={references} /></p><CitationButtons ids={block.source_ids} references={references} open={openSource} /></div>)}
         {references.length ? <details className="answer-references"><summary>Sources <span>{references.length}</span></summary><ReferenceList references={references} open={openSource} /></details> : null}
       </div>
     </article>
