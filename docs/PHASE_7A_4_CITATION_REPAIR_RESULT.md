@@ -1,6 +1,6 @@
 # Phase 7A.4 citation repair result
 
-Status: **DETERMINISTIC REPAIR GATE PASSED; REPLACEMENT USER LIVE RUN PENDING** on 2026-08-25 HST.
+Status: **DETERMINISTIC REPAIR AND REPLACEMENT LIVE GATES PASSED** on 2026-08-25 HST.
 
 ## Observed failure
 
@@ -43,4 +43,18 @@ The original controller prompt asked Luna to copy long opaque internal source ID
 - Localhost reload: **passed** — the repaired app returned to the ready conversation state with no browser warning or error logs.
 - No paid provider request was made during diagnosis or repair; repair spend is **$0.00**.
 
-Jake owns the replacement paid acceptance run using the same prompt.
+## Replacement live proof
+
+At Jake's explicit request, the same frozen Standard-mode prompt was submitted after the per-turn enum gate passed. The run completed without a retry:
+
+- terminal state: `complete` / **Ready**;
+- supplied/current research: four usable article reads and one current-web search across three results;
+- archive: searched once, honest no-match;
+- response: three concise claim-cited blocks covering the interesting angle, solid evidence, and uncertainty;
+- readable citations: FDA, AP, CIDRAP, and CDC;
+- source inspection: the CDC citation opened the correct source drawer and original CDC URL;
+- receipt: eight provider requests, 1 minute 23 seconds, `$0.0336`;
+- artifact/timing: none, as requested;
+- browser warning/error logs: zero.
+
+The complete acceptance sequence preserved both safe failures rather than rewriting them: the original opaque-ID run cost `$0.0422`, the prompt-only alias replacement cost `$0.0415`, and the provider-enforced alias-enum replacement passed at `$0.0336`. Aggregate acceptance spend was `$0.1173` across 24 requests, with zero automatic retries.

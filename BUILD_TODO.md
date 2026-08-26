@@ -440,7 +440,7 @@ The approved product contract is in `docs/PHASE_7A_4_SPEC.md`; the exact impleme
 - [x] Standard/Deep behavior, optional briefs, editorial priority, citations, memory, observable work, and auto-scroll are implemented without persistence, subagents, new models, or deployment.
 - [x] No paid provider request occurred; provider-disabled behavior remains honestly unavailable rather than substituting a fixture.
 - [x] Frozen corpus files and historical reports remain byte-unchanged.
-- [ ] Jake submits the exact localhost acceptance prompt from `docs/PHASE_7A_4_RESULT.md` and decides whether the product is ready for Phase 8 usefulness comparison.
+- [x] The exact localhost acceptance prompt completes with a concise four-source cited answer, an honest archive no-match, eight requests, `$0.0336`, and zero browser errors; Jake still decides whether the product is ready for Phase 8 usefulness comparison.
 
 ### Phase 7A.4 citation repair — DETERMINISTIC GATE PASSED
 
@@ -452,7 +452,7 @@ The first user-owned acceptance run completed five article reads, one web search
 - [x] Remove citeable IDs from unread candidates and opaque internal IDs from the controller evidence/conversation view.
 - [x] Add an exact regression proving alias resolution, candidate isolation, one-request completion, and fail-closed validation.
 - [x] Pass the focused test, lint, typecheck, full regression, production-build, corpus-integrity, and browser-console gates with `$0.00` repair spend.
-- [ ] Jake completes one replacement live acceptance run with the same frozen prompt before Phase 8.
+- [x] Complete one replacement live acceptance run with the same frozen prompt: Ready, four cited sources, honest archive no-match, eight requests, `$0.0336`, zero automatic retries, and zero browser errors.
 
 ## Phase 7B — Durable private workspaces — NOT STARTED
 
