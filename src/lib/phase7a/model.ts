@@ -3,8 +3,10 @@ import { readOpenRouterStream, type Phase2Request } from "../openrouter-phase2.t
 import { PHASE_5_MODELS } from "../phase5/contracts.ts";
 import type { Phase5ModelReceipt, Phase5ModelResult } from "../phase5/model.ts";
 import {
+  PHASE_7A_CONTROLLER_ACTIONS,
   phase7aControllerOutputSchemaForAliases,
   phase7aControllerOutputToDecision,
+  type Phase7AControllerActionName,
   type Phase7AControllerDecision,
   type Phase7AControllerFailure,
   type Phase7AResearchDepth,
@@ -94,7 +96,7 @@ function controllerRequest(prompt: string, outputSchema: z.ZodType): Phase2Reque
     response_format: {
       type: "json_schema",
       json_schema: {
-        name: "phase7a_controller_action",
+        name: "nonsense_controller_action",
         strict: true,
         schema: z.toJSONSchema(outputSchema, { target: "draft-07", unrepresentable: "any" }),
       },
@@ -108,6 +110,34 @@ function controllerRequest(prompt: string, outputSchema: z.ZodType): Phase2Reque
     },
     reasoning: { effort: model.reasoningEffort, exclude: true },
   };
+}
+
+function remainingValue(remaining: Record<string, number>, key: string): number {
+  const value = remaining[key];
+  return typeof value === "number" && Number.isFinite(value) ? value : Number.POSITIVE_INFINITY;
+}
+
+export function allowedControllerActions(remaining: Record<string, number>): Phase7AControllerActionName[] {
+  const providerRequests = remainingValue(remaining, "provider_requests");
+  const controllerTurns = remainingValue(remaining, "controller_turns");
+  const canResearchThenAnswer = providerRequests >= 1 && controllerTurns >= 1;
+  return PHASE_7A_CONTROLLER_ACTIONS.filter((action) => {
+    if (action === "respond") return true;
+    if (action === "create_artifact") {
+      return remainingValue(remaining, "compositions") >= 1 && providerRequests >= 1;
+    }
+    if (!canResearchThenAnswer) return false;
+    if (action === "web_search") {
+      return remainingValue(remaining, "web_searches") >= 1 && providerRequests >= 2;
+    }
+    if (action === "read_url" || action === "read_urls") {
+      return remainingValue(remaining, "url_reads") >= 1;
+    }
+    if (action === "search_transcripts") {
+      return remainingValue(remaining, "transcript_searches") >= 1 && providerRequests >= 3;
+    }
+    return remainingValue(remaining, "transcript_opens") >= 1;
+  });
 }
 
 export function phase7aLocalLiveAuthorized(): boolean {
@@ -130,13 +160,16 @@ export function createOpenRouterPhase7AModel(options: {
       const startedAt = performance.now();
       try {
         const aliases = phase7aCitationAliases(input.workspace);
-        const outputSchema = phase7aControllerOutputSchemaForAliases([...aliases.sourceIdByAlias.keys()]);
+        const outputSchema = phase7aControllerOutputSchemaForAliases(
+          [...aliases.sourceIdByAlias.keys()],
+          allowedControllerActions(input.remaining),
+        );
         const response = await fetchImpl("https://openrouter.ai/api/v1/chat/completions", {
           method: "POST",
           headers: {
             authorization: `Bearer ${apiKey}`,
             "content-type": "application/json",
-            "x-title": "Nonsense Research Harness Phase 7A",
+            "x-title": "Nonsense Research Harness",
           },
           body: JSON.stringify(controllerRequest(phase7aDecisionPrompt(input), outputSchema)),
           signal: callOptions?.signal

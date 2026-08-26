@@ -18,7 +18,7 @@ import {
   type Phase7AAction,
 } from "../src/lib/phase7a/contracts.ts";
 import { createPhase7AFixtureDependencies } from "../src/lib/phase7a/fixture.ts";
-import { createOpenRouterPhase7AModel, PHASE_7A_CONTROLLER_MAX_OUTPUT_TOKENS, Phase7AControllerOutputError } from "../src/lib/phase7a/model.ts";
+import { allowedControllerActions, createOpenRouterPhase7AModel, PHASE_7A_CONTROLLER_MAX_OUTPUT_TOKENS, Phase7AControllerOutputError } from "../src/lib/phase7a/model.ts";
 import {
   PHASE_7A_ARTIFACT_PROCEDURES,
   PHASE_7A_DEEP_RESEARCH_INSTRUCTION,
@@ -450,10 +450,12 @@ describe("Phase 7A chat-first agent", () => {
     }, createPhase7AFixtureDependencies([
       action({ action: "web_search", public_summary: "Search once", query }),
       action({ action: "web_search", public_summary: "Repeat without new evidence", query: `  ${query.toUpperCase()}  ` }),
+      action({ action: "respond", public_summary: "Answer after the repeated search is refused", message: "The first search completed; repeating it would not add evidence.", source_ids: [] }),
     ]));
-    expect(repeatedInsideRun.status).toBe("failed");
+    expect(repeatedInsideRun.status).toBe("partial");
     expect(repeatedInsideRun.counts.web_searches).toBe(1);
     expect(repeatedInsideRun.limitations).toContain("phase7a_repeated_action");
+    expect(repeatedInsideRun.assistant_message?.text).toContain("repeating it would not add evidence");
   });
 
   it("allows an authorized URL to be reread in a later user turn", async () => {
@@ -630,20 +632,63 @@ describe("Phase 7A chat-first agent", () => {
     expect(result.artifact).toBeNull();
   });
 
-  it("enforces tool limits and stops instead of automatically retrying", async () => {
+  it("closes an exhausted tool and answers from preserved evidence instead of failing", async () => {
+    const workspace = createPhase7AWorkspace("session_tool_limit");
+    workspace.evidence.push({
+      source_id: "web_preserved_evidence",
+      source_type: "web",
+      availability: "complete",
+      evidence_usable: true,
+      title: "Preserved source",
+      url: "https://example.com/preserved",
+      excerpt: "This usable evidence was collected before the tool boundary was reached.",
+      content: "This usable evidence was collected before the tool boundary was reached.",
+    });
     const actions = Array.from({ length: 4 }, (_, index) => action({
       action: "web_search" as const,
       public_summary: `Search bounded query ${index}`,
       query: `distinct bounded query number ${index}`,
     }));
+    actions.push(action({
+      action: "respond",
+      public_summary: "Answer from the evidence already collected",
+      message: "The search ceiling is closed, so this answer uses the evidence already collected.",
+      source_ids: ["web_preserved_evidence"],
+    }));
     const result = await runPhase7AWorkflow({
-      workspace: createPhase7AWorkspace("session_tool_limit"),
+      workspace,
       message: "Keep searching forever.",
     }, createPhase7AFixtureDependencies(actions));
-    expect(result.status).toBe("failed");
+    expect(result.status).toBe("partial");
     expect(result.counts.web_searches).toBe(PHASE_7A_LIMITS.maxWebSearches);
-    expect(result.counts.controller_turns).toBe(4);
+    expect(result.counts.controller_turns).toBe(5);
     expect(result.limitations).toContain("phase7a_web_search_limit");
+    expect(result.assistant_message?.text).toContain("evidence already collected");
+    expect(result.assistant_message?.source_ids).toEqual(["web_preserved_evidence"]);
+    expect(result.workspace.evidence).toContainEqual(expect.objectContaining({ source_id: "web_preserved_evidence" }));
+    expect(result.trace.steps.at(-2)).toMatchObject({ action: "web_search", status: "partial" });
+    expect(result.events).toContainEqual(expect.objectContaining({ label: "Continuing with collected evidence", status: "partial" }));
+  });
+
+  it("removes exhausted tools from the provider action contract and reserves synthesis", () => {
+    expect(allowedControllerActions({
+      controller_turns: 4,
+      provider_requests: 6,
+      web_searches: 0,
+      url_reads: 3,
+      transcript_searches: 1,
+      transcript_opens: 2,
+      compositions: 1,
+    })).toEqual(["read_url", "read_urls", "search_transcripts", "open_transcript_chunk", "open_transcript_chunks", "create_artifact", "respond"]);
+    expect(allowedControllerActions({
+      controller_turns: 0,
+      provider_requests: 0,
+      web_searches: 2,
+      url_reads: 3,
+      transcript_searches: 1,
+      transcript_opens: 2,
+      compositions: 0,
+    })).toEqual(["respond"]);
   });
 
   it("enforces a lower proof-specific provider request cap and exposes it to the controller", async () => {
@@ -883,13 +928,27 @@ describe("Phase 7A chat-first agent", () => {
       return new Response(`data: ${payload}\n\ndata: [DONE]\n\n`, { status: 200, headers: { "content-type": "text/event-stream" } });
     };
     const model = createOpenRouterPhase7AModel({ apiKey: "test-key", liveAuthorized: true, fetchImpl });
-    const result = await model.decide({ workspace: createPhase7AWorkspace("session_model_policy"), currentMessage: "hello", researchDepth: "standard", remaining: {}, lastObservation: undefined });
+    const result = await model.decide({
+      workspace: createPhase7AWorkspace("session_model_policy"),
+      currentMessage: "hello",
+      researchDepth: "standard",
+      remaining: {
+        controller_turns: 9,
+        provider_requests: 19,
+        web_searches: 0,
+        url_reads: 8,
+        transcript_searches: 2,
+        transcript_opens: 6,
+        compositions: 1,
+      },
+      lastObservation: undefined,
+    });
     expect(result.value.action.action).toBe("respond");
     expect(result.value.research_state.objective).toBe("Answer the greeting.");
     const request = observed as {
       messages: Array<{ role: string; content: string }>;
       provider: Record<string, unknown>;
-      response_format: { json_schema: { schema: { properties: { argument: Record<string, unknown> } } } };
+      response_format: { json_schema: { schema: { properties: { action: { enum: string[] }; argument: Record<string, unknown> } } } };
       model: string;
     };
     expect(request.model).toBe("openai/gpt-5.6-luna");
@@ -901,6 +960,8 @@ describe("Phase 7A chat-first agent", () => {
     expect(PHASE_7A_CONTROLLER_MAX_OUTPUT_TOKENS).toBe(8_000);
     expect(request.response_format.json_schema.schema.properties.argument).toMatchObject({ type: "string", maxLength: 5_000 });
     expect(request.response_format.json_schema.schema.properties.argument).not.toHaveProperty("minLength");
+    expect(request.response_format.json_schema.schema.properties.action.enum).not.toContain("web_search");
+    expect(request.response_format.json_schema.schema.properties.action.enum).toContain("respond");
     expect(PHASE_7A_SYSTEM_PROMPT).toContain("conversational, evidence-first research partner, not a show writer");
     expect(PHASE_7A_SYSTEM_PROMPT).toContain("Do not choose stories, assign episode minutes, or create a preparation brief unless the user explicitly requests one");
     expect(PHASE_7A_SYSTEM_PROMPT).not.toMatch(/target_minutes|estimated_minutes/);

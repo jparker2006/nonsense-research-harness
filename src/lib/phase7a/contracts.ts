@@ -46,6 +46,19 @@ export const phase7aRequestSchema = z.object({
 
 const publicSummary = z.string().trim().min(1).max(180);
 
+export const PHASE_7A_CONTROLLER_ACTIONS = [
+  "web_search",
+  "read_url",
+  "read_urls",
+  "search_transcripts",
+  "open_transcript_chunk",
+  "open_transcript_chunks",
+  "create_artifact",
+  "respond",
+] as const;
+
+export type Phase7AControllerActionName = (typeof PHASE_7A_CONTROLLER_ACTIONS)[number];
+
 export const phase7aActionSchema = z.discriminatedUnion("action", [
   z.object({
     action: z.literal("web_search"),
@@ -119,7 +132,7 @@ function controllerResponseBlocksSchema(citationAliases?: readonly string[]) {
 }
 
 export const phase7aControllerOutputSchema = z.object({
-  action: z.enum(["web_search", "read_url", "read_urls", "search_transcripts", "open_transcript_chunk", "open_transcript_chunks", "create_artifact", "respond"])
+  action: z.enum(PHASE_7A_CONTROLLER_ACTIONS)
     .describe("Exactly one allowed controller action."),
   public_summary: publicSummary.describe("A short user-visible description of the selected action."),
   argument: z.string().max(5_000)
@@ -134,8 +147,19 @@ export const phase7aControllerOutputSchema = z.object({
   research_state: phase7aResearchStateSchema.describe("Concise public operational research state, never private reasoning."),
 }).strict();
 
-export function phase7aControllerOutputSchemaForAliases(citationAliases: readonly string[]) {
+function controllerActionSchema(allowedActions: readonly Phase7AControllerActionName[]) {
+  const [first, ...rest] = [...new Set(allowedActions)];
+  if (!first) throw new Error("phase7a_controller_actions_empty");
+  return z.enum([first, ...rest]);
+}
+
+export function phase7aControllerOutputSchemaForAliases(
+  citationAliases: readonly string[],
+  allowedActions: readonly Phase7AControllerActionName[] = PHASE_7A_CONTROLLER_ACTIONS,
+) {
   return phase7aControllerOutputSchema.extend({
+    action: controllerActionSchema(allowedActions)
+      .describe("Exactly one currently available controller action."),
     response_blocks: controllerResponseBlocksSchema(citationAliases),
   });
 }

@@ -38,6 +38,8 @@ RULES FOR THIS DECISION:
 - Use open_transcript_chunk or open_transcript_chunks only for chunk IDs in AVAILABLE TRANSCRIPT MATCHES. Prefer the batch action when 2-3 independent passages are worth opening.
 - Use create_artifact only when the CURRENT USER MESSAGE explicitly asks to create or revise a Headlines or Big Story preparation brief, usable evidence exists, and the transcript archive has been searched in this workspace. Deep research, an existing artifact, or an older request is not current-turn artifact intent.
 - REMAINING HARD LIMITS already accounts for this controller call. If provider_requests is 1 and the user requested an artifact whose evidence/archive requirements are satisfied, choose create_artifact now; do not spend the last composition slot on more research.
+- The action enum contains only tools that are currently available. A zero remaining limit means that tool is closed. Never try to work around a closed tool; synthesize the saved evidence and state the limitation honestly.
+- An unavailable or restricted source is a normal research observation, not a reason to abandon the turn. Use other available evidence and answer unless the missing page makes the requested conclusion impossible.
 - If the user asks a normal conversational question that needs no research, respond directly without a tool.
 - In standard chat, browse automatically for current, factual, contested, or supplied-link questions, but do not search ceremonially. In deep research, follow the broader stopping objective above without treating it as a quota.
 - Do not repeat the same action with the same argument after it has produced no new information.

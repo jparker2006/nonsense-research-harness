@@ -119,6 +119,17 @@ function safeCode(error: unknown, fallback: string): string {
   return /^phase7a_[a-z0-9_]+$/.test(message) ? message : fallback;
 }
 
+function recoverableActionObservation(code: string): string | null {
+  const observations: Record<string, string> = {
+    phase7a_web_search_limit: "Web search is closed for this turn. Use the evidence already collected, or another available tool, and answer.",
+    phase7a_url_read_limit: "Source reading is closed for this turn. Use the evidence already collected, or another available tool, and answer.",
+    phase7a_transcript_search_limit: "Archive search is closed for this turn. State the archive limitation honestly and answer from the evidence already collected.",
+    phase7a_transcript_open_limit: "Archive passage opening is closed for this turn. Use the passages already opened and answer.",
+    phase7a_repeated_action: "That action already ran in this turn and produced no new evidence. Choose a different available action or answer now.",
+  };
+  return observations[code] ?? null;
+}
+
 function addLimitation(state: AgentState, code: string): void {
   if (!state.limitations.includes(code)) state.limitations.push(code.slice(0, 240));
 }
@@ -791,12 +802,33 @@ export async function runPhase7AAgentTurn(options: {
         }));
         if (outcome.done) break;
       } catch (error) {
+        const code = safeCode(error, "phase7a_action_failed");
+        const recovery = recoverableActionObservation(code);
+        if (recovery) {
+          addLimitation(state, code);
+          lastObservation = recovery;
+          state.traceSteps.push(phase7aTraceStepSchema.parse({
+            sequence: state.traceSteps.length + 1,
+            action: action.action,
+            public_summary: action.public_summary,
+            target: actionArgument(action).slice(0, 500),
+            observation: recovery.slice(0, 500),
+            status: "partial",
+          }));
+          emit(state, deps, {
+            kind: "agent",
+            label: "Continuing with collected evidence",
+            detail: recovery,
+            status: "partial",
+          });
+          continue;
+        }
         state.traceSteps.push(phase7aTraceStepSchema.parse({
           sequence: state.traceSteps.length + 1,
           action: action.action,
           public_summary: action.public_summary,
           target: actionArgument(action).slice(0, 500),
-          observation: safeCode(error, "phase7a_action_failed"),
+          observation: code,
           status: "failed",
         }));
         throw error;
