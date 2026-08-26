@@ -10,7 +10,7 @@ const cases = [
     id: "headlines_sprout_outbreak",
     session_id: "session_phase7a_local",
     expected_mode: "headlines",
-    message: `Create an 8-minute Headlines preparation packet about the August 2026 multistate sprout foodborne-illness outbreak. Read both supplied links. Do at most one additional current-web search and read at most one especially useful additional source. Search the Nonsense transcript archive once and open at most one relevant chunk. Then create the validated packet and briefly tell me it is ready. Keep evidence, inference, and open uncertainty separate.
+    message: `Create a Headlines preparation brief about the August 2026 multistate sprout foodborne-illness outbreak. Rank material by editorial priority without assigning episode minutes. Read both supplied links. Do at most one additional current-web search and read at most one especially useful additional source. Search the Nonsense transcript archive once and open at most one relevant chunk. Then create the validated brief and briefly tell me it is ready. Keep evidence, inference, and open uncertainty separate.
 
 FDA: https://www.fda.gov/food/outbreaks-foodborne-illness/outbreak-investigation-shiga-toxin-producing-e-coli-salmonella-sprouts-august-2026
 AP: https://apnews.com/article/alfalfa-sprouts-food-poisoning-ac7701ed353e1e8c0aea8fec04982a26`,
@@ -19,7 +19,7 @@ AP: https://apnews.com/article/alfalfa-sprouts-food-poisoning-ac7701ed353e1e8c0a
     id: "big_story_bonneville",
     session_id: "session_phase7a_big_story",
     expected_mode: "big_story",
-    message: `Create a 24-minute Big Story preparation packet about how vanished Lake Bonneville still organizes the modern Great Basin landscape and how visible evidence changes the way people understand deep time. Read the supplied NASA source. Do at most one additional current-web search and read at most one especially useful additional source. Search the Nonsense transcript archive once and open at most one relevant chunk. Then create the validated packet and briefly tell me it is ready. Keep the outline modular against the clock.
+    message: `Create a Big Story preparation brief about how vanished Lake Bonneville still organizes the modern Great Basin landscape and how visible evidence changes the way people understand deep time. Rank material by editorial priority without assigning episode minutes. Read the supplied NASA source. Do at most one additional current-web search and read at most one especially useful additional source. Search the Nonsense transcript archive once and open at most one relevant chunk. Then create the validated brief and briefly tell me it is ready.
 
 NASA: https://science.nasa.gov/earth/earth-observatory/what-lake-bonneville-left-behind/`,
   },
@@ -48,7 +48,7 @@ async function runCase(testCase: typeof cases[number]) {
   const response = await fetch(endpoint, {
     method: "POST",
     headers: { "content-type": "application/json" },
-    body: JSON.stringify({ phase7a: { action: "message", session_id: testCase.session_id, message: testCase.message } }),
+    body: JSON.stringify({ phase7a: { action: "message", session_id: testCase.session_id, message: testCase.message, research_depth: "standard" } }),
     signal: AbortSignal.timeout(PHASE_7A_LIMITS.wholeTurnTimeoutMs + 15_000),
   });
   const raw = await response.text();

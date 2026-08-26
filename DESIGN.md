@@ -10,7 +10,7 @@ Reading this as a redesign of a connected research agent for two equal podcast p
 
 ## Physical scene
 
-CJ or Jeff is at a laptop before recording, scanning research and shaping a conversation under a clock. The room may be dim, but the job is sustained reading and editing, so the interface uses a high-contrast light canvas instead of decorative dark-tool chrome.
+CJ or Jeff is at a laptop before recording, asking follow-up questions and scanning evidence under real production pressure. The room may be dim, but the job is sustained reading and editing, so the interface uses a high-contrast light canvas instead of decorative dark-tool chrome.
 
 ## Tokens
 
@@ -34,7 +34,7 @@ CJ or Jeff is at a laptop before recording, scanning research and shaping a conv
 ├─────────────────────────────────────────────────────────────┤
 │ user request                                                │
 │   observable work for that run                              │
-│   cited answer or full inline prep packet                   │
+│   concise cited answer or requested inline prep brief       │
 │ next user request                                           │
 │   its own work and answer                                   │
 │                                                             │
@@ -47,13 +47,16 @@ There is no permanent session rail and no permanent activity rail. Agent activit
 
 ## Signature
 
-The chronological exchange is the product's signature. Each prompt owns a compact observable-work disclosure followed by its answer. A validated packet reads like a first-class assistant response, while Focus remains optional. It shows observable work without turning hidden reasoning into theater.
+The chronological exchange is the product's signature. Each prompt owns a few expandable observable-work lines followed by a natural cited answer. Only the active line receives a restrained left-to-right text highlight. A requested validated brief reads like a first-class assistant response, while Focus remains optional. The interface shows actions and results without turning hidden reasoning into theater.
 
 ## Preserve
 
 - real chat and follow-ups;
 - visible tool calls, stop, status, source access, cost/request receipt;
-- optional artifact and copy-to-Markdown;
+- a separate Deep research composer control;
+- claim-level readable citations and original links;
+- optional priority-ranked brief and copy-to-Markdown;
+- near-bottom auto-follow, user-scroll pause, and Jump to latest;
 - honest empty, running, partial, unavailable, stopped, and failed states;
 - responsive and keyboard behavior.
 

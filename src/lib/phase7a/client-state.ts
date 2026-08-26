@@ -4,6 +4,7 @@ import type {
   Phase7AActivity,
   Phase7AAssistantMessage,
   Phase7AError,
+  Phase7AResearchDepth,
   Phase7AReceipt,
   Phase7ARun,
 } from "./client.ts";
@@ -17,7 +18,7 @@ export type BrowserArtifactPayload = {
 export type ResearchExchange = {
   local_id: string;
   run_id: string | null;
-  user: { id: string; text: string; created_at: string };
+  user: { id: string; text: string; research_depth: Phase7AResearchDepth; created_at: string };
   run: Phase7ARun | null;
   activities: Phase7AActivity[];
   assistant: Phase7AAssistantMessage | null;
@@ -33,7 +34,7 @@ export type ResearchConversationState = {
 };
 
 export type ResearchConversationAction =
-  | { type: "start"; local_id: string; text: string; created_at: string }
+  | { type: "start"; local_id: string; text: string; research_depth: Phase7AResearchDepth; created_at: string }
   | { type: "run"; run: Phase7ARun }
   | { type: "activity"; activity: Phase7AActivity }
   | { type: "assistant"; message: Phase7AAssistantMessage }
@@ -81,7 +82,7 @@ export function researchConversationReducer(
     const exchange: ResearchExchange = {
       local_id: action.local_id,
       run_id: null,
-      user: { id: `user_${action.local_id}`, text: action.text, created_at: action.created_at },
+      user: { id: `user_${action.local_id}`, text: action.text, research_depth: action.research_depth, created_at: action.created_at },
       run: null,
       activities: [],
       assistant: null,

@@ -1,10 +1,10 @@
 # Nonsense Research Harness — Build TODO
 
-Status: Phases 1–6 and Phase 7A through Phase 7A.2 **PASSED**. Phase 7A is the first reusable local product: a blank chat connects to a bounded adaptive Luna controller, the real safe web/archive tools, an ephemeral evidence workspace, and optional validated Grok Headlines/Big Story artifacts. Phase 7A.1 hardened the runtime and replaced the two-rail shell; Phase 7A.2 made controller failures diagnosable, fixed local hydration, removed stale unread candidates, and reserved the final provider slot for an explicitly requested packet. Persistence, auth, deployment, subagents, and final visual polish remain deferred. See `docs/PHASE_7A_RESULT.md`, `docs/PHASE_7A_1_RESULT.md`, and `docs/PHASE_7A_2_RESULT.md`.
+Status: Phases 1–6 and Phase 7A through Phase 7A.4 **PASSED at their approved gates**. Phase 7A.4 is the current reusable local product: a normal conversation connects to a bounded adaptive Luna controller, the real safe web/archive tools, an ephemeral evidence workspace, concise claim-cited answers, and optional validated Grok Headlines/Big Story briefs ranked by editorial priority. The first paid Phase 7A.4 live UI acceptance remains Jake-owned; no provider call was made during its deterministic implementation. Persistence, auth, deployment, subagents, and a history sidebar remain deferred. See `docs/PHASE_7A_4_SPEC.md` and `docs/PHASE_7A_4_RESULT.md`.
 
 ## Intended v0 outcome
 
-CJ or Jeff can open a private web application, start a Headlines or Big Story workspace, paste a topic, links, and rough notes, and watch one agent research the web and the podcast archive. The interface shows useful tool activity without exposing private chain-of-thought. The run ends with an editable, cited preparation artifact and can be reopened later.
+CJ or Jeff can open a private web application and talk naturally with one agent about a topic, links, rough notes, current reporting, or earlier Nonsense coverage. The agent researches when useful, shows compact observable work without exposing private chain-of-thought, retains evidence for follow-ups in the current process, and returns concise cited answers. It creates a Headlines or Big Story preparation brief only when explicitly asked.
 
 The product prepares conversation material. It does not choose the final stories, imitate either host, invent dialogue, or automate away CJ and Jeff's deliberation.
 
@@ -23,6 +23,7 @@ The product prepares conversation material. It does not choose the final stories
 - Phase 6 streams the real bounded Phase 5 workflow through the browser workbench. Its corrected live Headlines proof completed with a validated artifact using five of six provider requests, zero retries, and `$0.05391264` of its `$0.50` cap. The interface and Big Story path also pass deterministic fixtures; no deployed persistence exists yet.
 - Phase 7A replaces the form/fixture default with a live-only chat route, a typed observe-decide-act loop, genuine follow-ups, in-memory evidence reuse, and optional artifact creation. Deterministic fixtures are test injection only; missing provider authorization is explicitly unavailable.
 - Phase 7A.1 keeps that architecture but makes it sturdier and easier to inspect: the controller carries a bounded public research notebook, code can read up to three already-authorized web or archive targets concurrently, and the workspace retains up to eight sanitized run traces. The UI is now one light research workspace with inline activity, chat/artifact views, and a source drawer instead of permanent side rails.
+- Phase 7A.4 makes conversation—not a packet—the primary product. Standard and Deep research share one bounded tool-using architecture; answers use validated claim-level citations, requested briefs use editorial priorities rather than invented timing, and compact grouped work plus user-respecting auto-follow replace the activity rail.
 
 ## Phase rules
 
@@ -339,7 +340,7 @@ The frozen scope and evidence are in `docs/PHASE_7A_PLAN.md` and `docs/PHASE_7A_
 
 - [x] The product is a reusable local chat agent, not a fixture demo or one fixed form workflow.
 - [x] The controller changes actions after each observation and terminates within hard limits.
-- [x] Artifacts remain evidence-validated, clock-aware, source-linked, and optional.
+- [x] Artifacts remain evidence-validated, source-linked, and optional; Phase 7A.4 replaces the earlier clock-aware live contract with editorial priorities.
 - [x] Missing authorization, provider/tool degradation, stop, invalid action, and failed composition are honest and do not start automatic retries.
 - [x] No persistence, auth, deployment, subagents, general shell, GBrain/LLMwiki, or visual redesign was added.
 
@@ -397,9 +398,9 @@ The frozen plan, result, and live evidence are in `docs/PHASE_7A_2_PLAN.md`, `do
 - [x] Already-read candidates are not offered as unread, and the last provider slot cannot be consumed by another controller turn when a requested packet is ready to compose.
 - [x] No persistence, auth, deployment, subagent, new model, corpus mutation, hosted infrastructure, or provider fallback was added.
 
-## Phase 7A.3 — Chat-native research interface — PASSED LOCALLY
+## Phase 7A.3 — Chat-native research interface — PASSED AND USER-ACCEPTED
 
-The frozen scope and deterministic evidence are in `docs/PHASE_7A_3_PLAN.md` and `docs/PHASE_7A_3_RESULT.md`. Jake owns the first paid live UI acceptance run.
+The frozen scope and deterministic evidence are in `docs/PHASE_7A_3_PLAN.md` and `docs/PHASE_7A_3_RESULT.md`. Jake subsequently completed the user-owned paid live UI acceptance and reported that the prompt worked and the result was good; that review produced the Phase 7A.4 direction.
 
 - [x] Group every prompt, observable work trace, answer/packet, receipt, and error into one run-correlated chronological exchange.
 - [x] Render safe tool activity below the request that caused it; collapse successful work and retain failed work visibly.
@@ -408,14 +409,38 @@ The frozen scope and deterministic evidence are in `docs/PHASE_7A_3_PLAN.md` and
 - [x] Present `partial` artifacts as usable answers with precise limitations without weakening authoritative receipt truth.
 - [x] Prevent a retained prior artifact from being streamed as a new follow-up answer and correlate streamed errors to runs.
 - [x] Prove client-state isolation, full artifact projection, citations, route behavior, responsive shell, and zero provider spend deterministically.
-- [ ] Complete one user-owned paid live UI acceptance run and inspect that exact browser state before declaring live acceptance.
+- [x] Complete one user-owned paid live UI acceptance run and inspect that exact browser state before declaring live acceptance.
 
 ### Phase 7A.3 local gate — STOP
 
 - [x] Full supply-chain/lint/typecheck/194-test/production-build gate passes.
 - [x] Provider-free desktop/phone browser check passes with zero console warnings/errors and no horizontal overflow.
 - [x] No backend model/tool/corpus change, persistence, auth, deployment, sidebar/history, or provider call was added.
-- [ ] Do not start a replacement live run automatically; wait for Jake to submit the first prompt.
+- [x] Do not start a replacement live run automatically; Jake submitted and accepted the first prompt himself.
+
+## Phase 7A.4 — Conversational research agent — DETERMINISTIC GATE PASSED
+
+The approved product contract is in `docs/PHASE_7A_4_SPEC.md`; the exact implementation and verification evidence are in `docs/PHASE_7A_4_RESULT.md`. Jake owns the first paid live UI acceptance run.
+
+- [x] Make standard chat a real bounded tool-using agent while permitting direct answers when research would be ceremonial.
+- [x] Add a separate Standard/Deep research control without coupling research depth to brief creation.
+- [x] Require explicit artifact intent in the current user message; retained briefs and Deep mode cannot silently create or revise one.
+- [x] Replace ordinary fixed packet responses with concise natural answer blocks whose citations resolve only to usable saved evidence.
+- [x] Retain sources, queries, archive matches, corrections, sanitized traces, and the current brief across follow-up turns in the bounded in-process workspace.
+- [x] Replace active Phase 7A timing generation with `must_cover`, `strong_material`, `optional_detail`, and `cut_first` editorial priorities while preserving frozen Phase 5 evidence unchanged.
+- [x] Replace the icon rail with compact expandable observable-work lines, one reduced-motion-safe active highlight, and human-readable source detail.
+- [x] Add near-bottom auto-follow, immediate user-scroll pause, new-content-aware **Jump to latest**, and readable completion positioning.
+- [x] Prove strict browser/server contracts, claim citations, artifact intent, both v2 artifact modes, revisions, memory reuse, honest failure/degradation, grouped work, scrolling, mobile controls, and reduced motion deterministically.
+- [x] Pass the final supply-chain, lint, typecheck, 206-test, production-build, corpus-integrity, historical-evidence, browser-console, and responsive-overflow gates at `$0.00` provider spend.
+- [ ] Complete the user-owned paid Phase 7A.4 live UI acceptance prompt before beginning Phase 8 comparison runs.
+
+### Phase 7A.4 gate — STOP
+
+- [x] All deterministic acceptance criteria in `docs/PHASE_7A_4_SPEC.md` pass on the final implementation tree.
+- [x] Standard/Deep behavior, optional briefs, editorial priority, citations, memory, observable work, and auto-scroll are implemented without persistence, subagents, new models, or deployment.
+- [x] No paid provider request occurred; provider-disabled behavior remains honestly unavailable rather than substituting a fixture.
+- [x] Frozen corpus files and historical reports remain byte-unchanged.
+- [ ] Jake submits the exact localhost acceptance prompt from `docs/PHASE_7A_4_RESULT.md` and decides whether the product is ready for Phase 8 usefulness comparison.
 
 ## Phase 7B — Durable private workspaces — NOT STARTED
 
@@ -495,4 +520,4 @@ Do not pull these into a phase unless the usefulness evaluation identifies a con
 
 ## First next action
 
-Have Jake review the connected artifact and interaction visually, then freeze the smallest Phase 8 usefulness comparison before adding persistence or deployment. Compare the corrected Phase 7A.2 harness against plain Gemini/Grok on identical inputs; do not deploy automatically.
+Have Jake run the exact paid localhost acceptance prompt in `docs/PHASE_7A_4_RESULT.md`. If he accepts the conversational behavior, freeze the smallest Phase 8 usefulness comparison before adding persistence or deployment. Compare the Phase 7A.4 harness against plain Gemini/Grok on identical inputs; do not deploy automatically.

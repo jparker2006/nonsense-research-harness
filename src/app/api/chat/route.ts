@@ -5,6 +5,11 @@ import { createLivePhase5Tools } from "@/lib/phase5/live-tools";
 import { createOpenRouterPhase5Model } from "@/lib/phase5/model";
 import type { Phase7AAgentDependencies } from "@/lib/phase7a/agent";
 import {
+  phase7aArtifactInstructions,
+  phase7aBigStoryGeneratedArtifactSchema,
+  phase7aHeadlinesGeneratedArtifactSchema,
+} from "@/lib/phase7a/artifact";
+import {
   PHASE_7A_LIMITS,
   parsePhase7AEnvelope,
   phase7aArtifactSchema,
@@ -35,6 +40,7 @@ function safeError(error: unknown, runId?: string) {
     phase7a_missing_key: "OpenRouter is not configured for this local research agent.",
     phase7a_live_not_authorized: "Local live research is not enabled. No fixture was substituted and nothing was spent.",
     phase7a_invalid_citation: "The agent attempted to cite evidence it had not retrieved.",
+    phase7a_artifact_not_requested: "A preparation brief can only be created or revised when the current message explicitly requests it.",
     phase7a_url_not_allowed: "The agent attempted to read a URL that was neither supplied nor discovered.",
     phase7a_chunk_not_allowed: "The agent attempted to open an archive chunk that search had not returned.",
     phase7a_repeated_action: "The agent repeated an action without new evidence, so the turn stopped safely.",
@@ -75,6 +81,12 @@ function liveDependencies(signal: AbortSignal): Phase7AAgentDependencies {
       liveAuthorized: true,
       phase7aLive: true,
       artifactContext: PHASE_7A_ARTIFACT_PROCEDURES,
+      artifactSchemas: {
+        headlines: phase7aHeadlinesGeneratedArtifactSchema,
+        big_story: phase7aBigStoryGeneratedArtifactSchema,
+      },
+      artifactInstructions: phase7aArtifactInstructions,
+      artifactSchemaNamePrefix: "phase7a_v2",
     }),
     tools: createLivePhase5Tools({ apiKey, liveAuthorized: true, signal }),
     signal,
@@ -130,7 +142,12 @@ export function createPhase7AChatRoute(options: {
           const workspace = getPhase7AWorkspace(parsed.session_id) ?? createPhase7AWorkspace(parsed.session_id);
           const startingArtifactRevision = workspace.artifact_revision;
           const base = dependencyFactory(request.signal);
-          const result = await runPhase7AWorkflow({ workspace, message: parsed.message, runId }, {
+          const result = await runPhase7AWorkflow({
+            workspace,
+            message: parsed.message,
+            researchDepth: parsed.research_depth,
+            runId,
+          }, {
             ...base,
             signal: request.signal,
             onEvent: (event) => {

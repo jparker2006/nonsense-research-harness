@@ -223,6 +223,9 @@ export function createOpenRouterPhase5Model(options: {
   phase6LiveProof?: boolean;
   phase7aLive?: boolean;
   artifactContext?: Partial<Record<Phase5Input["mode"], string>>;
+  artifactSchemas?: Partial<Record<Phase5Input["mode"], z.ZodType>>;
+  artifactInstructions?: (mode: Phase5Input["mode"]) => string;
+  artifactSchemaNamePrefix?: string;
 }): Phase5ModelAdapter {
   const apiKey = options.apiKey?.trim() ?? "";
   const liveAuthorized = options.liveAuthorized === true;
@@ -258,35 +261,41 @@ export function createOpenRouterPhase5Model(options: {
       };
     },
     async compose(input, plan, evidence, callOptions) {
-      const schema = input.mode === "headlines" ? headlinesGeneratedArtifactSchema : bigStoryGeneratedArtifactSchema;
+      const schema = options.artifactSchemas?.[input.mode]
+        ?? (input.mode === "headlines" ? headlinesGeneratedArtifactSchema : bigStoryGeneratedArtifactSchema);
+      const instructions = options.artifactInstructions?.(input.mode) ?? artifactInstructions(input.mode);
+      const schemaPrefix = options.artifactSchemaNamePrefix ?? "phase5";
       return runStructured({
         apiKey,
         liveAuthorized,
         fetchImpl,
         tier: "heavy",
         schema,
-        schemaName: `phase5_${input.mode}_artifact`,
+        schemaName: `${schemaPrefix}_${input.mode}_artifact`,
         maxTokens: PHASE_5_LIMITS.grokMaxOutputTokens,
         timeoutMs: callOptions?.timeoutMs,
         signal: callOptions?.signal,
         testOnlyLockedBypass,
-        prompt: `${artifactInstructions(input.mode)}${options.artifactContext?.[input.mode] ? `\n\n${options.artifactContext[input.mode]}` : ""}\n\nINPUT:\n${JSON.stringify(input)}\n\nRESEARCH PLAN:\n${JSON.stringify(plan)}\n\nEVIDENCE:\n${evidenceForPrompt(evidence)}`,
+        prompt: `${instructions}${options.artifactContext?.[input.mode] ? `\n\n${options.artifactContext[input.mode]}` : ""}\n\nINPUT:\n${JSON.stringify(input)}\n\nRESEARCH PLAN:\n${JSON.stringify(plan)}\n\nEVIDENCE:\n${evidenceForPrompt(evidence)}`,
       });
     },
     async repair(input, plan, evidence, artifact, validationErrors, callOptions) {
-      const schema = input.mode === "headlines" ? headlinesGeneratedArtifactSchema : bigStoryGeneratedArtifactSchema;
+      const schema = options.artifactSchemas?.[input.mode]
+        ?? (input.mode === "headlines" ? headlinesGeneratedArtifactSchema : bigStoryGeneratedArtifactSchema);
+      const instructions = options.artifactInstructions?.(input.mode) ?? artifactInstructions(input.mode);
+      const schemaPrefix = options.artifactSchemaNamePrefix ?? "phase5";
       return runStructured({
         apiKey,
         liveAuthorized,
         fetchImpl,
         tier: "heavy",
         schema,
-        schemaName: `phase5_${input.mode}_artifact_repair`,
+        schemaName: `${schemaPrefix}_${input.mode}_artifact_repair`,
         maxTokens: PHASE_5_LIMITS.grokMaxOutputTokens,
         timeoutMs: callOptions?.timeoutMs,
         signal: callOptions?.signal,
         testOnlyLockedBypass,
-        prompt: `${artifactInstructions(input.mode)}${options.artifactContext?.[input.mode] ? `\n\n${options.artifactContext[input.mode]}` : ""} Repair the parseable artifact exactly once using the validation errors. Do not add evidence or IDs.\n\nINPUT:\n${JSON.stringify(input)}\n\nPLAN:\n${JSON.stringify(plan)}\n\nEVIDENCE:\n${evidenceForPrompt(evidence)}\n\nINVALID ARTIFACT:\n${JSON.stringify(artifact)}\n\nVALIDATION ERRORS:\n${JSON.stringify(validationErrors)}`,
+        prompt: `${instructions}${options.artifactContext?.[input.mode] ? `\n\n${options.artifactContext[input.mode]}` : ""} Repair the parseable artifact exactly once using the validation errors. Do not add evidence or IDs.\n\nINPUT:\n${JSON.stringify(input)}\n\nPLAN:\n${JSON.stringify(plan)}\n\nEVIDENCE:\n${evidenceForPrompt(evidence)}\n\nINVALID ARTIFACT:\n${JSON.stringify(artifact)}\n\nVALIDATION ERRORS:\n${JSON.stringify(validationErrors)}`,
       });
     },
   };

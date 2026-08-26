@@ -14,7 +14,7 @@ CJ Little and Jeff Parker are equal primary users. They prepare Nonsense podcast
 
 ## Product Purpose
 
-The Nonsense Research Harness is a private research workbench for one Headlines or Big Story topic at a time. One bounded agent researches supplied and current sources, searches prior Nonsense transcripts, and returns an editable, cited preparation artifact with a clock-aware outline. Success means either host can see what the agent did, verify where claims came from, edit the result, and enter recording preparation with less mechanical research and formatting work.
+The Nonsense Research Harness is a private conversational research workbench. One bounded agent answers ordinary questions, researches supplied and current sources, searches prior Nonsense transcripts, and retains useful evidence for follow-ups. When CJ or Jeff explicitly asks, it can also create a validated, cited Headlines or Big Story preparation brief ranked by editorial priority. Success means either host can get to trustworthy evidence and a clear synthesis faster without outsourcing editorial judgment, order, cuts, or episode timing.
 
 ## Positioning
 
@@ -30,8 +30,10 @@ Do not make a generic chatbot, a decorative AI dashboard, a marketing-style SaaS
 
 ## Design Principles
 
-- Make the preparation artifact the primary object; the agent trace supports trust and control.
-- Show actions, evidence, limitations, clock, and cost without exposing private reasoning or raw provider internals.
+- Make the continuing research conversation the primary object; a preparation brief is an optional output.
+- Show concise observable work, evidence, limitations, and cost without exposing private reasoning or raw provider internals.
+- Lead ordinary answers with the conclusion and place readable citations beside the claims they support.
+- Keep research depth separate from output format: Deep research never silently creates a brief.
 - Preserve CJ and Jeff's productive deliberation instead of choosing stories or scripting host dialogue.
 - Prefer familiar controls and restrained hierarchy over novel interaction for its own sake.
 - Fail honestly and preserve useful work when a source, model, budget, or session is unavailable.

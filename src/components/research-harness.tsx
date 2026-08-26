@@ -15,6 +15,7 @@ import {
   phase7aRunSchema,
   phase7aSourceSchema,
   type BrowserSource,
+  type Phase7AResearchDepth,
   type Phase7ARequest,
   type Phase7AUIMessage,
 } from "@/lib/phase7a/client";
@@ -42,6 +43,7 @@ export function ResearchHarness() {
   const sourceReturnFocus = useRef<HTMLElement | null>(null);
   const [state, dispatch] = useReducer(researchConversationReducer, undefined, createResearchConversationState);
   const [draft, setDraft] = useState("");
+  const [researchDepth, setResearchDepth] = useState<Phase7AResearchDepth>("standard");
   const [focusExchangeId, setFocusExchangeId] = useState<string | null>(null);
   const [selectedSource, setSelectedSource] = useState<SelectedSource | null>(null);
   const [copiedExchangeId, setCopiedExchangeId] = useState<string | null>(null);
@@ -82,13 +84,14 @@ export function ResearchHarness() {
     return () => window.removeEventListener("keydown", closeOnEscape);
   }, [selectedSource]);
 
-  function send(message: string) {
+  function send(message: string, selectedDepth: Phase7AResearchDepth) {
     if (running) return;
     const activeSessionId = getOrCreatePhase7ABrowserSessionId(sessionId);
     const localId = `local_${crypto.randomUUID()}`;
-    const request: Phase7ARequest = { action: "message", session_id: activeSessionId, message };
-    dispatch({ type: "start", local_id: localId, text: message, created_at: new Date().toISOString() });
+    const request: Phase7ARequest = { action: "message", session_id: activeSessionId, message, research_depth: selectedDepth };
+    dispatch({ type: "start", local_id: localId, text: message, research_depth: selectedDepth, created_at: new Date().toISOString() });
     setFocusExchangeId(null);
+    setResearchDepth("standard");
     runtime.thread.append({ role: "user", content: [{ type: "text", text: JSON.stringify(request) }] });
   }
 
@@ -102,6 +105,7 @@ export function ResearchHarness() {
     sessionId.current = null;
     dispatch({ type: "reset" });
     setDraft("");
+    setResearchDepth("standard");
     setFocusExchangeId(null);
     setSelectedSource(null);
     setCopiedExchangeId(null);
@@ -147,7 +151,7 @@ export function ResearchHarness() {
           {focusedExchange?.artifact ? (
             <FocusArtifactView exchange={focusedExchange} sources={state.sources} openSource={openSource} back={() => setFocusExchangeId(null)} copy={() => copyArtifact(focusedExchange)} copied={copiedExchangeId === focusedExchange.local_id} />
           ) : (
-            <ConversationThread exchanges={state.exchanges} sources={state.sources} draft={draft} setDraft={setDraft} send={send} running={running} openSource={openSource} focusArtifact={setFocusExchangeId} copyArtifact={copyArtifact} copiedExchangeId={copiedExchangeId} />
+            <ConversationThread exchanges={state.exchanges} sources={state.sources} draft={draft} setDraft={setDraft} researchDepth={researchDepth} setResearchDepth={setResearchDepth} send={send} running={running} openSource={openSource} focusArtifact={setFocusExchangeId} copyArtifact={copyArtifact} copiedExchangeId={copiedExchangeId} />
           )}
           {selectedSourceRecord ? <SourceDrawer source={selectedSourceRecord} reference={selectedReference} close={closeSource} /> : null}
         </main>

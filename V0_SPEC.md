@@ -1,18 +1,18 @@
 # Nonsense Research Harness — v0 Specification
 
-Status: Approved by Jake on 2026-08-23 and amended on 2026-08-24 after Phase 7A.2. The local chat-first adaptive agent, first single-workspace visual pass, and controller-completion reliability repair are implemented and proven. Durable storage, authentication, deployment, subagents, and final visual polish remain outside the completed scope.
+Status: Approved by Jake on 2026-08-23 and amended through Phase 7A.4 on 2026-08-25. The local conversational research agent, bounded Standard/Deep research control, claim-level cited answers, optional priority-ranked briefs, compact observable work, and chat-native interaction are implemented and deterministically proven. Durable storage, authentication, deployment, subagents, and broader visual redesign remain outside the completed scope.
 
 Authoritative project root: `/Users/jakeparker/Desktop/Nonsense Podcast Project`
 
 ## 1. Product definition
 
-The Nonsense Research Harness is a chat-first research application that helps CJ Little and Jeff Parker investigate and prepare podcast topics. A user talks to one agent normally and may include a topic, links, rough notes, questions, or an explicit request for a Headlines or Big Story packet. The agent decides whether to answer, research the current web, search the transcript archive, or create a cited clock-aware artifact.
+The Nonsense Research Harness is a conversational research application that helps CJ Little and Jeff Parker investigate and prepare podcast topics. A user talks to one agent normally and may include a topic, links, rough notes, questions, or an explicit request for a Headlines or Big Story brief. The agent decides whether to answer from the conversation, research the current web, search the transcript archive, or create a cited priority-ranked brief.
 
-The harness prepares better conversation material. CJ and Jeff remain equal partners and retain topic selection, editorial judgment, argument, writing decisions, and final control of the clock.
+The harness prepares better evidence and conversation material. CJ and Jeff remain equal partners and retain topic selection, editorial judgment, argument, writing decisions, order, cuts, and episode timing.
 
 ### v0 success statement
 
-For a real Headline or Big Story topic, either host can create a workspace, watch the agent's source and archive work, inspect every citation, receive a useful preparation artifact, ask follow-up questions, and reopen the workspace later. The result must be more repeatable and archive-aware than using a general-purpose chat or research product without the harness.
+For a real Headline or Big Story topic, either host can continue one local research conversation, watch concise source and archive work, inspect claim-level citations, ask follow-up questions, and explicitly request or revise a preparation brief. The result should reduce mechanical research without replacing the hosts' deliberation. Durable reopening after a restart remains a future decision.
 
 ## 2. Users and permissions
 
@@ -26,15 +26,17 @@ For a real Headline or Big Story topic, either host can create a workspace, watc
 ### Included
 
 - One research conversation per ephemeral local workspace
+- Separate `standard` and `deep` research depth selected in the composer
 - Optional `headlines` and `big_story` artifact procedures
 - Supplied-link reading
 - Bounded current web research
 - Search and exact excerpt retrieval over the existing transcript archive
 - Streaming, sanitized tool activity
 - One-action-at-a-time adaptive research within code-enforced limits
-- Structured, source-linked research-plus-outline artifact when requested
+- Natural conclusion-first answers with claim-level source links
+- Structured, source-linked, priority-ranked preparation brief when requested
 - Follow-up conversation that can reuse evidence, explicitly perform more research, or revise the artifact in the same workspace
-- Persistent workspaces in the deployed application
+- Bounded in-process workspace memory for the current local conversation
 - Honest partial, unavailable, stopped, and failed states
 
 ### Explicitly excluded
@@ -58,7 +60,7 @@ For a real Headline or Big Story topic, either host can create a workspace, watc
 
 ## 4. Conversation input contract
 
-The public request is exactly `{ action: "message", session_id, message }`. `message` is ordinary text up to 12,000 characters. It may contain questions, URLs, notes, an artifact request, a target clock, or none of those. A user never has to select a mode before chatting. URLs become readable only when explicitly supplied by the user or returned by the bounded web-search tool. Headlines/Big Story mode, topic, instruction, and target minutes enter the structured contract only when the controller selects `create_artifact` in response to an explicit user request.
+The public request is exactly `{ action: "message", session_id, message, research_depth }`, where `research_depth` is `standard` or `deep`. `message` is ordinary text up to 12,000 characters and may contain questions, URLs, notes, an explicit brief request, or none of those. A user never has to select a brief mode before chatting. URLs become readable only when explicitly supplied by the user or returned by the bounded web-search tool. Headlines/Big Story mode, topic, and instruction enter the structured contract only when the controller selects `create_artifact` in response to explicit current-turn intent. Deep research alone never requests an artifact.
 
 The route body is capped at 24 KB. Extra keys, malformed requests, unknown actions, undiscovered URLs, unreturned archive chunk IDs, repeated no-progress actions, and nonexistent citation IDs fail safely.
 
@@ -66,10 +68,10 @@ The route body is capped at 24 KB. Extra keys, malformed requests, unknown actio
 
 1. The user opens a blank research conversation and types naturally.
 2. Luna reviews recent conversation, saved evidence, unread candidates, archive matches, the current artifact, and exact remaining limits.
-3. Luna selects exactly one typed action; code executes it and streams a safe public summary into the research tape.
+3. Luna selects exactly one typed action; code executes it and streams a safe public summary into compact expandable work lines.
 4. The loop reassesses after each observation until it answers or creates a requested artifact.
    When exactly one provider request remains, code reserves it for an explicitly requested artifact only if usable evidence exists and the archive has already been searched; ordinary chat remains controller-driven.
-5. Ordinary answers appear as cited assistant messages. A requested Headlines or Big Story packet appears in the artifact view with a source ledger and copy-to-Markdown control.
+5. Ordinary answers lead with natural prose and readable citations beside supported claims. A requested Headlines or Big Story brief appears inline with priority-ranked material, progressive supporting detail, Focus, source inspection, and copy-to-Markdown.
 6. The user asks a follow-up in the same composer. The agent may answer from saved evidence or perform new bounded research; it does not fake a refinement.
 7. Stop cancels the active request where possible and preserves evidence plus the last validated artifact in the current process.
 8. “New research” starts a new ephemeral local workspace.
@@ -78,10 +80,12 @@ The route body is capped at 24 KB. Extra keys, malformed requests, unknown actio
 
 ### Desktop layout
 
-- One compact header contains product identity, current research context, last-turn receipt, view toggle, new-research, status, and stop controls.
-- One primary workspace shows chat by default and the preparation artifact when requested.
-- Agent activity appears as a compact inline panel with progressive disclosure; it is not a permanent rail.
+- One compact header contains product identity, current research context, last-turn receipt, new-research, status, and stop controls.
+- One primary workspace shows the continuing conversation; a requested preparation brief appears as an assistant answer and may open in Focus.
+- Agent activity appears as a few compact expandable work lines below the prompt that caused it; it is not a permanent rail and never claims to expose reasoning.
 - Source detail opens in an on-demand drawer and does not compete with the reading surface until selected.
+- The composer exposes Deep research as a separate selected state. It does not change output format.
+- Auto-follow pauses when the reader scrolls up, offers Jump to latest only after new content arrives, and positions the beginning of a completed answer for reading.
 
 On narrow screens, the same workspace stacks without horizontal overflow; activity remains inline and source detail becomes a full-width drawer. No feature may exist only in a developer console.
 
@@ -104,11 +108,11 @@ The interface must not show private chain-of-thought, hidden reasoning tokens, s
 
 The server-to-client stream exposes bounded `data-run`, `data-activity`, `data-message`, `data-source`, `data-artifact`, `data-receipt`, and `data-error` parts. Activity kinds are `run`, `agent`, `tool`, `composition`, `validation`, and `artifact`. They reveal public action summaries and safe tool detail, never private reasoning.
 
-Each event has a run ID, workspace ID, timestamp, display-safe summary, and typed payload. Replayed events must render the same visible state as the original stream.
+Each event has a run ID, timestamp, display-safe summary, and typed payload. Client state correlates it to the originating exchange. Replayed events must render the same visible state as the original stream.
 
 ## 7. Artifact contracts
 
-The model produces structured editorial fields validated by code. The application renders that structure as editable prose/Markdown. Every factual claim uses source IDs, and code—not the model—constructs the artifact's source ledger from those cited IDs. Notes and hypotheses are visibly distinct from verified facts.
+Only an explicitly requested brief uses structured editorial fields validated by code. The application renders that structure as readable prose/Markdown. Every factual claim uses source IDs, and code—not the model—constructs the brief's source ledger from those cited IDs. Notes and hypotheses are visibly distinct from verified facts.
 
 ### Headlines artifact
 
@@ -120,7 +124,7 @@ The model produces structured editorial fields validated by code. The applicatio
 6. **Surprising details** — useful facts, examples, numbers, or absurdities supported by sources
 7. **Past Nonsense coverage** — exact archive excerpts with episode and segment references, or an explicit `no_relevant_archive_match`
 8. **Conversation starters** — questions and angles that invite CJ and Jeff to react rather than read prose
-9. **Flexible outline** — ordered beats labeled `must_have`, `use_if_time`, or `cut_first`; include estimated timing only when `target_minutes` was supplied
+9. **Editorial priorities** — ordered material labeled `must_cover`, `strong_material`, `optional_detail`, or `cut_first`; no model-generated minutes or locked running order
 10. **Uncertainties and open checks**
 11. **Source ledger**
 
@@ -131,7 +135,7 @@ The model produces structured editorial fields validated by code. The applicatio
 3. **Research cards** — discrete sourced cards typed as background, key evidence, force, interpretation, surprise, or optional recommendation lead
 4. **Past Nonsense coverage** — exact archive excerpts with episode and segment references, or an explicit `no_relevant_archive_match`
 5. **Conversation tensions and questions**
-6. **Modular outline** — sections and beats labeled `must_have`, `use_if_time`, or `cut_first`; timing is proportional only when `target_minutes` was supplied
+6. **Editorial priorities** — modular material labeled `must_cover`, `strong_material`, `optional_detail`, or `cut_first`; no model-generated minutes or locked running order
 7. **Uncertainties and open checks**
 8. **Source ledger** — constructed deterministically from the evidence records cited above, never copied or invented by the model
 
@@ -236,7 +240,7 @@ Rules:
 - Permit URL reads only for user-supplied or search-discovered public URLs and archive opens only for returned matches. Validate every batch target before starting work, count each target against the original per-tool ceilings, and preserve per-target unavailable states.
 - Treat search candidates as leads rather than evidence until `read_url` succeeds; permit citations only to usable saved source IDs.
 - Terminate on `respond`, successful `create_artifact`, stop, deadline, controller/tool/provider/cost ceiling, or typed unrecoverable failure. Automatic retry is zero.
-- Deterministic validation checks artifact schema, required fields, resolvable citations, exact archive IDs/excerpts, source ledger, and clock.
+- Deterministic validation checks the strict active artifact schema, four editorial priorities, required fields, resolvable citations, exact archive IDs/excerpts, and source ledger. Active Phase 7 artifacts reject generated timing fields.
 - At most one artifact repair may run after validation failure. If repair fails, preserve the previous valid artifact and return an honest partial or failed result.
 - No provider/model fallback is allowed in v0.
 - A stop request terminates the active stream where technically possible and preserves confirmed evidence plus the last valid artifact.
@@ -353,7 +357,7 @@ Qualitative checks:
 - Archive relevance
 - Amount of generic AI prose
 - Manual cleanup required
-- Respect for the story clock without overscripting
+- Usefulness of editorial priorities without overscripting or pretending to know the final running time
 - Whether adaptive research finds materially better evidence than the fixed workflow often enough to justify its added latency and cost
 
 The v0 usefulness gate passes only if the harness has zero fabricated citations/archive quotes in the test set and provides a clear advantage in archive recall and repeatable preparation. The adaptive loop must also outperform the fixed workflow on at least one material research-quality dimension without unacceptable reliability or cost regression. If the advantage over Gemini/plain Grok or the fixed workflow is unclear, stop and simplify before deployment.

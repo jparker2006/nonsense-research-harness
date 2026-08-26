@@ -4,7 +4,18 @@ import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { ConversationThread } from "../src/components/research-thread.tsx";
-import type { BrowserArtifact, BrowserSource, Phase7AActivity, Phase7AReceipt, Phase7ARun } from "../src/lib/phase7a/client.ts";
+import {
+  phase7aArtifactFromLegacyFixture,
+  phase7aArtifactSchema,
+} from "../src/lib/phase7a/artifact.ts";
+import {
+  phase7aMessageSchema,
+  type BrowserArtifact,
+  type BrowserSource,
+  type Phase7AActivity,
+  type Phase7AReceipt,
+  type Phase7ARun,
+} from "../src/lib/phase7a/client.ts";
 import {
   createResearchConversationState,
   researchConversationReducer,
@@ -14,6 +25,7 @@ import {
 import {
   artifactToReadableMarkdown,
   buildSourceReferences,
+  groupObservableWork,
   outcomeLabel,
   referencesForArtifact,
 } from "../src/lib/phase7a/presentation.ts";
@@ -41,23 +53,23 @@ function receipt(runId: string, status: Phase7AReceipt["status"] = "complete"): 
 }
 
 async function frozenHeadlines(): Promise<BrowserArtifact> {
-  const report = JSON.parse(await readFile(resolve(root, "reports/phase-7a-live.json"), "utf8")) as { cases: Array<{ artifact: { artifact: BrowserArtifact } }> };
-  return report.cases[0]!.artifact.artifact;
+  const report = JSON.parse(await readFile(resolve(root, "reports/phase-7a-live.json"), "utf8")) as { cases: Array<{ artifact: { artifact: unknown } }> };
+  return phase7aArtifactSchema.parse(phase7aArtifactFromLegacyFixture(report.cases[0]!.artifact.artifact));
 }
 
 async function frozenBigStory(): Promise<BrowserArtifact> {
-  const report = JSON.parse(await readFile(resolve(root, "reports/phase-7a-live.json"), "utf8")) as { cases: Array<{ artifact: { artifact: BrowserArtifact } }> };
-  return report.cases[1]!.artifact.artifact;
+  const report = JSON.parse(await readFile(resolve(root, "reports/phase-7a-live.json"), "utf8")) as { cases: Array<{ artifact: { artifact: unknown } }> };
+  return phase7aArtifactSchema.parse(phase7aArtifactFromLegacyFixture(report.cases[1]!.artifact.artifact));
 }
 
 function exchangeWithArtifact(artifact: BrowserArtifact): ResearchExchange {
   return {
     local_id: "local_first",
     run_id: "run_first",
-    user: { id: "user_first", text: "Research the sprout outbreak", created_at: "2026-08-25T00:00:00.000Z" },
+    user: { id: "user_first", text: "Research the sprout outbreak", research_depth: "standard", created_at: "2026-08-25T00:00:00.000Z" },
     run: run("run_first", "partial"),
     activities: [activity("run_first", "search_one", "Searched foodborne illness"), { ...activity("run_first", "read_one", "Reuters could not be read"), tool: "read_url", status: "unavailable" }],
-    assistant: { message_id: "message_first", run_id: "run_first", text: "The packet is ready in the artifact panel.", source_ids: [], created_at: "2026-08-25T00:01:00.000Z" },
+    assistant: { message_id: "message_first", run_id: "run_first", text: "The packet is ready in the artifact panel.", source_ids: [], blocks: [{ text: "The packet is ready in the artifact panel.", source_ids: [] }], created_at: "2026-08-25T00:01:00.000Z" },
     artifact: { run_id: "run_first", revision: 1, artifact },
     receipt: { ...receipt("run_first", "partial"), limitations: ["archive:keyword_only"] },
     error: null,
@@ -67,12 +79,12 @@ function exchangeWithArtifact(artifact: BrowserArtifact): ResearchExchange {
 describe("Phase 7A chat-native client state", () => {
   it("keeps repeated activity IDs and follow-up updates under their originating run", () => {
     let state = createResearchConversationState();
-    state = researchConversationReducer(state, { type: "start", local_id: "local_one", text: "First", created_at: "2026-08-25T00:00:00Z" });
+    state = researchConversationReducer(state, { type: "start", local_id: "local_one", text: "First", research_depth: "standard", created_at: "2026-08-25T00:00:00Z" });
     state = researchConversationReducer(state, { type: "run", run: run("run_one", "running") });
     state = researchConversationReducer(state, { type: "activity", activity: activity("run_one", "shared_step", "First running", "running") });
     state = researchConversationReducer(state, { type: "activity", activity: activity("run_one", "shared_step", "First finished") });
     state = researchConversationReducer(state, { type: "run", run: run("run_one", "complete") });
-    state = researchConversationReducer(state, { type: "start", local_id: "local_two", text: "Follow up", created_at: "2026-08-25T00:02:00Z" });
+    state = researchConversationReducer(state, { type: "start", local_id: "local_two", text: "Follow up", research_depth: "deep", created_at: "2026-08-25T00:02:00Z" });
     state = researchConversationReducer(state, { type: "run", run: run("run_two", "running") });
     state = researchConversationReducer(state, { type: "activity", activity: activity("run_two", "shared_step", "Second finished") });
 
@@ -85,9 +97,9 @@ describe("Phase 7A chat-native client state", () => {
   it("does not attach a retained prior artifact to a follow-up exchange", async () => {
     const artifact = await frozenHeadlines();
     let state: ResearchConversationState = { exchanges: [exchangeWithArtifact(artifact)], sources: {}, active_exchange_id: null };
-    state = researchConversationReducer(state, { type: "start", local_id: "local_two", text: "What is the best joke angle?", created_at: "2026-08-25T00:02:00Z" });
+    state = researchConversationReducer(state, { type: "start", local_id: "local_two", text: "What is the best joke angle?", research_depth: "standard", created_at: "2026-08-25T00:02:00Z" });
     state = researchConversationReducer(state, { type: "run", run: run("run_two", "running") });
-    state = researchConversationReducer(state, { type: "assistant", message: { message_id: "message_two", run_id: "run_two", text: "The recall timing is the strongest tension.", source_ids: [], created_at: "2026-08-25T00:03:00Z" } });
+    state = researchConversationReducer(state, { type: "assistant", message: { message_id: "message_two", run_id: "run_two", text: "The recall timing is the strongest tension.", source_ids: [], blocks: [{ text: "The recall timing is the strongest tension.", source_ids: [] }], created_at: "2026-08-25T00:03:00Z" } });
     state = researchConversationReducer(state, { type: "receipt", receipt: { ...receipt("run_two"), counts: { ...receipt("run_two").counts, compositions: 0 } } });
     state = researchConversationReducer(state, { type: "run", run: run("run_two", "complete") });
     expect(state.exchanges[0]?.artifact).not.toBeNull();
@@ -96,11 +108,11 @@ describe("Phase 7A chat-native client state", () => {
 
   it("routes late errors by run, blocks duplicate pending sends, and resets cleanly", () => {
     let state = createResearchConversationState();
-    state = researchConversationReducer(state, { type: "start", local_id: "local_one", text: "First", created_at: "2026-08-25T00:00:00Z" });
-    const pendingState = researchConversationReducer(state, { type: "start", local_id: "duplicate", text: "Duplicate", created_at: "2026-08-25T00:00:01Z" });
+    state = researchConversationReducer(state, { type: "start", local_id: "local_one", text: "First", research_depth: "standard", created_at: "2026-08-25T00:00:00Z" });
+    const pendingState = researchConversationReducer(state, { type: "start", local_id: "duplicate", text: "Duplicate", research_depth: "standard", created_at: "2026-08-25T00:00:01Z" });
     expect(pendingState.exchanges).toHaveLength(1);
     state = researchConversationReducer(state, { type: "run", run: run("run_one", "complete") });
-    state = researchConversationReducer(state, { type: "start", local_id: "local_two", text: "Second", created_at: "2026-08-25T00:02:00Z" });
+    state = researchConversationReducer(state, { type: "start", local_id: "local_two", text: "Second", research_depth: "standard", created_at: "2026-08-25T00:02:00Z" });
     state = researchConversationReducer(state, { type: "run", run: run("run_two", "running") });
     state = researchConversationReducer(state, { type: "error", terminal: true, error: { run_id: "run_one", code: "phase7a_request_failed", message: "First failed late.", retryable: true } });
     expect(state.exchanges[0]?.error?.message).toBe("First failed late.");
@@ -120,16 +132,16 @@ describe("Phase 7A chat-native client state", () => {
     expect(refs[0]?.compact_label).not.toContain(refs[0]!.source_id);
 
     const duplicateTitleSources: BrowserSource[] = [
-      { source_id: "web_alpha", source_type: "web", availability: "complete", evidence_usable: true, title: "Same title", url: "https://fda.gov/a" },
-      { source_id: "web_beta", source_type: "web", availability: "complete", evidence_usable: true, title: "Same title", url: "https://cdc.gov/b" },
-      { source_id: "archive_null_episode", source_type: "archive", availability: "complete", evidence_usable: true, title: "Old conversation", season: 3 },
+      { source_id: "web_alpha", source_type: "web", availability: "complete", evidence_usable: true, title: "Same title", url: "https://fda.gov/a", excerpt: "Alpha evidence" },
+      { source_id: "web_beta", source_type: "web", availability: "complete", evidence_usable: true, title: "Same title", url: "https://cdc.gov/b", excerpt: "Beta evidence" },
+      { source_id: "archive_null_episode", source_type: "archive", availability: "complete", evidence_usable: true, title: "Old conversation", season: 3, excerpt: "Archive evidence" },
     ];
     const duplicateRefs = buildSourceReferences(duplicateTitleSources.map((source) => source.source_id), {}, duplicateTitleSources);
     expect(duplicateRefs.map((item) => item.number)).toEqual([1, 2, 3]);
     expect(duplicateRefs.map((item) => item.publisher)).toEqual(["FDA", "CDC", "Season 3"]);
   });
 
-  it("exports the full packet with readable numbered references and clock", async () => {
+  it("exports the full packet with readable numbered references and editorial priorities", async () => {
     const artifact = await frozenHeadlines();
     const markdown = artifactToReadableMarkdown(artifact);
     expect(markdown).toContain("## Verified facts");
@@ -137,7 +149,9 @@ describe("Phase 7A chat-native client state", () => {
     expect(markdown).toContain("## Past Nonsense coverage");
     expect(markdown).toContain("## Open checks");
     expect(markdown).toContain("## References");
-    expect(markdown).toMatch(/\([0-9.]+ min\)/);
+    expect(markdown).toContain("## Editorial priorities");
+    expect(markdown).toContain("**must cover**");
+    expect(markdown).not.toMatch(/\b(?:estimated|target)?\s*minutes?\b|\([0-9.]+ min\)/i);
     expect(markdown).toContain("— FDA");
     expect(markdown).not.toContain("web_2786293ce491e6089cc4");
   });
@@ -150,6 +164,8 @@ describe("Phase 7A chat-native client state", () => {
       sources: Object.fromEntries(artifact.source_ledger.map((source) => [source.source_id, source])),
       draft: "",
       setDraft: () => undefined,
+      researchDepth: "standard",
+      setResearchDepth: () => undefined,
       send: () => undefined,
       running: false,
       openSource: () => undefined,
@@ -172,10 +188,12 @@ describe("Phase 7A chat-native client state", () => {
     expect(markup).toContain("FDA");
     expect(markup).not.toContain("web_2786293ce491e6089cc4");
     expect(markup).not.toContain("The packet is ready in the artifact panel.");
-    expect(markup).toContain('<details class="agent-work-details">');
+    expect(markup).toContain('class="work-line work-line--');
+    expect(markup).not.toContain("activity-node");
+    expect(markup).not.toMatch(/<time|Agent decision|Research turn started/);
   });
 
-  it("renders every Big Story section inline with a visible clock", async () => {
+  it("renders every Big Story section inline without inventing a clock", async () => {
     const artifact = await frozenBigStory();
     const exchange = exchangeWithArtifact(artifact);
     const markup = renderToStaticMarkup(createElement(ConversationThread, {
@@ -183,6 +201,8 @@ describe("Phase 7A chat-native client state", () => {
       sources: Object.fromEntries(artifact.source_ledger.map((source) => [source.source_id, source])),
       draft: "",
       setDraft: () => undefined,
+      researchDepth: "standard",
+      setResearchDepth: () => undefined,
       send: () => undefined,
       running: false,
       openSource: () => undefined,
@@ -193,8 +213,9 @@ describe("Phase 7A chat-native client state", () => {
     expect(markup).toContain("Core question");
     expect(markup).toContain("Research brief");
     expect(markup).toContain("Research cards");
-    expect(markup).toContain("Modular outline");
-    expect(markup).toMatch(/[0-9.]+ min/);
+    expect(markup).toContain("Editorial priorities");
+    expect(markup).toContain("must cover");
+    expect(markup).not.toMatch(/[0-9.]+ min|estimated minutes|target minutes/i);
     expect(markup).not.toMatch(/(?:web|archive)_[a-z0-9_]+/);
   });
 
@@ -209,7 +230,7 @@ describe("Phase 7A chat-native client state", () => {
     const failedExchange: ResearchExchange = {
       local_id: "local_failed",
       run_id: null,
-      user: { id: "user_failed", text: "Research this.", created_at: "2026-08-25T00:00:00Z" },
+      user: { id: "user_failed", text: "Research this.", research_depth: "standard", created_at: "2026-08-25T00:00:00Z" },
       run: null,
       activities: [],
       assistant: null,
@@ -222,6 +243,8 @@ describe("Phase 7A chat-native client state", () => {
       sources: {},
       draft: "",
       setDraft: () => undefined,
+      researchDepth: "standard",
+      setResearchDepth: () => undefined,
       send: () => undefined,
       running: false,
       openSource: () => undefined,
@@ -232,5 +255,87 @@ describe("Phase 7A chat-native client state", () => {
     expect(markup).toContain("Research stopped before completion.");
     expect(markup).toContain("Live research is unavailable.");
     expect(markup).not.toContain("Starting research");
+  });
+
+  it("groups low-level activity into quiet expandable work lines", () => {
+    const activities: Phase7AActivity[] = [
+      { ...activity("run_one", "agent_one", "Choosing the next step"), kind: "agent", tool: undefined },
+      { ...activity("run_one", "read_one", "Read FDA"), tool: "read_url", detail: "FDA · https://fda.gov/a" },
+      { ...activity("run_one", "read_two", "Read AP"), tool: "read_url", detail: "AP · https://apnews.com/b" },
+      { ...activity("run_one", "agent_two", "Choosing the next step"), kind: "agent", tool: undefined },
+      { ...activity("run_one", "archive_one", "Search archive"), tool: "search_transcripts", detail: "sprout outbreak · 3 matches" },
+    ];
+    const groups = groupObservableWork(activities);
+    expect(groups.map((group) => group.label)).toEqual(["Read 2 sources", "Checked the Nonsense archive"]);
+    expect(groups[0]?.detail).toContain("FDA");
+    expect(groups[1]?.detail).toContain("3 matches");
+  });
+
+  it("renders a natural cited answer and separate deep-research control without a packet", () => {
+    const source: BrowserSource = {
+      source_id: "web_fda",
+      source_type: "web",
+      availability: "complete",
+      evidence_usable: true,
+      title: "FDA outbreak update",
+      url: "https://fda.gov/outbreak-update",
+      excerpt: "The recall expanded.",
+    };
+    const exchange: ResearchExchange = {
+      local_id: "local_answer",
+      run_id: "run_answer",
+      user: { id: "user_answer", text: "What changed?", research_depth: "deep", created_at: "2026-08-25T00:00:00Z" },
+      run: run("run_answer", "complete"),
+      activities: [activity("run_answer", "search_answer", "Searched current outbreak")],
+      assistant: {
+        message_id: "message_answer",
+        run_id: "run_answer",
+        text: "The recall expanded.",
+        source_ids: [source.source_id],
+        blocks: [{ text: "The recall expanded.", source_ids: [source.source_id] }],
+        created_at: "2026-08-25T00:01:00Z",
+      },
+      artifact: null,
+      receipt: { ...receipt("run_answer"), artifact_revision: 0, counts: { ...receipt("run_answer").counts, compositions: 0 } },
+      error: null,
+    };
+    const markup = renderToStaticMarkup(createElement(ConversationThread, {
+      exchanges: [exchange],
+      sources: { [source.source_id]: source },
+      draft: "",
+      setDraft: () => undefined,
+      researchDepth: "deep",
+      setResearchDepth: () => undefined,
+      send: () => undefined,
+      running: false,
+      openSource: () => undefined,
+      focusArtifact: () => undefined,
+      copyArtifact: () => undefined,
+      copiedExchangeId: null,
+    }));
+    expect(markup).toContain("The recall expanded.");
+    expect(markup).toContain("[1] FDA");
+    expect(markup).toContain('aria-pressed="true"');
+    expect(markup).toContain("Deep research");
+    expect(markup).not.toContain("Nonsense prep packet");
+  });
+
+  it("uses strict client stream validation and responsive static-motion styles", async () => {
+    expect(() => phase7aMessageSchema.parse({
+      message_id: "message_incomplete",
+      run_id: "run_incomplete",
+      text: "Missing claim blocks.",
+      source_ids: [],
+      created_at: "2026-08-25T00:00:00Z",
+    })).toThrow();
+    const css = await readFile(resolve(root, "src/app/globals.css"), "utf8");
+    expect(css).toContain("overflow-x: hidden");
+    expect(css).toContain("@media (max-width: 600px)");
+    expect(css).toContain(".work-line > summary { min-height: 44px; }");
+    expect(css).toContain(".chat-composer .deep-research-toggle { min-height: 44px; }");
+    expect(css).toContain("@media (prefers-reduced-motion: reduce)");
+    expect(css).toContain(".work-line-label--active::after { display: none; }");
+    expect(css).not.toContain("activity-node");
+    expect(css).not.toContain("background-clip: text");
   });
 });

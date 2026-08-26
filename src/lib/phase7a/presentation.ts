@@ -11,6 +11,14 @@ export type SourceReference = {
   source: BrowserSource;
 };
 
+export type ObservableWorkGroup = {
+  id: string;
+  label: string;
+  detail: string;
+  status: Phase7AActivity["status"];
+  activities: Phase7AActivity[];
+};
+
 const PUBLISHERS: Array<[string, string]> = [
   ["cdc.gov", "CDC"],
   ["fda.gov", "FDA"],
@@ -147,19 +155,86 @@ export function researchReceiptSummary(receipt: Phase7AReceipt | null): string {
   return `${action} · ${formatElapsed(receipt.elapsed_ms)} · ${receipt.counts.provider_requests} request${receipt.counts.provider_requests === 1 ? "" : "s"} · $${receipt.accounted_cost_usd.toFixed(4)}`;
 }
 
+function groupStatus(activities: Phase7AActivity[]): Phase7AActivity["status"] {
+  if (activities.some((item) => item.status === "running")) return "running";
+  if (activities.some((item) => item.status === "failed")) return "failed";
+  if (activities.some((item) => item.status === "stopped")) return "stopped";
+  if (activities.some((item) => item.status === "unavailable")) return "unavailable";
+  if (activities.some((item) => item.status === "partial")) return "partial";
+  return "complete";
+}
+
+function workLabel(activities: Phase7AActivity[]): string {
+  const first = activities[0]!;
+  if (first.tool === "web_search") {
+    if (activities.some((item) => item.status === "running")) return "Searching the web";
+    const candidates = activities.map((item) => /·\s*(\d+)\s+candidate/.exec(item.detail)?.[1]).find(Boolean);
+    return candidates ? `Searched the web across ${candidates} results` : "Searched the web";
+  }
+  if (first.tool === "read_url") {
+    if (activities.length > 1) return `Read ${activities.length} sources`;
+    const title = first.detail.split(" · ")[0]?.trim();
+    return title && !title.includes(".") ? `Read ${title}` : "Read a source";
+  }
+  if (first.tool === "search_transcripts") return "Checked the Nonsense archive";
+  if (first.tool === "open_transcript_chunk") {
+    return activities.length === 1 ? "Opened a past episode passage" : `Opened ${activities.length} past episode passages`;
+  }
+  if (first.kind === "artifact" || first.kind === "composition") {
+    const mode = first.detail.toLowerCase().includes("big story") ? "Big Story" : "Headlines";
+    return first.status === "running" ? `Creating the ${mode} brief` : `Created the ${mode} brief`;
+  }
+  if (first.kind === "validation") return "Checked the preparation brief";
+  return first.label;
+}
+
+export function groupObservableWork(activities: Phase7AActivity[], running = false): ObservableWorkGroup[] {
+  const groups: ObservableWorkGroup[] = [];
+  let actionSequence = 0;
+  let lastKey = "";
+  for (const activity of activities) {
+    if (activity.kind === "agent") {
+      actionSequence += 1;
+      lastKey = "";
+      continue;
+    }
+    if (activity.kind === "run") continue;
+    const semantic = activity.tool ?? activity.kind;
+    const key = `${actionSequence}:${semantic}`;
+    const current = key === lastKey ? groups.at(-1) : undefined;
+    if (current) {
+      current.activities.push(activity);
+      current.status = groupStatus(current.activities);
+      current.label = workLabel(current.activities);
+      current.detail = current.activities.map((item) => item.detail).filter(Boolean).join(" · ");
+    } else {
+      const next: ObservableWorkGroup = {
+        id: `work_${activity.id}`,
+        label: workLabel([activity]),
+        detail: activity.detail,
+        status: activity.status,
+        activities: [activity],
+      };
+      groups.push(next);
+      lastKey = key;
+    }
+  }
+  if (!groups.length && running) {
+    groups.push({ id: "work_planning", label: "Planning the research", detail: "Reviewing the request and saved evidence", status: "running", activities: [] });
+  }
+  return groups;
+}
+
 function citation(ids: string[], map: Map<string, SourceReference>): string {
   const labels = ids.flatMap((id) => map.get(id)?.number ?? []);
   return labels.length ? ` ${labels.map((number) => `[${number}]`).join(" ")}` : "";
 }
 
 function outlineLines(
-  beats: Array<{ priority: string; text: string; source_ids: string[]; estimated_minutes?: number }>,
+  beats: Array<{ priority: string; text: string; source_ids: string[] }>,
   map: Map<string, SourceReference>,
 ): string[] {
-  return beats.map((beat) => {
-    const clock = beat.estimated_minutes === undefined ? "" : ` (${Number(beat.estimated_minutes.toFixed(2))} min)`;
-    return `- **${beat.priority.replaceAll("_", " ")}**${clock} — ${beat.text}${citation(beat.source_ids, map)}`;
-  });
+  return beats.map((beat) => `- **${beat.priority.replaceAll("_", " ")}** — ${beat.text}${citation(beat.source_ids, map)}`);
 }
 
 export function artifactToReadableMarkdown(artifact: BrowserArtifact): string {
@@ -184,7 +259,7 @@ export function artifactToReadableMarkdown(artifact: BrowserArtifact): string {
       "## Surprising details",
       ...artifact.surprising_details.map((item) => `- ${readable(item.text)}${citation(item.source_ids, map)}`),
       "",
-      "## Flexible outline",
+      "## Editorial priorities",
       ...outlineLines(artifact.flexible_outline, map),
     );
   } else {
@@ -198,7 +273,7 @@ export function artifactToReadableMarkdown(artifact: BrowserArtifact): string {
       "## Research cards",
       ...artifact.research_cards.map((card) => `- **${card.role.replaceAll("_", " ")}** — ${readable(card.text)}${citation(card.source_ids, map)}`),
       "",
-      "## Modular outline",
+      "## Editorial priorities",
       ...outlineLines(artifact.modular_outline, map),
     );
   }

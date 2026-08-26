@@ -3,11 +3,9 @@ import { normalizeWebUrl } from "../web-research/contracts.ts";
 import type { WebSourceRecord } from "../web-research/types.ts";
 import {
   PHASE_5_LIMITS,
-  phase5ArtifactSchema,
   phase5InputSchema,
   researchPlanSchema,
   type EvidenceSource,
-  type Phase5Artifact,
   type Phase5Input,
   type Phase5Usage,
 } from "../phase5/contracts.ts";
@@ -17,12 +15,12 @@ import {
   type Phase5ModelReceipt,
 } from "../phase5/model.ts";
 import type { Phase5ToolAdapter } from "../phase5/workflow.ts";
-import {
-  canonicalizeArtifactSourceLedger,
-  hydrateArtifactSourceLedger,
-  validatePhase5Artifact,
-} from "../phase5/validation.ts";
 import type { ProviderReceipt } from "../transcript-retrieval/providers.ts";
+import {
+  hydratePhase7AArtifactSourceLedger,
+  phase7aArtifactSchema,
+  validatePhase7AArtifact,
+} from "./artifact.ts";
 import {
   PHASE_7A_LIMITS,
   phase7aActionSchema,
@@ -38,6 +36,7 @@ import {
   type Phase7AAssistantMessage,
   type Phase7AControllerFailure,
   type Phase7ACounts,
+  type Phase7AResearchDepth,
   type Phase7ARunTrace,
   type Phase7ATurnResult,
   type Phase7AWorkspace,
@@ -60,6 +59,7 @@ type AgentState = {
   runId: string;
   workspace: Phase7AWorkspace;
   currentMessage: string;
+  researchDepth: Phase7AResearchDepth;
   status: "running" | "complete" | "partial" | "stopped" | "failed";
   events: Phase7AActivity[];
   usage: Phase5Usage[];
@@ -325,7 +325,18 @@ function actionArgument(action: Phase7AAction): string {
   if (action.action === "open_transcript_chunk") return action.chunk_id;
   if (action.action === "open_transcript_chunks") return action.chunk_ids.join(", ");
   if (action.action === "create_artifact") return `${action.mode}: ${action.topic}`;
-  return action.source_ids.join(", ");
+  return [...new Set(action.blocks.flatMap((block) => block.source_ids))].join(", ");
+}
+
+function requestedArtifactMode(state: AgentState): "headlines" | "big_story" | null {
+  const message = state.currentMessage;
+  const explicitMode = /\b(headlines?|big story)\b/i.exec(message)?.[1]?.toLowerCase();
+  const creationIntent = /\b(create|make|prepare|build|turn|convert|draft|revise|update|rewrite|shorten|expand)\b/i.test(message)
+    && /\b(brief|packet|prep|preparation|artifact)\b/i.test(message);
+  if (creationIntent && explicitMode) return explicitMode.startsWith("headline") ? "headlines" : "big_story";
+  const revisionIntent = /\b(revise|update|rewrite|shorten|expand)\b/i.test(message)
+    && /\b(current|existing|latest|this|the)?\s*(brief|packet|artifact)\b/i.test(message);
+  return revisionIntent ? state.workspace.artifact?.mode ?? null : null;
 }
 
 function finalProviderArtifactAction(state: AgentState): Extract<Phase7AAction, { action: "create_artifact" }> | null {
@@ -333,18 +344,15 @@ function finalProviderArtifactAction(state: AgentState): Extract<Phase7AAction, 
   if (state.counts.compositions >= PHASE_7A_LIMITS.maxCompositions) return null;
   if (!state.workspace.evidence.some((source) => source.evidence_usable)) return null;
   if (state.workspace.archive_queries.length === 0) return null;
-  const explicitRequest = /\b(create|make|prepare|build)\b[^.\n]{0,180}\b(headlines?|big story)\b/i.exec(state.currentMessage);
-  if (!explicitRequest) return null;
-  const requestedMode = explicitRequest[2]!.toLowerCase().startsWith("headline") ? "headlines" : "big_story";
-  const targetMatch = /\b(\d+(?:\.\d+)?)\s*[- ]?minute\b/i.exec(state.currentMessage);
+  const requestedMode = requestedArtifactMode(state);
+  if (!requestedMode) return null;
   const firstSentence = state.currentMessage.split(/(?<=[.!?])\s/)[0]?.trim() ?? state.currentMessage;
   const parsed = phase7aActionSchema.parse({
     action: "create_artifact",
     public_summary: `Use the final provider request to create the requested ${requestedMode === "headlines" ? "Headlines" : "Big Story"} packet`,
     mode: requestedMode,
     topic: firstSentence.slice(0, 300),
-    ...(targetMatch ? { target_minutes: Number(targetMatch[1]) } : {}),
-    instruction: "Use the collected evidence and honest archive result. Preserve the requested clock and do not invent missing coverage.",
+    instruction: "Use the collected evidence and honest archive result. Rank material by editorial priority without assigning minutes or inventing missing coverage.",
   });
   if (parsed.action !== "create_artifact") throw new Error("phase7a_agent_failed");
   return parsed;
@@ -364,7 +372,6 @@ function compositionInput(state: AgentState, action: Extract<Phase7AAction, { ac
     topic: action.topic,
     links: state.workspace.evidence.filter((item) => item.evidence_usable && item.url).map((item) => item.url!).slice(0, 3),
     notes: `${action.instruction ? `${action.instruction}\n\n` : ""}RELEVANT CONVERSATION:\n${recentConversation}`.slice(0, PHASE_5_LIMITS.maxNotesCharacters),
-    target_minutes: action.target_minutes,
   });
 }
 
@@ -397,11 +404,8 @@ async function createArtifact(
     composeReceiptRecorded = true;
     const outputFailure = phase5ModelOutputFailure(composed.output_status);
     if (outputFailure) throw new Error(`phase7a_${outputFailure.replace(/^phase5_/, "")}`);
-    let raw = canonicalizeArtifactSourceLedger(
-      hydrateArtifactSourceLedger(composed.value, state.workspace.evidence),
-      state.workspace.evidence,
-    );
-    let validation = validatePhase5Artifact(input, raw, state.workspace.evidence);
+    let raw = hydratePhase7AArtifactSourceLedger(composed.value, state.workspace.evidence);
+    let validation = validatePhase7AArtifact(action.mode, raw, state.workspace.evidence);
     if (validation.errors.length && state.counts.repairs < PHASE_7A_LIMITS.maxRepairs) {
       emit(state, deps, { kind: "validation", label: "Repairing the structured packet", detail: `${validation.errors.length} validation issue${validation.errors.length === 1 ? "" : "s"}`, status: "running" });
       reserveProvider(state, 1, RESERVATIONS.grok);
@@ -417,11 +421,8 @@ async function createArtifact(
         repairReceiptRecorded = true;
         const repairFailure = phase5ModelOutputFailure(repaired.output_status);
         if (repairFailure) throw new Error(`phase7a_${repairFailure.replace(/^phase5_/, "")}`);
-        raw = canonicalizeArtifactSourceLedger(
-          hydrateArtifactSourceLedger(repaired.value, state.workspace.evidence),
-          state.workspace.evidence,
-        );
-        validation = validatePhase5Artifact(input, raw, state.workspace.evidence);
+        raw = hydratePhase7AArtifactSourceLedger(repaired.value, state.workspace.evidence);
+        validation = validatePhase7AArtifact(action.mode, raw, state.workspace.evidence);
       } catch (error) {
         if (!repairReceiptRecorded) addUsage(state, "grok_repair", RESERVATIONS.grok);
         throw error;
@@ -432,7 +433,7 @@ async function createArtifact(
       emit(state, deps, { id: eventId, kind: "composition", label: "Packet did not pass validation", detail: "The previous valid packet was preserved", status: "failed" });
       return `Artifact validation failed with ${validation.errors.length} issue${validation.errors.length === 1 ? "" : "s"}; the prior artifact was preserved.`;
     }
-    state.workspace.artifact = phase5ArtifactSchema.parse(validation.artifact) as Phase5Artifact;
+    state.workspace.artifact = phase7aArtifactSchema.parse(validation.artifact);
     state.workspace.artifact_revision += 1;
     emit(state, deps, { id: eventId, kind: "artifact", label: "Preparation packet ready", detail: `${action.mode === "headlines" ? "Headlines" : "Big Story"} · revision ${state.workspace.artifact_revision}`, status: "complete" });
     return `${action.mode === "headlines" ? "Headlines" : "Big Story"} artifact revision ${state.workspace.artifact_revision} passed deterministic validation.`;
@@ -554,14 +555,17 @@ async function executeAction(state: AgentState, deps: Phase7AAgentDependencies, 
   const detail = actionArgument(action).slice(0, 300);
   if (action.action === "respond") {
     const usable = new Set(state.workspace.evidence.filter((item) => item.evidence_usable).map((item) => item.source_id));
-    if (new Set(action.source_ids).size !== action.source_ids.length || action.source_ids.some((id) => !usable.has(id))) {
+    const sourceIds = [...new Set(action.blocks.flatMap((block) => block.source_ids))];
+    if (sourceIds.some((id) => !usable.has(id))) {
       throw new Error("phase7a_invalid_citation");
     }
+    const text = action.blocks.map((block) => block.text).join("\n\n");
     const message = phase7aAssistantMessageSchema.parse({
       message_id: `msg_${randomUUID()}`,
       run_id: state.runId,
-      text: action.message,
-      source_ids: action.source_ids,
+      text,
+      source_ids: sourceIds,
+      blocks: action.blocks,
       created_at: nowIso(deps),
     });
     state.assistantMessage = message;
@@ -606,7 +610,7 @@ async function executeAction(state: AgentState, deps: Phase7AAgentDependencies, 
       state.workspace.candidates = state.workspace.candidates.slice(-PHASE_7A_LIMITS.maxCandidates);
       const usableStatus = result.status === "complete" || result.status === "partial";
       if (!usableStatus) addLimitation(state, `web_search:${result.failure?.code ?? result.status}`);
-      emit(state, deps, { id: eventId, kind: "tool", label: usableStatus ? "Web candidates found" : "Web search unavailable", detail: `${result.sources.length} candidate${result.sources.length === 1 ? "" : "s"} · ${result.status}`, status: usableStatus ? "complete" : "unavailable", tool: "web_search" });
+      emit(state, deps, { id: eventId, kind: "tool", label: usableStatus ? "Web candidates found" : "Web search unavailable", detail: `${action.query} · ${result.sources.length} candidate${result.sources.length === 1 ? "" : "s"} · ${result.status}`.slice(0, 300), status: usableStatus ? "complete" : "unavailable", tool: "web_search" });
       return { done: false, observation: `Web search status ${result.status}; ${result.sources.length} unread candidates are available.` };
     } catch (error) {
       if (!usageRecorded) addUsage(state, "web_search", RESERVATIONS.webSearch);
@@ -649,7 +653,7 @@ async function executeAction(state: AgentState, deps: Phase7AAgentDependencies, 
       }
       state.workspace.transcript_matches = state.workspace.transcript_matches.slice(-PHASE_7A_LIMITS.maxTranscriptMatches);
       if (["unavailable", "keyword_only"].includes(envelope.result.retrieval_status)) addLimitation(state, `archive:${envelope.result.retrieval_status}`);
-      emit(state, deps, { id: eventId, kind: "tool", label: "Archive search complete", detail: `${envelope.result.matches.length} match${envelope.result.matches.length === 1 ? "" : "es"} · ${envelope.result.retrieval_status}`, status: envelope.result.retrieval_status === "unavailable" ? "unavailable" : envelope.result.retrieval_status === "keyword_only" ? "partial" : "complete", tool: "search_transcripts" });
+      emit(state, deps, { id: eventId, kind: "tool", label: "Archive search complete", detail: `${action.query} · ${envelope.result.matches.length} match${envelope.result.matches.length === 1 ? "" : "es"} · ${envelope.result.retrieval_status}`.slice(0, 300), status: envelope.result.retrieval_status === "unavailable" ? "unavailable" : envelope.result.retrieval_status === "keyword_only" ? "partial" : "complete", tool: "search_transcripts" });
       return { done: false, observation: `Archive retrieval is ${envelope.result.retrieval_status}; ${envelope.result.matches.length} chunks can be opened.` };
     } catch (error) {
       if (!usageRecorded) addUsage(state, "transcript_search", RESERVATIONS.transcriptSearch);
@@ -660,15 +664,20 @@ async function executeAction(state: AgentState, deps: Phase7AAgentDependencies, 
   if (action.action === "open_transcript_chunk") return openTranscriptChunks(state, deps, [action.chunk_id]);
   if (action.action === "open_transcript_chunks") return openTranscriptChunks(state, deps, action.chunk_ids);
 
+  const requestedMode = requestedArtifactMode(state);
+  if (!requestedMode || requestedMode !== action.mode) throw new Error("phase7a_artifact_not_requested");
+
   const priorRevision = state.workspace.artifact_revision;
   const observation = await createArtifact(state, deps, action);
   if (state.workspace.artifact && state.workspace.artifact_revision > priorRevision) {
     const sourceIds = state.workspace.artifact.source_ledger.filter((source) => source.evidence_usable).map((source) => source.source_id).slice(0, 8);
+    const completionText = `The validated ${action.mode === "headlines" ? "Headlines" : "Big Story"} preparation brief “${state.workspace.artifact.working_title}” is ready.`;
     const message = phase7aAssistantMessageSchema.parse({
       message_id: `msg_${randomUUID()}`,
       run_id: state.runId,
-      text: `The validated ${action.mode === "headlines" ? "Headlines" : "Big Story"} preparation packet “${state.workspace.artifact.working_title}” is ready in the artifact panel.`,
+      text: completionText,
       source_ids: sourceIds,
+      blocks: [{ text: completionText, source_ids: sourceIds }],
       created_at: nowIso(deps),
     });
     state.assistantMessage = message;
@@ -686,6 +695,7 @@ function terminalMessage(state: AgentState, deps: Phase7AAgentDependencies, text
     run_id: state.runId,
     text,
     source_ids: [],
+    blocks: [{ text, source_ids: [] }],
     created_at: nowIso(deps),
   });
   state.assistantMessage = message;
@@ -695,6 +705,7 @@ function terminalMessage(state: AgentState, deps: Phase7AAgentDependencies, text
 export async function runPhase7AAgentTurn(options: {
   workspace: Phase7AWorkspace;
   message: string;
+  researchDepth?: Phase7AResearchDepth;
   runId?: string;
 }, deps: Phase7AAgentDependencies): Promise<Phase7ATurnResult> {
   const startedAtIso = nowIso(deps);
@@ -702,6 +713,7 @@ export async function runPhase7AAgentTurn(options: {
     runId: options.runId ?? `run_${randomUUID()}`,
     workspace: structuredClone(phase7aWorkspaceSchema.parse(options.workspace)),
     currentMessage: options.message.trim(),
+    researchDepth: options.researchDepth ?? "standard",
     status: "running",
     events: [],
     usage: [],
@@ -746,6 +758,7 @@ export async function runPhase7AAgentTurn(options: {
           decision = await deps.controller.decide({
             workspace: state.workspace,
             currentMessage: state.currentMessage,
+            researchDepth: state.researchDepth,
             remaining: remaining(state),
             lastObservation,
           }, { timeoutMs: remainingTime(state, deps), signal: deps.signal });
@@ -814,6 +827,7 @@ export async function runPhase7AAgentTurn(options: {
   const terminalStatus = state.status;
   const trace = phase7aRunTraceSchema.parse({
     run_id: state.runId,
+    research_depth: state.researchDepth,
     started_at: state.startedAtIso,
     completed_at: nowIso(deps),
     status: terminalStatus,

@@ -6,6 +6,7 @@ import {
   type Phase7AAction,
 } from "./contracts.ts";
 import type { Phase7AAgentDependencies } from "./agent.ts";
+import { phase7aArtifactFromLegacyFixture } from "./artifact.ts";
 
 function receipt(): Phase5ModelReceipt {
   return {
@@ -49,7 +50,17 @@ export function createPhase7AFixtureDependencies(
         };
       },
     },
-    composer: fixture.model,
+    composer: {
+      plan: fixture.model.plan,
+      async compose(input, plan, evidence, callOptions) {
+        const result = await fixture.model.compose(input, plan, evidence, callOptions);
+        return { ...result, value: phase7aArtifactFromLegacyFixture(result.value) };
+      },
+      async repair(input, plan, evidence, artifact, validationErrors, callOptions) {
+        const result = await fixture.model.repair(input, plan, evidence, artifact, validationErrors, callOptions);
+        return { ...result, value: phase7aArtifactFromLegacyFixture(result.value) };
+      },
+    },
     tools: fixture.tools,
     signal: options.signal,
     onEvent: options.onEvent,

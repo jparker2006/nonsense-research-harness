@@ -7,6 +7,7 @@ import {
   phase7aControllerOutputToDecision,
   type Phase7AControllerDecision,
   type Phase7AControllerFailure,
+  type Phase7AResearchDepth,
   type Phase7AWorkspace,
 } from "./contracts.ts";
 import { PHASE_7A_SYSTEM_PROMPT, phase7aDecisionPrompt } from "./prompts.ts";
@@ -18,6 +19,7 @@ export type Phase7AModelAdapter = {
   decide(input: {
     workspace: Phase7AWorkspace;
     currentMessage: string;
+    researchDepth: Phase7AResearchDepth;
     remaining: Record<string, number>;
     lastObservation?: string;
   }, options?: { timeoutMs?: number; signal?: AbortSignal }): Promise<Phase5ModelResult<Phase7AControllerDecision>>;

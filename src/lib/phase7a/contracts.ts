@@ -3,9 +3,9 @@ import { z } from "zod";
 import {
   artifactSourceSchema,
   evidenceSourceSchema,
-  phase5ArtifactSchema,
   phase5UsageSchema,
 } from "../phase5/contracts.ts";
+import { phase7aArtifactSchema as phase7aPreparationArtifactSchema, type Phase7AArtifact } from "./artifact.ts";
 
 export const PHASE_7A_LIMITS = Object.freeze({
   maxRequestBytes: 24_000,
@@ -41,6 +41,7 @@ export const phase7aRequestSchema = z.object({
   action: z.literal("message"),
   session_id: z.string().trim().min(8).max(PHASE_7A_LIMITS.maxSessionIdCharacters),
   message: z.string().trim().min(1).max(PHASE_7A_LIMITS.maxMessageCharacters),
+  research_depth: z.enum(["standard", "deep"]),
 }).strict();
 
 const publicSummary = z.string().trim().min(1).max(180);
@@ -81,14 +82,15 @@ export const phase7aActionSchema = z.discriminatedUnion("action", [
     public_summary: publicSummary,
     mode: z.enum(["headlines", "big_story"]),
     topic: z.string().trim().min(3).max(300),
-    target_minutes: z.number().min(1).max(120).optional(),
     instruction: z.string().trim().max(1_200).default(""),
   }).strict(),
   z.object({
     action: z.literal("respond"),
     public_summary: publicSummary,
-    message: z.string().trim().min(1).max(5_000),
-    source_ids: z.array(z.string().trim().min(3).max(180)).max(8),
+    blocks: z.array(z.object({
+      text: z.string().trim().min(1).max(2_000),
+      source_ids: z.array(z.string().trim().min(3).max(180)).max(8),
+    }).strict()).min(1).max(12),
   }).strict(),
 ]);
 
@@ -112,12 +114,13 @@ export const phase7aControllerOutputSchema = z.object({
     .describe("One to three URLs or chunk IDs for a batch action. Use an empty array otherwise."),
   mode: z.enum(["headlines", "big_story"]).nullable()
     .describe("Artifact mode for create_artifact; null otherwise."),
-  target_minutes: z.number().min(1).max(120).nullable()
-    .describe("Requested artifact duration for create_artifact; null otherwise."),
   instruction: z.string().max(1_200)
     .describe("Extra artifact instructions for create_artifact; an empty string otherwise."),
-  source_ids: z.array(z.string().max(180)).max(8)
-    .describe("Retrieved source IDs supporting respond; an empty array otherwise."),
+  response_blocks: z.array(z.object({
+    text: z.string().trim().min(1).max(2_000),
+    source_ids: z.array(z.string().trim().min(3).max(180)).max(8),
+  }).strict()).max(12)
+    .describe("Natural answer paragraphs with claim-level retrieved citations for respond; an empty array otherwise."),
   research_state: phase7aResearchStateSchema.describe("Concise public operational research state, never private reasoning."),
 }).strict();
 
@@ -144,11 +147,10 @@ export function phase7aControllerOutputToDecision(value: z.infer<typeof phase7aC
       ...common,
       mode: value.mode,
       topic: value.argument,
-      ...(value.target_minutes === null ? {} : { target_minutes: value.target_minutes }),
       instruction: value.instruction,
     });
   } else {
-    action = phase7aActionSchema.parse({ ...common, message: value.argument, source_ids: value.source_ids });
+    action = phase7aActionSchema.parse({ ...common, blocks: value.response_blocks });
   }
   return phase7aControllerDecisionSchema.parse({ action, research_state: value.research_state });
 }
@@ -224,6 +226,7 @@ export const phase7aControllerFailureSchema = z.object({
 
 export const phase7aRunTraceSchema = z.object({
   run_id: z.string().max(160),
+  research_depth: z.enum(["standard", "deep"]),
   started_at: z.string(),
   completed_at: z.string(),
   status: z.enum(["complete", "partial", "stopped", "failed"]),
@@ -246,7 +249,7 @@ export const phase7aWorkspaceSchema = z.object({
   archive_queries: z.array(z.string().max(500)).max(8),
   research_state: phase7aResearchStateSchema.nullable(),
   run_traces: z.array(phase7aRunTraceSchema).max(PHASE_7A_LIMITS.maxRunTraces),
-  artifact: phase5ArtifactSchema.nullable(),
+  artifact: phase7aPreparationArtifactSchema.nullable(),
   artifact_revision: z.number().int().nonnegative(),
   updated_at_ms: z.number().nonnegative(),
 });
@@ -256,6 +259,10 @@ export const phase7aAssistantMessageSchema = z.object({
   run_id: z.string().max(160),
   text: z.string().trim().min(1).max(5_000),
   source_ids: z.array(z.string().max(180)).max(8),
+  blocks: z.array(z.object({
+    text: z.string().trim().min(1).max(2_000),
+    source_ids: z.array(z.string().max(180)).max(8),
+  }).strict()).min(1).max(12),
   created_at: z.string(),
 });
 
@@ -271,7 +278,7 @@ export const phase7aRunSchema = z.object({
 export const phase7aArtifactSchema = z.object({
   run_id: z.string(),
   revision: z.number().int().positive(),
-  artifact: phase5ArtifactSchema,
+  artifact: phase7aPreparationArtifactSchema,
 });
 
 export const phase7aReceiptSchema = z.object({
@@ -295,7 +302,7 @@ export const phase7aTurnResultSchema = z.object({
   run_id: z.string(),
   status: z.enum(["complete", "partial", "stopped", "failed"]),
   assistant_message: phase7aAssistantMessageSchema.nullable(),
-  artifact: phase5ArtifactSchema.nullable(),
+  artifact: phase7aPreparationArtifactSchema.nullable(),
   artifact_revision: z.number().int().nonnegative(),
   events: z.array(phase7aActivitySchema).max(PHASE_7A_LIMITS.maxActivityEvents),
   usage: z.array(phase5UsageSchema).max(PHASE_7A_LIMITS.maxProviderRequests),
@@ -308,6 +315,7 @@ export const phase7aTurnResultSchema = z.object({
 });
 
 export type Phase7ARequest = z.infer<typeof phase7aRequestSchema>;
+export type Phase7AResearchDepth = Phase7ARequest["research_depth"];
 export type Phase7AAction = z.infer<typeof phase7aActionSchema>;
 export type Phase7AResearchState = z.infer<typeof phase7aResearchStateSchema>;
 export type Phase7AControllerDecision = z.infer<typeof phase7aControllerDecisionSchema>;
@@ -325,6 +333,7 @@ export type Phase7ARun = z.infer<typeof phase7aRunSchema>;
 export type Phase7AReceipt = z.infer<typeof phase7aReceiptSchema>;
 export type Phase7AError = z.infer<typeof phase7aErrorSchema>;
 export type Phase7ATurnResult = z.infer<typeof phase7aTurnResultSchema>;
+export type { Phase7AArtifact };
 
 export type Phase7ADataParts = {
   activity: Phase7AActivity;

@@ -2,8 +2,12 @@ import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { createPhase7AChatRoute, POST } from "../src/app/api/chat/route.ts";
-import { validatePhase5Artifact } from "../src/lib/phase5/validation.ts";
 import { phase5ArtifactSchema } from "../src/lib/phase5/contracts.ts";
+import {
+  phase7aArtifactFromLegacyFixture,
+  phase7aArtifactSchema,
+  validatePhase7AArtifact,
+} from "../src/lib/phase7a/artifact.ts";
 import {
   PHASE_7A_LIMITS,
   phase7aActionSchema,
@@ -14,7 +18,11 @@ import {
 } from "../src/lib/phase7a/contracts.ts";
 import { createPhase7AFixtureDependencies } from "../src/lib/phase7a/fixture.ts";
 import { createOpenRouterPhase7AModel, PHASE_7A_CONTROLLER_MAX_OUTPUT_TOKENS, Phase7AControllerOutputError } from "../src/lib/phase7a/model.ts";
-import { PHASE_7A_SYSTEM_PROMPT } from "../src/lib/phase7a/prompts.ts";
+import {
+  PHASE_7A_DEEP_RESEARCH_INSTRUCTION,
+  PHASE_7A_SYSTEM_PROMPT,
+  phase7aDecisionPrompt,
+} from "../src/lib/phase7a/prompts.ts";
 import { clearPhase7AWorkspacesForTest, createPhase7AWorkspace } from "../src/lib/phase7a/session-store.ts";
 import { runPhase7AWorkflow } from "../src/lib/phase7a/workflow.ts";
 import { createPhase7ABrowserSessionId, getOrCreatePhase7ABrowserSessionId } from "../src/lib/phase7a/browser-session.ts";
@@ -27,15 +35,32 @@ const chunkId = "chunk_fixture_archive";
 const archiveSourceId = `archive_${chunkId}`;
 
 function requestFor(body: unknown) {
+  const candidate = body && typeof body === "object" ? body as Record<string, unknown> : null;
+  const envelope = candidate?.phase7a && typeof candidate.phase7a === "object"
+    ? candidate.phase7a as Record<string, unknown>
+    : null;
+  const normalized = envelope && envelope.action === "message" && envelope.research_depth === undefined
+    ? { ...candidate, phase7a: { ...envelope, research_depth: "standard" } }
+    : body;
   return new Request("http://local.test/api/chat", {
     method: "POST",
     headers: { "content-type": "application/json" },
-    body: JSON.stringify(body),
+    body: JSON.stringify(normalized),
   });
 }
 
-function action<T extends Phase7AAction>(value: T): T {
-  return phase7aActionSchema.parse(value) as T;
+type LegacyTestAction =
+  | { action: "respond"; public_summary: string; message: string; source_ids: string[] };
+
+function action(value: Phase7AAction | LegacyTestAction): Phase7AAction {
+  if (value.action === "respond" && "message" in value) {
+    return phase7aActionSchema.parse({
+      action: "respond",
+      public_summary: value.public_summary,
+      blocks: [{ text: value.message, source_ids: value.source_ids }],
+    });
+  }
+  return phase7aActionSchema.parse(value);
 }
 
 function controllerEnvelope(overrides: Record<string, unknown> = {}) {
@@ -45,9 +70,8 @@ function controllerEnvelope(overrides: Record<string, unknown> = {}) {
     argument: "Hello.",
     arguments: [],
     mode: null,
-    target_minutes: null,
     instruction: "",
-    source_ids: [],
+    response_blocks: [{ text: "Hello.", source_ids: [] }],
     research_state: {
       objective: "Answer the current request.",
       completed_steps: [],
@@ -83,8 +107,7 @@ function researchActions(mode?: "headlines" | "big_story"): Phase7AAction[] {
       public_summary: `Create a ${mode} preparation packet`,
       mode,
       topic: "Lake Bonneville and the landscape left behind",
-      target_minutes: mode === "headlines" ? 8 : 24,
-      instruction: "Keep the clock and evidence visible.",
+      instruction: "Rank the evidence by editorial priority.",
     }));
   }
   actions.push(action({
@@ -104,8 +127,8 @@ describe("Phase 7A chat-first agent", () => {
     const first = createPhase7ABrowserSessionId(() => "11111111-1111-4111-8111-111111111111");
     const second = createPhase7ABrowserSessionId(() => "22222222-2222-4222-8222-222222222222");
     expect(first).not.toBe(second);
-    expect(phase7aRequestSchema.parse({ action: "message", session_id: first, message: "hello" }).session_id).toBe(first);
-    expect(phase7aRequestSchema.parse({ action: "message", session_id: second, message: "hello" }).session_id).toBe(second);
+    expect(phase7aRequestSchema.parse({ action: "message", session_id: first, message: "hello", research_depth: "standard" }).session_id).toBe(first);
+    expect(phase7aRequestSchema.parse({ action: "message", session_id: second, message: "hello", research_depth: "deep" }).session_id).toBe(second);
   });
 
   it("keeps one session stable until New research clears the conversation holder", () => {
@@ -137,6 +160,67 @@ describe("Phase 7A chat-first agent", () => {
     expect(result.artifact).toBeNull();
     expect(result.counts).toMatchObject({ controller_turns: 1, web_searches: 0, transcript_searches: 0, compositions: 0 });
     expect(result.accounted_cost_usd).toBe(0);
+  });
+
+  it("uses tools for standard current research while Deep research makes a broader bounded pass without creating a brief", async () => {
+    const prompt = "What is the strongest current evidence about Lake Bonneville's visible shorelines?";
+    const standard = await runPhase7AWorkflow({
+      workspace: createPhase7AWorkspace("session_standard_depth"),
+      message: prompt,
+      researchDepth: "standard",
+      runId: "run_standard_depth",
+    }, createPhase7AFixtureDependencies([
+      action({ action: "web_search", public_summary: "Find the current primary source", query: "current Lake Bonneville visible shoreline evidence" }),
+      action({ action: "read_url", public_summary: "Read the primary result", url: suppliedUrl }),
+      action({ action: "respond", public_summary: "Answer from the primary evidence", message: "The clearest evidence is the old shoreline terraces still visible on mountains.", source_ids: [webSourceId] }),
+    ]));
+    const deep = await runPhase7AWorkflow({
+      workspace: createPhase7AWorkspace("session_deep_depth"),
+      message: prompt,
+      researchDepth: "deep",
+      runId: "run_deep_depth",
+    }, createPhase7AFixtureDependencies([
+      action({ action: "web_search", public_summary: "Find the current primary source", query: "current Lake Bonneville visible shoreline evidence" }),
+      action({ action: "read_url", public_summary: "Read the primary result", url: suppliedUrl }),
+      action({ action: "search_transcripts", public_summary: "Check related past Nonsense coverage", query: "vanished lake landscape memory" }),
+      action({ action: "open_transcript_chunk", public_summary: "Open the strongest related passage", chunk_id: chunkId }),
+      action({ action: "respond", public_summary: "Synthesize the broader evidence pass", message: "The old shoreline terraces are the primary physical evidence; an earlier Nonsense passage also explored how an absence can organize what remains.", source_ids: [webSourceId, archiveSourceId] }),
+    ]));
+
+    expect(standard.trace.research_depth).toBe("standard");
+    expect(standard.counts).toMatchObject({ web_searches: 1, url_reads: 1, transcript_searches: 0, compositions: 0 });
+    expect(standard.assistant_message?.blocks[0]?.source_ids).toEqual([webSourceId]);
+    expect(standard.artifact).toBeNull();
+    expect(deep.trace.research_depth).toBe("deep");
+    expect(deep.counts.controller_turns).toBeGreaterThan(standard.counts.controller_turns);
+    expect(deep.counts).toMatchObject({ web_searches: 1, url_reads: 1, transcript_searches: 1, transcript_opens: 1, compositions: 0 });
+    expect(deep.artifact).toBeNull();
+    expect(deep.counts.provider_requests).toBeLessThanOrEqual(PHASE_7A_LIMITS.maxProviderRequests);
+  });
+
+  it("keeps citations attached to the natural answer blocks they support", async () => {
+    const result = await runPhase7AWorkflow({
+      workspace: createPhase7AWorkspace("session_claim_blocks"),
+      message: `${suppliedUrl} Research the physical evidence and related archive context.`,
+      runId: "run_claim_blocks",
+    }, createPhase7AFixtureDependencies([
+      action({ action: "read_url", public_summary: "Read the supplied source", url: suppliedUrl }),
+      action({ action: "search_transcripts", public_summary: "Search the related archive", query: "vanished lake landscape memory" }),
+      action({ action: "open_transcript_chunk", public_summary: "Open the matching archive passage", chunk_id: chunkId }),
+      action({
+        action: "respond",
+        public_summary: "Answer with evidence beside each claim",
+        blocks: [
+          { text: "Visible terraces preserve the former lake levels.", source_ids: [webSourceId] },
+          { text: "A past Nonsense passage framed absence as something that still shapes the present.", source_ids: [archiveSourceId] },
+        ],
+      }),
+    ]));
+    expect(result.assistant_message?.blocks).toEqual([
+      { text: "Visible terraces preserve the former lake levels.", source_ids: [webSourceId] },
+      { text: "A past Nonsense passage framed absence as something that still shapes the present.", source_ids: [archiveSourceId] },
+    ]);
+    expect(result.assistant_message?.text).toContain("\n\n");
   });
 
   it("keeps a structured research notebook and a sanitized replayable trace", async () => {
@@ -306,15 +390,9 @@ describe("Phase 7A chat-first agent", () => {
     expect(result.artifact?.mode).toBe(mode);
     expect(result.artifact_revision).toBe(1);
     expect(result.counts).toMatchObject({ controller_turns: 4, compositions: 1, repairs: 0, grok_turns: 1 });
-    expect(result.assistant_message?.text).toContain("ready in the artifact panel");
-    const input = {
-      mode,
-      topic: "Lake Bonneville and the landscape left behind",
-      links: [suppliedUrl],
-      notes: "",
-      target_minutes: mode === "headlines" ? 8 : 24,
-    };
-    expect(validatePhase5Artifact(input, result.artifact, result.workspace.evidence).errors).toEqual([]);
+    expect(result.assistant_message?.text).toContain("preparation brief");
+    expect(validatePhase7AArtifact(mode, result.artifact, result.workspace.evidence).errors).toEqual([]);
+    expect(JSON.stringify(result.artifact)).not.toMatch(/target_minutes|estimated_minutes/);
   });
 
   it("continues the same evidence workspace and can do new research on a follow-up", async () => {
@@ -411,6 +489,61 @@ describe("Phase 7A chat-first agent", () => {
     expect(second.limitations).toContain("phase7a_url_not_allowed");
     expect(second.artifact).toEqual(first.artifact);
     expect(second.artifact_revision).toBe(1);
+
+    const stop = new AbortController();
+    stop.abort();
+    const stopped = await runPhase7AWorkflow({
+      workspace: second.workspace,
+      message: "Stop this follow-up.",
+    }, createPhase7AFixtureDependencies([], { signal: stop.signal }));
+    expect(stopped.status).toBe("stopped");
+    expect(stopped.artifact).toEqual(first.artifact);
+    expect(stopped.artifact_revision).toBe(1);
+    expect(stopped.workspace.evidence).toEqual(first.workspace.evidence);
+  });
+
+  it("requires current-turn brief intent, preserves corrections, and creates only explicit revisions", async () => {
+    const first = await runPhase7AWorkflow({
+      workspace: createPhase7AWorkspace("session_explicit_revision"),
+      message: `${suppliedUrl} Make a Headlines preparation brief.`,
+      runId: "run_explicit_revision_one",
+    }, createPhase7AFixtureDependencies(researchActions("headlines")));
+
+    const unrequestedDependencies = createPhase7AFixtureDependencies([
+      action({ action: "create_artifact", public_summary: "Try to rewrite the retained packet", mode: "headlines", topic: "Lake Bonneville", instruction: "" }),
+    ]);
+    const unrequested = await runPhase7AWorkflow({
+      workspace: first.workspace,
+      message: "Go deeper on the physical evidence.",
+      researchDepth: "deep",
+      runId: "run_explicit_revision_two",
+    }, unrequestedDependencies);
+    expect(unrequested.status).toBe("failed");
+    expect(unrequested.limitations).toContain("phase7a_artifact_not_requested");
+    expect(unrequested.counts.compositions).toBe(0);
+    expect(unrequested.artifact_revision).toBe(1);
+    expect(unrequested.artifact).toEqual(first.artifact);
+
+    const revisionDependencies = createPhase7AFixtureDependencies([
+      action({ action: "create_artifact", public_summary: "Revise the retained brief", mode: "headlines", topic: "Lake Bonneville", instruction: "Apply the user's correction." }),
+    ]);
+    const originalCompose = revisionDependencies.composer.compose;
+    let observedNotes = "";
+    revisionDependencies.composer.compose = async (input, plan, evidence, options) => {
+      observedNotes = input.notes;
+      return originalCompose(input, plan, evidence, options);
+    };
+    const correction = "Correction: the visible terraces are old shorelines, not current waterlines.";
+    const revised = await runPhase7AWorkflow({
+      workspace: unrequested.workspace,
+      message: `Revise the current brief. ${correction}`,
+      runId: "run_explicit_revision_three",
+    }, revisionDependencies);
+    expect(revised.status).toBe("complete");
+    expect(revised.artifact_revision).toBe(2);
+    expect(revised.counts.compositions).toBe(1);
+    expect(observedNotes).toContain(correction);
+    expect(revised.workspace.turns.map((turn) => turn.text)).toContain(`Revise the current brief. ${correction}`);
   });
 
   it("rejects invented citations and unknown chunks without a model retry", async () => {
@@ -435,13 +568,58 @@ describe("Phase 7A chat-first agent", () => {
     expect(chunk.counts.controller_turns).toBe(1);
   });
 
+  it("rejects unavailable and candidate-only citations at the claim-block boundary", async () => {
+    const unavailableWorkspace = createPhase7AWorkspace("session_unusable_citation");
+    unavailableWorkspace.evidence.push({
+      source_id: "web_unavailable",
+      source_type: "web",
+      availability: "unavailable",
+      evidence_usable: false,
+      title: "Unavailable source",
+      excerpt: null,
+      failure_code: "fixture_unavailable",
+    });
+    unavailableWorkspace.candidates.push({
+      source_id: "candidate_only",
+      url: "https://example.com/candidate",
+      title: "Unread candidate",
+      excerpt: "Search result text is not evidence.",
+      query: "fixture query",
+    });
+    for (const sourceId of ["web_unavailable", "candidate_only"]) {
+      const result = await runPhase7AWorkflow({
+        workspace: unavailableWorkspace,
+        message: `Cite ${sourceId}.`,
+      }, createPhase7AFixtureDependencies([
+        action({ action: "respond", public_summary: "Attempt an unusable citation", blocks: [{ text: "Unsupported claim.", source_ids: [sourceId] }] }),
+      ]));
+      expect(result.status).toBe("failed");
+      expect(result.limitations).toContain("phase7a_invalid_citation");
+      expect(result.assistant_message).toBeNull();
+    }
+  });
+
+  it("keeps the active artifact schema strict, priority-based, and timing-free", async () => {
+    const report = JSON.parse(await readFile(resolve(root, "reports/phase-7a-live.json"), "utf8")) as { cases: Array<{ artifact: { artifact: unknown } }> };
+    const active = phase7aArtifactSchema.parse(phase7aArtifactFromLegacyFixture(report.cases[0]!.artifact.artifact));
+    const beats = active.mode === "headlines" ? active.flexible_outline : active.modular_outline;
+    expect(new Set(beats.map((beat) => beat.priority))).toEqual(new Set(["must_cover", "strong_material", "optional_detail", "cut_first"]));
+    expect(JSON.stringify(active)).not.toMatch(/target_minutes|estimated_minutes/);
+    expect(() => phase7aArtifactSchema.parse({ ...active, target_minutes: 8 })).toThrow();
+    const [firstBeat, ...remainingBeats] = beats;
+    const withEstimatedMinutes = active.mode === "headlines"
+      ? { ...active, flexible_outline: [{ ...firstBeat!, estimated_minutes: 3 }, ...remainingBeats] }
+      : { ...active, modular_outline: [{ ...firstBeat!, estimated_minutes: 3 }, ...remainingBeats] };
+    expect(() => phase7aArtifactSchema.parse(withEstimatedMinutes)).toThrow();
+  });
+
   it("refuses artifact composition before usable evidence and an archive search exist", async () => {
     const result = await runPhase7AWorkflow({
       workspace: createPhase7AWorkspace("session_early_artifact"),
       message: `${suppliedUrl} Make a Headlines packet immediately.`,
     }, createPhase7AFixtureDependencies([
       action({ action: "read_url", public_summary: "Read the supplied source", url: suppliedUrl }),
-      action({ action: "create_artifact", public_summary: "Attempt the packet too early", mode: "headlines", topic: "Lake Bonneville", target_minutes: 8, instruction: "" }),
+      action({ action: "create_artifact", public_summary: "Attempt the packet too early", mode: "headlines", topic: "Lake Bonneville", instruction: "" }),
     ]));
     expect(result.status).toBe("failed");
     expect(result.limitations).toContain("phase7a_artifact_archive_required");
@@ -496,7 +674,7 @@ describe("Phase 7A chat-first agent", () => {
     dependencies.providerRequestCap = 2;
     const result = await runPhase7AWorkflow({
       workspace,
-      message: `${suppliedUrl} Read this and create an 8-minute Headlines prep packet.`,
+      message: `${suppliedUrl} Read this and create a Headlines prep packet ranked by editorial priority.`,
       runId: "run_final_artifact_slot",
     }, dependencies);
     expect(result.status).toBe("complete");
@@ -530,7 +708,8 @@ describe("Phase 7A chat-first agent", () => {
   });
 
   it("keeps request and action schemas strict", () => {
-    expect(() => phase7aRequestSchema.parse({ action: "message", session_id: "session_valid", message: "hello", extra: true })).toThrow();
+    expect(() => phase7aRequestSchema.parse({ action: "message", session_id: "session_valid", message: "hello", research_depth: "standard", extra: true })).toThrow();
+    expect(() => phase7aRequestSchema.parse({ action: "message", session_id: "session_valid", message: "hello" })).toThrow();
     expect(() => phase7aActionSchema.parse({ action: "respond", public_summary: "answer", message: "hello", source_ids: [], tool: "shell" })).toThrow();
     expect(() => phase7aActionSchema.parse({ action: "shell", public_summary: "run code", command: "pwd" })).toThrow();
   });
@@ -543,8 +722,8 @@ describe("Phase 7A chat-first agent", () => {
       controllerEnvelope({ action: "search_transcripts", argument: "food safety recalls" }),
       controllerEnvelope({ action: "open_transcript_chunk", argument: "chunk_one" }),
       controllerEnvelope({ action: "open_transcript_chunks", argument: "", arguments: ["chunk_one", "chunk_two"] }),
-      controllerEnvelope({ action: "create_artifact", argument: "Foodborne illness recall", mode: "headlines", target_minutes: 8, instruction: "Keep it clock-aware." }),
-      controllerEnvelope({ action: "respond", argument: "The answer.", source_ids: ["web_one"] }),
+      controllerEnvelope({ action: "create_artifact", argument: "Foodborne illness recall", mode: "headlines", instruction: "Rank the material." }),
+      controllerEnvelope({ action: "respond", argument: "", response_blocks: [{ text: "The answer.", source_ids: ["web_one"] }] }),
     ];
     expect(cases.map((value) => phase7aControllerOutputToDecision(phase7aControllerOutputSchema.parse(value)).action.action)).toEqual([
       "web_search",
@@ -571,7 +750,7 @@ describe("Phase 7A chat-first agent", () => {
     });
     let thrown: unknown;
     try {
-      await model.decide({ workspace: createPhase7AWorkspace(`session_${stage}`), currentMessage: "Research this.", remaining: {} });
+      await model.decide({ workspace: createPhase7AWorkspace(`session_${stage}`), currentMessage: "Research this.", researchDepth: "standard", remaining: {} });
     } catch (error) {
       thrown = error;
     }
@@ -619,7 +798,7 @@ describe("Phase 7A chat-first agent", () => {
       action({ action: "read_urls", public_summary: "Read the primary and independent sources", urls }),
       action({ action: "search_transcripts", public_summary: "Search prior Nonsense coverage", query: "food safety recalls regulation" }),
       action({ action: "open_transcript_chunk", public_summary: "Open the strongest archive passage", chunk_id: chunkId }),
-      action({ action: "create_artifact", public_summary: "Create the eight-minute Headlines packet", mode: "headlines", topic: "Foodborne illness recall", target_minutes: 8, instruction: "Keep the clock visible." }),
+      action({ action: "create_artifact", public_summary: "Create the Headlines brief", mode: "headlines", topic: "Foodborne illness recall", instruction: "Rank material by editorial priority." }),
     ]);
     dependencies.tools.webSearch = async ({ query }) => ({
       status: "complete",
@@ -656,7 +835,7 @@ describe("Phase 7A chat-first agent", () => {
     });
     const result = await runPhase7AWorkflow({
       workspace: createPhase7AWorkspace("session_controller_completion"),
-      message: "Research this recall and make an eight-minute Headlines packet.",
+      message: "Research this recall and make a Headlines packet ranked by editorial priority.",
       runId: "run_controller_completion",
     }, dependencies);
     expect(result.artifact?.mode).toBe("headlines");
@@ -687,9 +866,8 @@ describe("Phase 7A chat-first agent", () => {
           argument: "Hello.",
           arguments: [],
           mode: null,
-          target_minutes: null,
           instruction: "",
-          source_ids: [],
+          response_blocks: [{ text: "Hello.", source_ids: [] }],
           research_state: {
             objective: "Answer the greeting.",
             completed_steps: [],
@@ -702,7 +880,7 @@ describe("Phase 7A chat-first agent", () => {
       return new Response(`data: ${payload}\n\ndata: [DONE]\n\n`, { status: 200, headers: { "content-type": "text/event-stream" } });
     };
     const model = createOpenRouterPhase7AModel({ apiKey: "test-key", liveAuthorized: true, fetchImpl });
-    const result = await model.decide({ workspace: createPhase7AWorkspace("session_model_policy"), currentMessage: "hello", remaining: {}, lastObservation: undefined });
+    const result = await model.decide({ workspace: createPhase7AWorkspace("session_model_policy"), currentMessage: "hello", researchDepth: "standard", remaining: {}, lastObservation: undefined });
     expect(result.value.action.action).toBe("respond");
     expect(result.value.research_state.objective).toBe("Answer the greeting.");
     const request = observed as {
@@ -720,6 +898,26 @@ describe("Phase 7A chat-first agent", () => {
     expect(PHASE_7A_CONTROLLER_MAX_OUTPUT_TOKENS).toBe(8_000);
     expect(request.response_format.json_schema.schema.properties.argument).toMatchObject({ type: "string", maxLength: 5_000 });
     expect(request.response_format.json_schema.schema.properties.argument).not.toHaveProperty("minLength");
+    expect(PHASE_7A_SYSTEM_PROMPT).toContain("conversational, evidence-first research partner, not a show writer");
+    expect(PHASE_7A_SYSTEM_PROMPT).toContain("Do not choose stories, assign episode minutes, or create a preparation brief unless the user explicitly requests one");
+    expect(PHASE_7A_SYSTEM_PROMPT).not.toMatch(/target_minutes|estimated_minutes/);
+
+    const deepPrompt = phase7aDecisionPrompt({
+      workspace: createPhase7AWorkspace("session_deep_prompt"),
+      currentMessage: "Investigate this.",
+      researchDepth: "deep",
+      remaining: {},
+    });
+    const standardPrompt = phase7aDecisionPrompt({
+      workspace: createPhase7AWorkspace("session_standard_prompt"),
+      currentMessage: "Investigate this.",
+      researchDepth: "standard",
+      remaining: {},
+    });
+    expect(deepPrompt).toContain(PHASE_7A_DEEP_RESEARCH_INSTRUCTION);
+    expect(standardPrompt).not.toContain(PHASE_7A_DEEP_RESEARCH_INSTRUCTION);
+    expect(deepPrompt).toContain("Deep research, an existing artifact, or an older request is not current-turn artifact intent.");
+    expect(deepPrompt).not.toMatch(/target_minutes|estimated_minutes/);
   });
 
   it("keeps fixtures test-only and streams an injected chat route without leaking raw evidence", async () => {
@@ -756,7 +954,7 @@ describe("Phase 7A chat-first agent", () => {
         : [action({ action: "respond", public_summary: "Answer the follow-up", message: "The recall timing is the strongest follow-up angle.", source_ids: [] })]),
     });
     const sessionId = "session_artifact_revision_route";
-    const first = await route(requestFor({ phase7a: { action: "message", session_id: sessionId, message: `Make the packet from ${suppliedUrl}.` } }));
+    const first = await route(requestFor({ phase7a: { action: "message", session_id: sessionId, message: `Make a Headlines preparation packet from ${suppliedUrl}.` } }));
     const firstStream = await first.text();
     expect(firstStream).toContain('"type":"data-artifact"');
     expect(firstStream.indexOf('"type":"data-source"')).toBeLessThan(firstStream.indexOf('"type":"data-artifact"'));
