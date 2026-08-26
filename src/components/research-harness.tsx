@@ -128,7 +128,8 @@ export function ResearchHarness() {
   const selectedSourceRecord: BrowserSource | null = selectedSource
     ? state.sources[selectedSource.id] ?? selectedReference?.source ?? null
     : null;
-  const headerLabel = latestExchange ? outcomeLabel(latestExchange.run, latestExchange.receipt, latestExchange.activities) : "Ready";
+  const headerLabel = latestExchange ? outcomeLabel(latestExchange.run, latestExchange.receipt, latestExchange.activities, latestExchange.error) : "Ready";
+  const headerState = latestExchange?.run?.state ?? (latestExchange?.error ? "failed" : "idle");
 
   return (
     <AssistantRuntimeProvider runtime={runtime}>
@@ -139,7 +140,7 @@ export function ResearchHarness() {
           <div className="header-controls">
             {latestExchange?.receipt ? <span className="turn-receipt">${latestExchange.receipt.accounted_cost_usd.toFixed(4)} <small>{latestExchange.receipt.counts.provider_requests} req</small></span> : null}
             <button className="new-research" type="button" onClick={newResearch} disabled={running} aria-label="New research"><span className="new-research-icon" aria-hidden="true">+</span><span className="new-research-label">New research</span></button>
-            {running ? <button className="stop-button" type="button" onClick={stop}><Square aria-hidden="true" />Stop</button> : <span className={`status-chip status-chip--${latestExchange?.run?.state ?? "idle"}`}>{headerLabel}</span>}
+            {running ? <button className="stop-button" type="button" onClick={stop}><Square aria-hidden="true" />Stop</button> : <span className={`status-chip status-chip--${headerState}`}>{headerLabel}</span>}
           </div>
         </header>
         <main className="workspace-main">

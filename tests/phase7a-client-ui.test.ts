@@ -202,5 +202,35 @@ describe("Phase 7A chat-native client state", () => {
     expect(outcomeLabel(run("run_partial", "partial"), receipt("run_partial", "partial"), [{ ...activity("run_partial", "read", "Unavailable"), tool: "read_url", status: "unavailable" }])).toBe("Ready · 1 source unavailable");
     expect(outcomeLabel(run("run_failed", "failed"), receipt("run_failed", "failed"), [])).toBe("Failed safely");
     expect(outcomeLabel(run("run_stopped", "stopped"), receipt("run_stopped", "stopped"), [])).toBe("Stopped");
+    expect(outcomeLabel(null, null, [], { code: "phase7a_live_not_authorized", message: "Live research is unavailable.", retryable: false })).toBe("Failed safely");
+  });
+
+  it("does not leave a pre-stream HTTP failure looking like active research", () => {
+    const failedExchange: ResearchExchange = {
+      local_id: "local_failed",
+      run_id: null,
+      user: { id: "user_failed", text: "Research this.", created_at: "2026-08-25T00:00:00Z" },
+      run: null,
+      activities: [],
+      assistant: null,
+      artifact: null,
+      receipt: null,
+      error: { code: "phase7a_live_not_authorized", message: "Live research is unavailable.", retryable: false },
+    };
+    const markup = renderToStaticMarkup(createElement(ConversationThread, {
+      exchanges: [failedExchange],
+      sources: {},
+      draft: "",
+      setDraft: () => undefined,
+      send: () => undefined,
+      running: false,
+      openSource: () => undefined,
+      focusArtifact: () => undefined,
+      copyArtifact: () => undefined,
+      copiedExchangeId: null,
+    }));
+    expect(markup).toContain("Research stopped before completion.");
+    expect(markup).toContain("Live research is unavailable.");
+    expect(markup).not.toContain("Starting research");
   });
 });

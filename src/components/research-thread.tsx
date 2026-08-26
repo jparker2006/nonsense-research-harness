@@ -54,13 +54,14 @@ function ActivityIcon({ status }: { status: Phase7AActivity["status"] }) {
 
 export function AgentWork({ exchange }: { exchange: ResearchExchange }) {
   if (!exchange.run && exchange.activities.length === 0) {
+    if (exchange.error) return null;
     return <div className="agent-pending" role="status"><LoaderCircle className="spin" aria-hidden="true" />Starting research…</div>;
   }
   const current = exchange.activities.at(-1);
   const run = exchange.run;
   const currentStatus: Phase7AActivity["status"] = current?.status ?? (run?.state === "running" ? "running" : run?.state ?? "complete");
   const expanded = run?.state === "running" || run?.state === "failed";
-  const label = outcomeLabel(run, exchange.receipt, exchange.activities);
+  const label = outcomeLabel(run, exchange.receipt, exchange.activities, exchange.error);
   const summary = run?.state === "running"
     ? current?.detail ?? run.summary
     : researchReceiptSummary(exchange.receipt);

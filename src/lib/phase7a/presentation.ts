@@ -1,4 +1,4 @@
-import type { BrowserArtifact, BrowserSource, Phase7AActivity, Phase7AReceipt, Phase7ARun } from "./client.ts";
+import type { BrowserArtifact, BrowserSource, Phase7AActivity, Phase7AError, Phase7AReceipt, Phase7ARun } from "./client.ts";
 
 export type SourceReference = {
   source_id: string;
@@ -122,7 +122,9 @@ export function outcomeLabel(
   run: Phase7ARun | null,
   receipt: Phase7AReceipt | null,
   activities: Phase7AActivity[],
+  error: Phase7AError | null = null,
 ): string {
+  if (error && !run) return "Failed safely";
   if (!run || run.state === "running") return activities.at(-1)?.label ?? "Working";
   if (run.state === "failed") return "Failed safely";
   if (run.state === "stopped") return "Stopped";
