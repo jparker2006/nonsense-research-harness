@@ -17,6 +17,7 @@ export function createPhase7AWorkspace(sessionId: string, now = Date.now()): Pha
   return phase7aWorkspaceSchema.parse({
     session_id: sessionId,
     turns: [],
+    agent_messages: [],
     evidence: [],
     candidates: [],
     transcript_matches: [],

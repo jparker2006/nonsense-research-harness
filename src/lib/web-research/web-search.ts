@@ -1,3 +1,4 @@
+import { z } from "zod";
 import {
   WEB_RESEARCH_LIMITS,
   normalizeWebUrl,
@@ -8,22 +9,12 @@ import {
 import type { WebSearchInput, WebSearchResult, WebSourceReceipt, WebSourceRecord } from "./types.ts";
 
 export const WEB_SEARCH_PROVIDER = Object.freeze({
-  endpoint: "https://openrouter.ai/api/v1/chat/completions",
-  model: "openai/gpt-5.6-luna",
+  endpoint: "https://api.exa.ai/search",
+  model: "direct-exa-search",
   engine: "exa",
-  transport: "web_plugin" as const,
-  reasoningEffort: "max" as const,
-  maxPricePerMillion: Object.freeze({ prompt: 0.2, completion: 1.2 }),
+  transport: "direct_exa" as const,
+  searchType: "auto" as const,
 });
-
-type SearchAnnotation = { url: string; title?: string; content?: string };
-
-type SearchStream = {
-  annotations: SearchAnnotation[];
-  invalidAnnotations: number;
-  receipt: WebSourceReceipt;
-  done: boolean;
-};
 
 class SearchProviderHttpError extends Error {
   readonly status: number;
@@ -34,30 +25,38 @@ class SearchProviderHttpError extends Error {
   }
 }
 
-function objectValue(value: unknown): Record<string, unknown> | undefined {
-  return typeof value === "object" && value !== null ? (value as Record<string, unknown>) : undefined;
-}
+const exaResultSchema = z.object({
+  url: z.string().url().max(WEB_RESEARCH_LIMITS.urlCharacters),
+  title: z.string().max(2_000).nullable().optional(),
+  publishedDate: z.string().max(100).nullable().optional(),
+  author: z.string().max(1_000).nullable().optional(),
+  highlights: z.array(z.string().max(20_000)).max(20).optional(),
+}).passthrough();
 
-function stringValue(value: unknown): string | undefined {
-  return typeof value === "string" ? value : undefined;
-}
-
-function numberValue(value: unknown): number | undefined {
-  return typeof value === "number" && Number.isFinite(value) ? value : undefined;
-}
+const exaResponseSchema = z.object({
+  requestId: z.string().min(1).max(300),
+  searchType: z.string().max(100).optional(),
+  resolvedSearchType: z.string().max(100).optional(),
+  results: z.array(z.unknown()).max(100),
+  costDollars: z.object({ total: z.number().nonnegative().max(100) }).passthrough().optional(),
+  searchTime: z.number().nonnegative().max(3_600_000).optional(),
+}).passthrough();
 
 function validateDomain(value: string): string {
   const trimmed = value.trim().toLowerCase();
   const wildcard = trimmed.startsWith("*.");
-  const host = wildcard ? trimmed.slice(2) : trimmed;
-  if (!host || host.length > 253 || host.includes(":") || host.includes("/") || host.includes("@")) {
+  const hostAndPath = wildcard ? trimmed.slice(2) : trimmed;
+  if (!hostAndPath || hostAndPath.length > 253 || hostAndPath.includes(":") || hostAndPath.includes("@")) {
     throw new Error("Invalid domain filter.");
   }
+  const [host, ...path] = hostAndPath.split("/");
+  if (!host) throw new Error("Invalid domain filter.");
   const normalized = new URL(`http://${host}`).hostname;
   if (normalized !== host || !normalized.includes(".") || normalized.startsWith(".") || normalized.endsWith(".")) {
     throw new Error("Invalid domain filter.");
   }
-  return wildcard ? `*.${normalized}` : normalized;
+  const suffix = path.length ? `/${path.join("/")}` : "";
+  return `${wildcard ? "*." : ""}${normalized}${suffix}`;
 }
 
 export function validateWebSearchInput(input: WebSearchInput) {
@@ -82,153 +81,97 @@ export function validateWebSearchInput(input: WebSearchInput) {
     limit,
     allowed_domains: normalizeDomains(input.allowed_domains),
     excluded_domains: normalizeDomains(input.excluded_domains),
-  };
+    freshness: input.freshness ?? "default",
+  } as const;
 }
 
 export function buildWebSearchRequest(input: ReturnType<typeof validateWebSearchInput>) {
-  const plugin: Record<string, unknown> = {
-    id: "web",
-    engine: WEB_SEARCH_PROVIDER.engine,
-    max_results: input.limit,
-  };
-  if (input.allowed_domains) plugin.include_domains = input.allowed_domains;
-  if (input.excluded_domains) plugin.exclude_domains = input.excluded_domains;
   return {
-    model: WEB_SEARCH_PROVIDER.model,
-    messages: [
-      {
-        role: "user",
-        content: `Search query: ${input.query}\n\nThis is candidate discovery, not synthesis. Return a compact list of up to ${input.limit} useful results; for every result include its title and a one-sentence relevance note with an attached URL citation. Do not answer the broader research question and do not include any uncited result.`,
-      },
-    ],
-    stream: true,
-    max_tokens: WEB_RESEARCH_LIMITS.searchMaxOutputTokens,
-    plugins: [plugin],
-    provider: {
-      allow_fallbacks: false,
-      require_parameters: true,
-      data_collection: "deny",
-      zdr: false,
-      max_price: WEB_SEARCH_PROVIDER.maxPricePerMillion,
+    query: input.query,
+    type: WEB_SEARCH_PROVIDER.searchType,
+    numResults: input.limit,
+    ...(input.allowed_domains ? { includeDomains: input.allowed_domains } : {}),
+    ...(input.excluded_domains ? { excludeDomains: input.excluded_domains } : {}),
+    contents: {
+      highlights: { maxCharacters: WEB_RESEARCH_LIMITS.searchMaxCharactersPerResult },
+      ...(input.freshness === "live" ? { maxAgeHours: 0 } : {}),
     },
-    reasoning: { effort: WEB_SEARCH_PROVIDER.reasoningEffort, exclude: true },
   };
 }
 
-function parseUsage(value: unknown): WebSourceReceipt | undefined {
-  const usage = objectValue(value);
-  if (!usage) return undefined;
-  const toolUse = objectValue(usage.server_tool_use);
-  return {
-    prompt_tokens: numberValue(usage.prompt_tokens) ?? numberValue(usage.input_tokens),
-    completion_tokens: numberValue(usage.completion_tokens) ?? numberValue(usage.output_tokens),
-    total_tokens: numberValue(usage.total_tokens),
-    cost_usd: numberValue(usage.cost),
-    web_search_requests: numberValue(toolUse?.web_search_requests),
-  };
+function failureCode(error: unknown, controller: AbortController, signal?: AbortSignal): string {
+  if (signal?.aborted) return "stopped";
+  if (controller.signal.aborted) return "timeout";
+  if (error instanceof SearchProviderHttpError) {
+    if (error.status === 401 || error.status === 403) return "unauthorized";
+    if (error.status === 429) return "rate_limited";
+    return "provider_http_error";
+  }
+  if (error instanceof z.ZodError || (error instanceof Error && error.message === "malformed_response")) {
+    return "malformed_response";
+  }
+  return "provider_unavailable";
 }
 
-export async function parseWebSearchStream(response: Response): Promise<SearchStream> {
+export async function parseWebSearchResponse(response: Response, retrievedAt = new Date().toISOString()): Promise<{
+  records: WebSourceRecord[];
+  rejected: number;
+  receipt: WebSourceReceipt;
+}> {
   if (!response.ok) throw new SearchProviderHttpError(response.status);
-  if (!response.body) throw new Error("provider_unavailable");
-  const reader = response.body.getReader();
-  const decoder = new TextDecoder();
-  let buffer = "";
-  let eventData: string[] = [];
-  let done = false;
-  let invalidAnnotations = 0;
-  let receipt: WebSourceReceipt = {};
-  const annotations: SearchAnnotation[] = [];
-
-  const consume = () => {
-    if (!eventData.length) return;
-    const payload = eventData.join("\n");
-    eventData = [];
-    if (payload === "[DONE]") {
-      done = true;
-      return;
-    }
-    let parsed: unknown;
-    try {
-      parsed = JSON.parse(payload);
-    } catch {
-      throw new Error("malformed_stream");
-    }
-    const chunk = objectValue(parsed);
-    if (!chunk) throw new Error("malformed_stream");
-    receipt = { ...receipt, ...(parseUsage(chunk.usage) ?? {}) };
-    receipt.provider_model = stringValue(chunk.model) ?? receipt.provider_model;
-    receipt.provider_name = stringValue(chunk.provider) ?? receipt.provider_name;
-    const choices = Array.isArray(chunk.choices) ? chunk.choices : [];
-    for (const rawChoice of choices) {
-      const choice = objectValue(rawChoice);
-      const delta = objectValue(choice?.delta);
-      const rawAnnotations = Array.isArray(delta?.annotations) ? delta.annotations : [];
-      for (const rawAnnotation of rawAnnotations) {
-        const annotation = objectValue(rawAnnotation);
-        const citation = objectValue(annotation?.url_citation);
-        const url = stringValue(citation?.url);
-        if (annotation?.type !== "url_citation" || !url) {
-          invalidAnnotations += 1;
-          continue;
-        }
-        if (!citation) continue;
-        annotations.push({
-          url,
-          title: stringValue(citation.title),
-          content: stringValue(citation.content),
-        });
-      }
-    }
-  };
-
-  const line = (raw: string) => {
-    const value = raw.endsWith("\r") ? raw.slice(0, -1) : raw;
-    if (!value) consume();
-    else if (value.startsWith("data:")) eventData.push(value.slice(5).trimStart());
-  };
-
-  while (true) {
-    const part = await reader.read();
-    if (part.done) break;
-    buffer += decoder.decode(part.value, { stream: true });
-    let newline = buffer.indexOf("\n");
-    while (newline !== -1) {
-      line(buffer.slice(0, newline));
-      buffer = buffer.slice(newline + 1);
-      newline = buffer.indexOf("\n");
-    }
-  }
-  buffer += decoder.decode();
-  if (buffer) line(buffer);
-  consume();
-  return { annotations, invalidAnnotations, receipt, done };
-}
-
-function candidateFromAnnotation(
-  citation: SearchAnnotation,
-  retrievedAt: string,
-  receipt: WebSourceReceipt,
-): WebSourceRecord | null {
+  const raw = await response.text();
+  if (!raw || raw.length > 2 * 1024 * 1024) throw new Error("malformed_response");
+  let json: unknown;
   try {
-    const url = normalizeWebUrl(citation.url);
-    const parsed = new URL(url);
-    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") return null;
-    return {
-      source_id: sourceId(url),
-      source_kind: "search_candidate",
-      availability: "candidate",
-      url,
-      title: truncate(citation.title, WEB_RESEARCH_LIMITS.titleCharacters),
-      excerpt: truncate(citation.content, WEB_RESEARCH_LIMITS.excerptCharacters),
-      retrieved_at: retrievedAt,
-      trust: "untrusted_external_content",
-      evidence_usable: false,
-      receipt,
-    };
+    json = JSON.parse(raw);
   } catch {
-    return null;
+    throw new Error("malformed_response");
   }
+  const parsed = exaResponseSchema.parse(json);
+  const receipt: WebSourceReceipt = {
+    provider_name: "Exa",
+    cost_usd: parsed.costDollars?.total,
+    web_search_requests: 1,
+    web_search_proof: "direct_exa_response",
+    request_id: parsed.requestId,
+    resolved_search_type: parsed.resolvedSearchType ?? parsed.searchType,
+    search_time_ms: parsed.searchTime,
+  };
+  const records: WebSourceRecord[] = [];
+  let rejected = 0;
+  for (const rawResult of parsed.results) {
+    const result = exaResultSchema.safeParse(rawResult);
+    if (!result.success) {
+      rejected += 1;
+      continue;
+    }
+    try {
+      const url = normalizeWebUrl(result.data.url);
+      if (!["http:", "https:"].includes(new URL(url).protocol)) {
+        rejected += 1;
+        continue;
+      }
+      const highlights = result.data.highlights?.join("\n\n") ?? null;
+      const record: WebSourceRecord = {
+        source_id: sourceId(url),
+        source_kind: "search_candidate",
+        availability: "candidate",
+        url,
+        title: truncate(result.data.title, WEB_RESEARCH_LIMITS.titleCharacters),
+        byline: truncate(result.data.author, WEB_RESEARCH_LIMITS.titleCharacters),
+        published_at: truncate(result.data.publishedDate, 100),
+        excerpt: truncate(highlights, WEB_RESEARCH_LIMITS.excerptCharacters),
+        retrieved_at: retrievedAt,
+        trust: "untrusted_external_content",
+        evidence_usable: false,
+        receipt,
+      };
+      if (!records.some((item) => item.url === record.url)) records.push(record);
+    } catch {
+      rejected += 1;
+    }
+  }
+  return { records, rejected, receipt };
 }
 
 export async function webSearch(
@@ -262,7 +205,7 @@ export async function webSearch(
       sources: [],
       retrieved_at: retrievedAt,
       receipt: {},
-      failure: sanitizedFailure("missing_key", "Web search is unavailable because provider access is not configured."),
+      failure: sanitizedFailure("missing_key", "Direct Exa search is not configured."),
     };
   }
   if (!options.liveAuthorized) {
@@ -272,86 +215,43 @@ export async function webSearch(
       sources: [],
       retrieved_at: retrievedAt,
       receipt: {},
-      failure: sanitizedFailure("live_not_authorized", "Web search provider access is not authorized for this runtime."),
+      failure: sanitizedFailure("live_not_authorized", "Direct Exa search is not authorized for this runtime."),
     };
   }
 
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), WEB_RESEARCH_LIMITS.searchTimeoutMs);
-  let observedReceipt: WebSourceReceipt = {};
   try {
     const response = await (options.fetchImpl ?? fetch)(WEB_SEARCH_PROVIDER.endpoint, {
       method: "POST",
       headers: {
-        authorization: `Bearer ${options.apiKey.trim()}`,
         "content-type": "application/json",
+        "x-api-key": options.apiKey.trim(),
       },
       body: JSON.stringify(buildWebSearchRequest(validated)),
       signal: options.signal ? AbortSignal.any([controller.signal, options.signal]) : controller.signal,
     });
-    const stream = await parseWebSearchStream(response);
-    observedReceipt = stream.receipt;
-    if (!stream.done) throw new Error("malformed_stream");
-    if (stream.receipt.provider_model && !stream.receipt.provider_model.startsWith(WEB_SEARCH_PROVIDER.model)) {
-      throw new Error("route_mismatch");
-    }
-    const candidates: WebSourceRecord[] = [];
-    let rejected = stream.invalidAnnotations;
-    for (const annotation of stream.annotations) {
-      const candidate = candidateFromAnnotation(annotation, retrievedAt, stream.receipt);
-      if (!candidate) {
-        rejected += 1;
-        continue;
-      }
-      if (!candidates.some((existing) => existing.url === candidate.url)) candidates.push(candidate);
-    }
-    const sources = candidates.slice(0, validated.limit);
-    if (stream.receipt.web_search_requests !== undefined && stream.receipt.web_search_requests !== 1) {
-      throw new Error("search_not_proven");
-    }
-    if (stream.receipt.web_search_requests === 1) {
-      stream.receipt.web_search_proof = "usage";
-    } else if (sources.length > 0) {
-      stream.receipt.web_search_proof = "citations_and_request_bound";
-    } else {
-      throw new Error("search_not_proven");
-    }
+    const parsed = await parseWebSearchResponse(response, retrievedAt);
+    const sources = parsed.records.slice(0, validated.limit);
     if (!sources.length) {
-      return {
-        status: "no_match",
-        query: validated.query,
-        sources,
-        retrieved_at: retrievedAt,
-        receipt: stream.receipt,
-      };
+      return { status: "no_match", query: validated.query, sources, retrieved_at: retrievedAt, receipt: parsed.receipt };
     }
     return {
-      status: rejected > 0 ? "partial" : "complete",
+      status: parsed.rejected > 0 ? "partial" : "complete",
       query: validated.query,
       sources,
       retrieved_at: retrievedAt,
-      receipt: stream.receipt,
+      receipt: parsed.receipt,
     };
   } catch (error) {
-    const code = options.signal?.aborted
-      ? "stopped"
-      : controller.signal.aborted
-      ? "timeout"
-      : error instanceof SearchProviderHttpError
-        ? "provider_http_error"
-      : error instanceof Error && ["malformed_stream", "search_not_proven", "route_mismatch"].includes(error.message)
-        ? error.message
-        : "provider_unavailable";
+    const code = failureCode(error, controller, options.signal);
     return {
       status: "unavailable",
       query: validated.query,
       sources: [],
       retrieved_at: retrievedAt,
-      receipt:
-        error instanceof SearchProviderHttpError
-          ? { ...observedReceipt, http_status: error.status }
-          : observedReceipt,
-      failure: sanitizedFailure(code, "The bounded web search did not complete with verified citations."),
+      receipt: error instanceof SearchProviderHttpError ? { http_status: error.status } : {},
+      failure: sanitizedFailure(code, "The bounded direct Exa search did not complete."),
     };
   } finally {
     clearTimeout(timeout);

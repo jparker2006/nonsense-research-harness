@@ -10,6 +10,7 @@ import type { Phase5ToolAdapter } from "./workflow.ts";
 
 export function createLivePhase5Tools(options: {
   apiKey?: string;
+  exaApiKey?: string;
   liveAuthorized?: boolean;
   signal?: AbortSignal;
 }): Phase5ToolAdapter {
@@ -22,7 +23,7 @@ export function createLivePhase5Tools(options: {
   const transcripts = new TranscriptRetrievalService({ provider });
   return {
     webSearch(input) {
-      return webSearch(input, { apiKey, liveAuthorized, signal: options.signal });
+      return webSearch(input, { apiKey: options.exaApiKey, liveAuthorized, signal: options.signal });
     },
     readUrl(input) {
       if (!liveAuthorized) {

@@ -778,8 +778,8 @@ describe("Nonsense manager-worker research architecture", () => {
       expect(result.artifact?.mode).toBe(mode);
       const outline = result.artifact?.mode === "headlines" ? result.artifact.flexible_outline : result.artifact?.mode === "big_story" ? result.artifact.modular_outline : [];
       const priorities = outline.map((beat) => beat.priority);
-      expect(priorities).toContain("must_cover");
-      expect(priorities).toContain("cut_first");
+      expect(priorities).toContain("essential");
+      expect(priorities).toContain("optional");
       expect(JSON.stringify(outline)).not.toContain("estimated_minutes");
     }
     const deepManager = queuedManager({ plans: [plan({ artifact_mode: "headlines", tasks: [plannedTask("task_deep_only")] })], answers: [answer(["web_task_deep_only"])] });

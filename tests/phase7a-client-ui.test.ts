@@ -44,7 +44,7 @@ function receipt(runId: string, status: Phase7AReceipt["status"] = "complete"): 
   return {
     run_id: runId,
     status,
-    counts: { controller_turns: 2, provider_requests: 3, grok_turns: 1, web_searches: 1, url_reads: 1, transcript_searches: 1, transcript_opens: 0, compositions: 1, repairs: 0 },
+    counts: { controller_turns: 2, provider_requests: 3, model_requests: 2, exa_search_requests: 1, grok_turns: 1, web_searches: 1, url_reads: 1, transcript_searches: 1, transcript_opens: 0, compositions: 1, artifact_calls: 1, repairs: 0 },
     accounted_cost_usd: 0.0123,
     elapsed_ms: 65_000,
     limitations: [],
@@ -150,7 +150,7 @@ describe("Phase 7A chat-native client state", () => {
     expect(markdown).toContain("## Open checks");
     expect(markdown).toContain("## References");
     expect(markdown).toContain("## Editorial priorities");
-    expect(markdown).toContain("**must cover**");
+    expect(markdown).toContain("**essential**");
     expect(markdown).not.toMatch(/\b(?:estimated|target)?\s*minutes?\b|\([0-9.]+ min\)/i);
     expect(markdown).toContain("— FDA");
     expect(markdown).not.toContain("web_2786293ce491e6089cc4");
@@ -214,7 +214,7 @@ describe("Phase 7A chat-native client state", () => {
     expect(markup).toContain("Research brief");
     expect(markup).toContain("Research cards");
     expect(markup).toContain("Editorial priorities");
-    expect(markup).toContain("must cover");
+    expect(markup).toContain("essential");
     expect(markup).not.toMatch(/[0-9.]+ min|estimated minutes|target minutes/i);
     expect(markup).not.toMatch(/(?:web|archive)_[a-z0-9_]+/);
   });

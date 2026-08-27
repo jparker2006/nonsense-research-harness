@@ -27,6 +27,7 @@ function render(template: string, values: Record<string, string>): string {
 
 export const RESEARCH_SYSTEM_PROMPT = load("SYSTEM.md");
 export const STANDARD_AGENT_PROMPT = load("STANDARD_AGENT.md");
+export const ONE_AGENT_PROMPT = load("ONE_AGENT.md");
 export const RESEARCH_WORKER_TEMPLATE = load("WORKER.md");
 export const RESEARCH_FALLBACK_PROMPT = load("FALLBACK.md");
 const PLAN_TEMPLATE = load("MANAGER_PLAN.md");

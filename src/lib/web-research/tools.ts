@@ -6,7 +6,7 @@ import type { ReadUrlInput, WebSearchInput } from "./types.ts";
 
 export function web_search(input: WebSearchInput) {
   return webSearch(input, {
-    apiKey: process.env.OPENROUTER_API_KEY,
+    apiKey: process.env.EXA_API_KEY,
     liveAuthorized: process.env.PHASE4_EXECUTE_LIVE === "approved",
   });
 }

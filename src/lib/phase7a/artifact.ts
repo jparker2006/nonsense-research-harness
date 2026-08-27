@@ -8,10 +8,9 @@ import {
 } from "../phase5/contracts.ts";
 
 export const editorialPrioritySchema = z.enum([
-  "must_cover",
-  "strong_material",
-  "optional_detail",
-  "cut_first",
+  "essential",
+  "strong",
+  "optional",
 ]);
 
 export const phase7aOutlineBeatSchema = z.object({
@@ -61,8 +60,29 @@ export const phase7aBigStoryArtifactSchema = z.object({
   source_ledger: z.array(artifactSourceSchema).max(24),
 }).strict();
 
-export const phase7aHeadlinesGeneratedArtifactSchema = phase7aHeadlinesArtifactSchema.omit({ source_ledger: true });
-export const phase7aBigStoryGeneratedArtifactSchema = phase7aBigStoryArtifactSchema.omit({ source_ledger: true });
+// The model selects an opened archive source and copies an exact quote. Stable
+// corpus provenance is server-owned; making the model repeat three machine IDs
+// adds no editorial value and creates an avoidable failure mode.
+const generatedArchiveReferenceSchema = archiveReferenceSchema.pick({
+  source_id: true,
+  quote: true,
+});
+
+const generatedArchiveCoverageSchema = z.object({
+  status: z.enum(["matches", "no_relevant_archive_match"]),
+  items: z.array(generatedArchiveReferenceSchema).max(6),
+}).strict();
+
+export const phase7aHeadlinesGeneratedArtifactSchema = phase7aHeadlinesArtifactSchema
+  .omit({ source_ledger: true, past_nonsense_coverage: true })
+  .extend({ past_nonsense_coverage: generatedArchiveCoverageSchema });
+export const phase7aBigStoryGeneratedArtifactSchema = phase7aBigStoryArtifactSchema
+  .omit({ source_ledger: true, past_nonsense_coverage: true })
+  .extend({ past_nonsense_coverage: generatedArchiveCoverageSchema });
+export const phase7aGeneratedArtifactSchema = z.discriminatedUnion("mode", [
+  phase7aHeadlinesGeneratedArtifactSchema,
+  phase7aBigStoryGeneratedArtifactSchema,
+]);
 
 export const phase7aArtifactSchema = z.discriminatedUnion("mode", [
   phase7aHeadlinesArtifactSchema,
@@ -82,9 +102,10 @@ export function phase7aArtifactFromLegacyFixture(value: unknown): unknown {
     if (!item || typeof item !== "object" || Array.isArray(item)) return item;
     const beat = item as Record<string, unknown>;
     let priority: z.infer<typeof editorialPrioritySchema>;
-    if (beat.priority === "must_have") priority = "must_cover";
-    else if (beat.priority === "cut_first") priority = "cut_first";
-    else priority = flexibleIndex++ === 0 ? "strong_material" : "optional_detail";
+    if (beat.priority === "must_have" || beat.priority === "must_cover") priority = "essential";
+    else if (beat.priority === "strong_material") priority = "strong";
+    else if (beat.priority === "cut_first") priority = "optional";
+    else priority = flexibleIndex++ === 0 ? "strong" : "optional";
     const { estimated_minutes: _estimatedMinutes, ...withoutTiming } = beat;
     void _estimatedMinutes;
     return { ...withoutTiming, priority };
@@ -112,9 +133,33 @@ function referencedSourceIds(value: unknown, ids = new Set<string>()): Set<strin
 
 export function hydratePhase7AArtifactSourceLedger(value: unknown, evidence: EvidenceSource[]): unknown {
   if (!value || typeof value !== "object" || Array.isArray(value)) return value;
-  const referenced = referencedSourceIds(value);
+  const artifact = value as Record<string, unknown>;
+  const archive = artifact.past_nonsense_coverage;
+  const hydratedArchive = archive && typeof archive === "object" && !Array.isArray(archive)
+    ? {
+        ...(archive as Record<string, unknown>),
+        items: Array.isArray((archive as Record<string, unknown>).items)
+          ? ((archive as Record<string, unknown>).items as unknown[]).map((item) => {
+              if (!item || typeof item !== "object" || Array.isArray(item)) return item;
+              const reference = item as Record<string, unknown>;
+              const source = typeof reference.source_id === "string"
+                ? evidence.find((candidate) => candidate.source_id === reference.source_id && candidate.source_type === "archive")
+                : undefined;
+              if (!source) return item;
+              return {
+                ...reference,
+                episode_id: source.episode_id,
+                segment_id: source.segment_id,
+                chunk_id: source.chunk_id,
+              };
+            })
+          : (archive as Record<string, unknown>).items,
+      }
+    : archive;
+  const hydrated = { ...artifact, past_nonsense_coverage: hydratedArchive };
+  const referenced = referencedSourceIds(hydrated);
   return {
-    ...(value as Record<string, unknown>),
+    ...hydrated,
     source_ledger: evidence
       .filter((source) => referenced.has(source.source_id))
       .map((source) => artifactSourceSchema.parse(source)),
@@ -224,8 +269,9 @@ export function validatePhase7AArtifact(
       else if (!source.evidence_usable) errors.push(`outline:unusable_source:${sourceId}`);
     }
   }
-  if (!outline.some((beat) => beat.priority === "must_cover")) errors.push("priority:missing_must_cover");
-  if (!outline.some((beat) => beat.priority === "cut_first")) errors.push("priority:missing_cut_first");
+  if (!outline.some((beat) => beat.priority === "essential")) errors.push("priority:missing_essential");
+  if (!outline.some((beat) => beat.priority === "strong")) errors.push("priority:missing_strong");
+  if (!outline.some((beat) => beat.priority === "optional")) errors.push("priority:missing_optional");
 
   const archive = artifact.past_nonsense_coverage;
   if (archive.status === "matches" && archive.items.length === 0) errors.push("archive:matches_requires_item");

@@ -24,7 +24,10 @@ export type WebSourceReceipt = {
   total_tokens?: number;
   cost_usd?: number;
   web_search_requests?: number;
-  web_search_proof?: "usage" | "citations_and_request_bound";
+  web_search_proof?: "usage" | "citations_and_request_bound" | "direct_exa_response";
+  request_id?: string;
+  resolved_search_type?: string;
+  search_time_ms?: number;
 };
 
 export type WebSourceRecord = {
@@ -52,6 +55,7 @@ export type WebSearchInput = {
   limit?: number;
   allowed_domains?: string[];
   excluded_domains?: string[];
+  freshness?: "default" | "live";
 };
 
 export type WebSearchStatus = "complete" | "partial" | "no_match" | "unavailable";

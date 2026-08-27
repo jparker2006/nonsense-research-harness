@@ -609,7 +609,7 @@ describe("Phase 7A chat-first agent", () => {
     const report = JSON.parse(await readFile(resolve(root, "reports/phase-7a-live.json"), "utf8")) as { cases: Array<{ artifact: { artifact: unknown } }> };
     const active = phase7aArtifactSchema.parse(phase7aArtifactFromLegacyFixture(report.cases[0]!.artifact.artifact));
     const beats = active.mode === "headlines" ? active.flexible_outline : active.modular_outline;
-    expect(new Set(beats.map((beat) => beat.priority))).toEqual(new Set(["must_cover", "strong_material", "optional_detail", "cut_first"]));
+    expect(new Set(beats.map((beat) => beat.priority))).toEqual(new Set(["essential", "strong", "optional"]));
     expect(JSON.stringify(active)).not.toMatch(/target_minutes|estimated_minutes/);
     expect(() => phase7aArtifactSchema.parse({ ...active, target_minutes: 8 })).toThrow();
     const [firstBeat, ...remainingBeats] = beats;

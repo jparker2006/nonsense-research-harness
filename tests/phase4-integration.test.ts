@@ -9,24 +9,12 @@ import { webSearch } from "../src/lib/web-research/web-search.ts";
 const root = process.cwd();
 
 function streamResponse(): Response {
-  const chunk = {
-    model: "openai/gpt-5.6-luna",
-    provider: "OpenAI",
-    choices: [
-      {
-        delta: {
-          annotations: [
-            {
-              type: "url_citation",
-              url_citation: { url: "https://example.com/story#result", title: "Story" },
-            },
-          ],
-        },
-      },
-    ],
-    usage: { cost: 0.005, server_tool_use: { web_search_requests: 1 } },
-  };
-  return new Response(`data: ${JSON.stringify(chunk)}\n\ndata: [DONE]\n\n`);
+  return Response.json({
+    requestId: "exa-integration",
+    resolvedSearchType: "neural",
+    results: [{ url: "https://example.com/story#result", title: "Story", highlights: [] }],
+    costDollars: { total: 0.007 },
+  });
 }
 
 async function sha256(path: string) {

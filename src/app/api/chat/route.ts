@@ -2,12 +2,7 @@ import { randomUUID } from "node:crypto";
 import { createUIMessageStream, createUIMessageStreamResponse } from "ai";
 import { ZodError } from "zod";
 import { createLivePhase5Tools } from "@/lib/phase5/live-tools";
-import { createOpenRouterPhase5Model } from "@/lib/phase5/model";
 import type { Phase7AAgentDependencies } from "@/lib/phase7a/agent";
-import {
-  phase7aBigStoryGeneratedArtifactSchema,
-  phase7aHeadlinesGeneratedArtifactSchema,
-} from "@/lib/phase7a/artifact";
 import {
   PHASE_7A_LIMITS,
   parsePhase7AEnvelope,
@@ -19,18 +14,20 @@ import {
   type Phase7AUIMessage,
 } from "@/lib/phase7a/contracts";
 import { phase7aLocalLiveAuthorized } from "@/lib/phase7a/model";
-import { PHASE_7A_ARTIFACT_PROCEDURES, phase7aArtifactInstructions } from "@/lib/phase7a/prompts";
 import { createPhase7AWorkspace, getPhase7AWorkspace, putPhase7AWorkspace } from "@/lib/phase7a/session-store";
 import { runPhase7AWorkflow } from "@/lib/phase7a/workflow";
-import { RESEARCH_AGENT_LIMITS } from "@/lib/research-agent/contracts";
-import { createOpenRouterManager, createOpenRouterResearchModel } from "@/lib/research-agent/model";
-import { requestedArtifactMode, runResearchTurn, type ResearchRuntimeDependencies } from "@/lib/research-agent/runtime";
+import { createOpenRouterResearchModel } from "@/lib/research-agent/model";
+import {
+  ONE_AGENT_LIMITS,
+  requestedOneAgentArtifactMode,
+  runOneAgentResearchTurn,
+  type OneAgentRuntimeDependencies,
+} from "@/lib/research-agent/one-agent";
+import { runResearchTurn, type ResearchRuntimeDependencies } from "@/lib/research-agent/runtime";
 import {
   runStandardResearchTurn,
-  STANDARD_RESEARCH_LIMITS,
   type StandardRuntimeDependencies,
 } from "@/lib/research-agent/standard";
-import { createOpenRouterResearchWorker } from "@/lib/research-agent/worker";
 import { PHASE_5_MODELS } from "@/lib/phase5/contracts";
 
 export const runtime = "nodejs";
@@ -101,67 +98,44 @@ function safeDevelopmentDiagnostic(error: unknown) {
   return { kind: "unknown" };
 }
 
-type ChatRuntimeDependencies = Phase7AAgentDependencies | ResearchRuntimeDependencies | StandardRuntimeDependencies;
+type ChatRuntimeDependencies =
+  | OneAgentRuntimeDependencies
+  | Phase7AAgentDependencies
+  | ResearchRuntimeDependencies
+  | StandardRuntimeDependencies;
 
 function liveDependencies(
   signal: AbortSignal,
   depth: "standard" | "deep" = "standard",
-  explicitBrief = false,
-): ResearchRuntimeDependencies | StandardRuntimeDependencies {
+): OneAgentRuntimeDependencies {
   const apiKey = process.env.OPENROUTER_API_KEY?.trim() ?? "";
   if (!apiKey) throw new Error("phase7a_missing_key");
   if (!phase7aLocalLiveAuthorized()) throw new Error("phase7a_live_not_authorized");
-  const policy = depth === "standard" && !explicitBrief
-    ? { ceilingUsd: STANDARD_RESEARCH_LIMITS.ceilingCostUsd }
-    : RESEARCH_AGENT_LIMITS.budgets[depth];
-  const configuredCostCap = Number(process.env.RESEARCH_TURN_COST_CAP_USD ?? process.env.PHASE7A_TURN_COST_CAP_USD ?? policy.ceilingUsd);
+  const policy = ONE_AGENT_LIMITS[depth];
+  const configuredCostCap = Number(process.env.RESEARCH_TURN_COST_CAP_USD ?? process.env.PHASE7A_TURN_COST_CAP_USD ?? policy.ceilingCostUsd);
   const costCapUsd = Number.isFinite(configuredCostCap) && configuredCostCap > 0
-    ? Math.min(policy.ceilingUsd, configuredCostCap)
-    : policy.ceilingUsd;
-  const maximumRequests = depth === "standard" && !explicitBrief
-    ? STANDARD_RESEARCH_LIMITS.maxProviderRequests
-    : RESEARCH_AGENT_LIMITS.maxProviderRequests;
-  const configuredRequestCap = Number(process.env.RESEARCH_TURN_REQUEST_CAP ?? process.env.PHASE7A_TURN_REQUEST_CAP ?? maximumRequests);
+    ? Math.min(policy.ceilingCostUsd, configuredCostCap)
+    : policy.ceilingCostUsd;
+  const configuredRequestCap = Number(process.env.RESEARCH_TURN_REQUEST_CAP ?? process.env.PHASE7A_TURN_REQUEST_CAP ?? policy.maxProviderRequests);
   const providerRequestCap = Number.isFinite(configuredRequestCap) && configuredRequestCap > 0
-    ? Math.min(maximumRequests, Math.floor(configuredRequestCap))
-    : maximumRequests;
-  const deadlineSignal = AbortSignal.timeout(depth === "standard" && !explicitBrief
-    ? STANDARD_RESEARCH_LIMITS.hardDeadlineMs
-    : RESEARCH_AGENT_LIMITS.maxElapsedMs[depth]);
+    ? Math.min(policy.maxProviderRequests, Math.floor(configuredRequestCap))
+    : policy.maxProviderRequests;
+  const deadlineSignal = AbortSignal.timeout(policy.hardDeadlineMs);
   const boundedSignal = AbortSignal.any([signal, deadlineSignal]);
-  const tools = createLivePhase5Tools({ apiKey, liveAuthorized: true, signal: boundedSignal });
-  if (depth === "standard" && !explicitBrief) {
-    const model = PHASE_5_MODELS.light;
-    const provider = createOpenRouterResearchModel(apiKey, model);
-    return {
-      standardModel: provider.chat(model.id, {
-        extraBody: { reasoning: { effort: model.reasoningEffort, exclude: true } },
-        usage: { include: true },
-      }),
-      modelId: model.id,
-      tools,
-      signal: boundedSignal,
-      costCapUsd,
-      providerRequestCap,
-    };
-  }
+  const model = PHASE_5_MODELS.light;
+  const provider = createOpenRouterResearchModel(apiKey, model);
   return {
-    manager: createOpenRouterManager({ apiKey }),
-    fallbackManager: createOpenRouterManager({ apiKey, fallback: true }),
-    worker: createOpenRouterResearchWorker({ apiKey }),
-    composer: createOpenRouterPhase5Model({
-      apiKey,
-      liveAuthorized: true,
-      phase7aLive: true,
-      artifactContext: PHASE_7A_ARTIFACT_PROCEDURES,
-      artifactSchemas: {
-        headlines: phase7aHeadlinesGeneratedArtifactSchema,
-        big_story: phase7aBigStoryGeneratedArtifactSchema,
-      },
-      artifactInstructions: phase7aArtifactInstructions,
-      artifactSchemaNamePrefix: "phase7a_v2",
+    model: provider.chat(model.id, {
+      extraBody: { reasoning: { effort: model.reasoningEffort, exclude: true } },
+      usage: { include: true },
     }),
-    tools,
+    modelId: model.id,
+    tools: createLivePhase5Tools({
+      apiKey,
+      exaApiKey: process.env.EXA_API_KEY?.trim(),
+      liveAuthorized: true,
+      signal: boundedSignal,
+    }),
     signal: boundedSignal,
     costCapUsd,
     providerRequestCap,
@@ -215,7 +189,8 @@ export function createPhase7AChatRoute(options: {
           });
           const workspace = getPhase7AWorkspace(parsed.session_id) ?? createPhase7AWorkspace(parsed.session_id);
           const startingArtifactRevision = workspace.artifact_revision;
-          const explicitBrief = requestedArtifactMode(parsed.message, workspace.artifact) !== null;
+          const artifactMode = requestedOneAgentArtifactMode(parsed.message, workspace.artifact);
+          const explicitBrief = artifactMode !== null;
           const base = dependencyFactory(request.signal, parsed.research_depth, explicitBrief);
           const shared = {
             signal: base.signal ?? request.signal,
@@ -244,19 +219,34 @@ export function createPhase7AChatRoute(options: {
                     base.onCheckpoint?.(checkpoint);
                   },
                 })
-              : await runResearchTurn({
-                workspace,
-                message: parsed.message,
-                researchDepth: parsed.research_depth,
-                runId,
-              }, {
-                ...base,
-                ...shared,
-                onCheckpoint: (checkpoint) => {
-                  putPhase7AWorkspace(checkpoint);
-                  base.onCheckpoint?.(checkpoint);
-                },
-              });
+              : "manager" in base
+                ? await runResearchTurn({
+                    workspace,
+                    message: parsed.message,
+                    researchDepth: parsed.research_depth,
+                    runId,
+                  }, {
+                    ...base,
+                    ...shared,
+                    onCheckpoint: (checkpoint) => {
+                      putPhase7AWorkspace(checkpoint);
+                      base.onCheckpoint?.(checkpoint);
+                    },
+                  })
+                : await runOneAgentResearchTurn({
+                    workspace,
+                    message: parsed.message,
+                    researchDepth: parsed.research_depth,
+                    artifactMode,
+                    runId,
+                  }, {
+                    ...base,
+                    ...shared,
+                    onCheckpoint: (checkpoint) => {
+                      putPhase7AWorkspace(checkpoint);
+                      base.onCheckpoint?.(checkpoint);
+                    },
+                  });
           putPhase7AWorkspace(result.workspace);
           for (const source of result.workspace.evidence) {
             writer.write({
@@ -283,6 +273,12 @@ export function createPhase7AChatRoute(options: {
               status: result.status,
               counts: result.counts,
               accounted_cost_usd: result.accounted_cost_usd,
+              costs: {
+                luna_usd: Number(result.usage.filter((item) => item.action.startsWith("one_agent:luna:")).reduce((sum, item) => sum + item.accounted_cost_usd, 0).toFixed(8)),
+                exa_usd: Number(result.usage.filter((item) => item.action.startsWith("one_agent:exa:")).reduce((sum, item) => sum + item.accounted_cost_usd, 0).toFixed(8)),
+                retrieval_usd: Number(result.usage.filter((item) => item.action.startsWith("one_agent:transcript_search:")).reduce((sum, item) => sum + item.accounted_cost_usd, 0).toFixed(8)),
+                combined_usd: result.accounted_cost_usd,
+              },
               elapsed_ms: result.elapsed_ms,
               limitations: result.limitations,
               artifact_revision: result.artifact_revision,

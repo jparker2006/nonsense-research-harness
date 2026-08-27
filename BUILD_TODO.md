@@ -1,6 +1,6 @@
 # Nonsense Research Harness — Build TODO
 
-Status: Earlier phase gates remain historical evidence. **Standard Research v2 is the current ordinary-chat runtime and PASSED on 2026-08-26.** Normal chat now uses one GPT-5.6 Luna Max loop with concurrent OpenRouter Exa discovery, safe/partial source opening, optional exact archive retrieval, compact time-reserved synthesis, and validated clickable citations. Explicit Headlines/Big Story briefs still use their validated Grok path; Deep Research still uses the manager/worker graph. Persistence, auth, deployment, and a history sidebar remain deferred. See `docs/STANDARD_RESEARCH_V2_RESULT.md`.
+Status: Earlier phase gates remain historical evidence. The **one-agent simplification is complete: its watched three-turn browser proof and full 258-test repository gate passed.** `docs/ONE_AGENT_RESEARCH_SPEC.md` and private issue `#2` are the build authority, and `docs/ONE_AGENT_RESEARCH_RESULT.md` is the current evidence record. Comparative model evaluation, model replacement, persistence, knowledge-base work, broad UI work, Episode Research Spaces, and Topic Watches remain later work.
 
 ## Intended v0 outcome
 
@@ -23,8 +23,8 @@ The product prepares conversation material. It does not choose the final stories
 - Phase 6 streams the real bounded Phase 5 workflow through the browser workbench. Its corrected live Headlines proof completed with a validated artifact using five of six provider requests, zero retries, and `$0.05391264` of its `$0.50` cap. The interface and Big Story path also pass deterministic fixtures; no deployed persistence exists yet.
 - Phase 7A replaces the form/fixture default with a live-only chat route, a typed observe-decide-act loop, genuine follow-ups, in-memory evidence reuse, and optional artifact creation. Deterministic fixtures are test injection only; missing provider authorization is explicitly unavailable.
 - Phase 7A.1 keeps that architecture but makes it sturdier and easier to inspect: the controller carries a bounded public research notebook, code can read up to three already-authorized web or archive targets concurrently, and the workspace retains up to eight sanitized run traces. The UI is now one light research workspace with inline activity, chat/artifact views, and a source drawer instead of permanent side rails.
-- Conversation—not a packet—is the primary product. Ordinary Standard now uses the Luna-only runtime recorded in `docs/STANDARD_RESEARCH_V2_RESULT.md`; explicit briefs and Deep Research retain their separately validated paths.
-- Active Standard instructions are in `prompts/research-agent/STANDARD_AGENT.md`; Deep/manager and brief prompts remain readable Markdown under `prompts/research-agent/` and `prompts/phase7a/`. Code still owns permissions, tools, schemas, citations, budgets, and validation.
+- Conversation—not a packet—is the primary product. Ordinary Standard, explicit Deep Research, and explicitly requested briefs now use the same GPT-5.6 Luna Max `ToolLoopAgent`; Research Depth changes ceilings only.
+- `prompts/research-agent/ONE_AGENT.md` is the sole active production prompt. Direct Exa discovery, safe URL reading, exact S3-S4 archive retrieval, citation validation, session ownership, budgets, and artifact authorization remain code-owned.
 
 ## Standard Research v2 — PASSED
 
@@ -47,6 +47,69 @@ The product prepares conversation material. It does not choose the final stories
 - [x] Ordinary Standard no longer uses the manager/worker graph.
 - [x] The final commit must be the exact passing local commit reported in the handoff.
 
+## One-agent simplification — DETERMINISTIC PASS / LIVE PROOF PENDING
+
+Implementation authority: `docs/ONE_AGENT_RESEARCH_SPEC.md` and private GitHub issue [#2](https://github.com/jparker2006/nonsense-research-harness/issues/2), labeled `ready-for-agent`.
+
+### Approved next-spec scope
+
+- [x] Replace the split Standard, Deep manager/worker, and Grok brief paths with one continuous model-tool-result loop and one model.
+- [x] Keep Standard and Deep as Research Depth budgets for the same agent, not separate architectures.
+- [x] Let the same agent create or revise a Working Artifact only after an explicit brief or outline request.
+- [x] Preserve the complete continuing tool-call context through the natural final answer; remove the forced clean-context synthesis reset.
+- [x] Replace the deprecated model-mediated Exa plugin with a hosted or direct search transport that does not create isolated nested model sessions.
+- [x] Keep the initial catalog limited to web search, safe URL reading, Season 3–4 archive search/opening, and explicit artifact creation/update.
+- [x] Keep deterministic code authority for security, cost/time ceilings, exact archive provenance, citation validation, availability states, workspace storage, and artifact schema integrity.
+- [x] Rewrite the permanent system prompt as a short, outcome-first product contract; load Headlines or Big Story guidance only when requested.
+- [x] Use this frozen identity: “You are the Nonsense Research Agent for CJ Little and Jeff Parker (cohosts of the Nonsense podcast): a rigorous, conversational research partner that finds the Central Story, investigates it with tools, and explains it naturally with exact citations.”
+- [x] Let the agent make supported judgments about the Central Story rather than acting as a neutral source librarian; clearly distinguish fact, inference, dispute, and uncertainty.
+- [x] Answer naturally: lead with the conclusion, use short readable paragraphs, cite material factual claims in place, avoid a default packet or source dump, and offer only a genuinely useful follow-up.
+- [x] Let the model decide whether and how broadly to browse. It should browse for current, supplied, private-archive, contested, legal, numerical, or otherwise verifiable claims and stop when the central question and material gaps are supported—not after a fixed search quota.
+- [x] Treat primary sources as a strong practical preference, use reputable reporting for context and reaction, and surface meaningful conflicts rather than silently choosing one account.
+- [x] Let the model decide whether Past Nonsense Coverage is relevant; normally check it for substantive show research and skip it for product/meta requests or clearly irrelevant questions.
+- [x] Give the agent this completion test: “Can I now answer the user’s central question accurately, concisely, and with Trusted Sources for every material factual claim? If yes, answer. If not, identify the most important remaining gap and take the smallest useful next Research Action.”
+- [x] Keep tool-specific instructions in tool descriptions and load artifact procedures only when an artifact is explicitly requested.
+- [x] Use direct Exa search for discovery in this pass because the hosted Luna route has already failed; keep OpenRouter as the model gateway and do not retain the deprecated plugin as a silent fallback.
+- [x] Return artifact validation failures to the same agent for one forced bounded repair; allow at most two same-context answer-submission recoveries for empty/invalid typed output, with no critic, fallback model, or research retry.
+- [x] If direct Exa is unavailable, continue with supplied links, already-opened evidence, and the archive; return the strongest supported partial answer, name the limitation, and never silently invoke the deprecated search plugin.
+- [x] Treat search candidates as discovery rather than evidence. Open and inspect a page before it becomes a Trusted Source; exclude claims whose only support is an unreadable search snippet.
+- [x] Support agent-chosen parallelism inside the same loop: `search_web` accepts independent query batches and `read_urls` accepts URL batches, while every result returns to the same Luna context.
+- [x] Keep Standard ceilings at six search queries, sixty candidates, twelve opened webpages, four concurrent reads, twelve Luna turns, roughly ninety seconds, and $0.50; these are maxima, never quotas.
+- [x] Keep Deep ceilings at eighteen search queries, thirty opened webpages, twenty-four Luna turns, roughly six minutes, and $2.00 while aiming below $1.00; Deep begins only when explicitly selected, shows a compact plan, and proceeds automatically.
+- [x] Require a server-only `EXA_API_KEY` that never enters prompts, client streams, source records, traces, or Git; a missing key returns typed `web_search_unavailable` while other tools remain usable.
+- [x] Replace minute-by-minute artifact timing with editorial priority (`essential`, `strong`, `optional`) and a nonbinding suggested order.
+- [x] On a second citation-validation failure, omit unsupported claims and return only validated material with an explicit limitation; never expose the invalid draft.
+- [x] Use Vercel AI SDK `ToolLoopAgent` as the sole active agent loop. Mastra may remain temporarily for compatibility but must not plan, route, review, or compose the agent's work.
+- [x] Before durable persistence, retain prior user and assistant messages, validated source records, tool results, and the current artifact for the same browser session in server memory; a server restart honestly clears that state.
+- [x] Give the same agent one deterministic `create_or_update_artifact` tool; do not invoke a separate artifact agent, Grok call, or synthesis path.
+
+### Explicitly outside the next spec
+
+- [x] No model bakeoff, comparative Claude/ChatGPT/Gemini evaluation, or model replacement occurred; Luna remains provisional until the later blind evaluation.
+- [x] No persistence, Nonsense Knowledge Base, Episode Research Space, Topic Watch, background work, auth, deployment, push, or broad UI redesign occurred.
+- [x] No new research tools, subagents, planner, critic, composer, fallback model, or deterministic research sequence were added.
+
+### Hardened specification and implementation gates
+
+- [x] Freeze the short system prompt's role, success criteria, evidence rules, tone, autonomy, output, and stop behavior.
+- [x] Freeze the approved prompt text in `prompts/research-agent/ONE_AGENT.md`; the earlier draft is preserved as activated design authority.
+- [x] Choose direct Exa as the web-search transport without retaining the deprecated plugin as a silent fallback.
+- [x] Define direct Exa's typed unavailable/partial behavior and confirm the required server-only `EXA_API_KEY` boundary.
+- [x] Freeze Standard and Deep safety ceilings as ceilings rather than quotas: Standard aims for 45–90 seconds and under $0.25 with a $0.50 safety ceiling; Deep aims below $1.00 with a $2.00 safety ceiling.
+- [x] Define deterministic tests and one bounded live smoke proof for continuous state, direct search, citations, archive access, explicit artifacts, and natural completion.
+- [x] Freeze the exact removal/supersession map: remove the current Standard forced-synthesis reset, Deep manager/worker routing, Grok brief routing, and deprecated OpenRouter Exa plugin from production execution while retaining historical result documents and useful deterministic fixtures as superseded evidence.
+- [x] Define honest terminal behavior when time, cost, search, reading, archive, or validation limits are reached.
+- [x] Prove one three-turn browser conversation after deterministic gates: current-web question, archive-relevant follow-up in the same context, and explicit priority-based brief creation.
+- [x] Cap that single three-turn live proof at `$1.00` combined OpenRouter and Exa spend with no automatic whole-run retry; the passing proof cost `$0.1149` and used one bounded artifact repair.
+- [x] Preserve Standard Research v2 as historical evidence while documenting any superseded paths honestly.
+
+### One-agent specification gate — STOP
+
+- [x] The complete implementation-ready specification is written and published to the private issue tracker with `ready-for-agent`.
+- [x] Jake approved the hardened specification and launched a bounded implementation goal before implementation began.
+- [x] No comparative model evaluation occurred in this pass.
+- [x] Implementation began only from the separately approved measurable goal, not from the planning section alone.
+
 ## Phase rules
 
 - Complete only one phase at a time.
@@ -65,11 +128,11 @@ The application/runtime stack passed Phase 1. The pinned provider/model boundary
 
 - Application: Next.js and TypeScript
 - Agent UI: `assistant-ui`, adapted from the maintained Mastra UI examples
-- Agent/workflow runtime: Mastra
+- Agent/workflow runtime: Vercel AI SDK `ToolLoopAgent`; Mastra remains historical compatibility code only
 - Model gateway: OpenRouter
-- Models: GPT-5.6 Luna/max owns ordinary Standard research; Grok 4.6/medium remains limited to explicit preparation briefs and the existing Deep manager/composer path
-- Model tools: concurrent OpenRouter Exa discovery plus safe URL reading and local transcript search/opening
-- Deployed persistence: remote libSQL/Turso
+- Model: one GPT-5.6 Luna/max through OpenRouter for Standard, Deep, and explicit artifacts
+- Agent tools: direct Exa discovery, safe URL reading, local transcript search/opening, and explicit artifact creation/update
+- Current persistence: bounded process-local session workspace; deployed persistence is deferred
 - Deployment target: one Vercel application
 - Development observability: Mastra traces/Studio or equivalent local traces
 

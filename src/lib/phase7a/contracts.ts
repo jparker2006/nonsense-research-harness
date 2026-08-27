@@ -22,11 +22,11 @@ export const PHASE_7A_LIMITS = Object.freeze({
   maxCompositions: 1,
   maxRepairs: 1,
   maxEvidenceSources: 64,
-  maxCandidates: 60,
+  maxCandidates: 120,
   maxTranscriptMatches: 18,
   maxConversationTurns: 24,
   maxActivityEvents: 240,
-  maxBatchTargets: 3,
+  maxBatchTargets: 4,
   maxNotebookCompletedSteps: 12,
   maxNotebookEvidenceGaps: 8,
   maxRunTraces: 8,
@@ -209,6 +209,8 @@ export const phase7aCandidateSchema = z.object({
   url: z.string().url(),
   title: z.string().max(300).nullable(),
   excerpt: z.string().max(1_200).nullable(),
+  byline: z.string().max(300).nullable().optional(),
+  published_at: z.string().max(100).nullable().optional(),
   query: z.string().max(300),
 });
 
@@ -226,6 +228,8 @@ export const phase7aTranscriptMatchSchema = z.object({
 export const phase7aCountsSchema = z.object({
   controller_turns: z.number().int().nonnegative(),
   provider_requests: z.number().int().nonnegative(),
+  model_requests: z.number().int().nonnegative().default(0),
+  exa_search_requests: z.number().int().nonnegative().default(0),
   grok_turns: z.number().int().nonnegative(),
   web_searches: z.number().int().nonnegative(),
   web_candidates: z.number().int().nonnegative().optional(),
@@ -233,6 +237,7 @@ export const phase7aCountsSchema = z.object({
   transcript_searches: z.number().int().nonnegative(),
   transcript_opens: z.number().int().nonnegative(),
   compositions: z.number().int().nonnegative(),
+  artifact_calls: z.number().int().nonnegative().default(0),
   repairs: z.number().int().nonnegative(),
 });
 
@@ -298,11 +303,12 @@ export const phase7aRunTraceSchema = z.object({
 export const phase7aWorkspaceSchema = z.object({
   session_id: z.string().min(8).max(PHASE_7A_LIMITS.maxSessionIdCharacters),
   turns: z.array(phase7aConversationTurnSchema).max(PHASE_7A_LIMITS.maxConversationTurns),
+  agent_messages: z.array(z.record(z.string(), z.unknown())).max(64).default([]),
   evidence: z.array(evidenceSourceSchema).max(PHASE_7A_LIMITS.maxEvidenceSources),
   candidates: z.array(phase7aCandidateSchema).max(PHASE_7A_LIMITS.maxCandidates),
   transcript_matches: z.array(phase7aTranscriptMatchSchema).max(PHASE_7A_LIMITS.maxTranscriptMatches),
-  web_queries: z.array(z.string().max(300)).max(12),
-  archive_queries: z.array(z.string().max(500)).max(8),
+  web_queries: z.array(z.string().max(300)).max(24),
+  archive_queries: z.array(z.string().max(500)).max(16),
   research_state: phase7aResearchStateSchema.nullable(),
   run_traces: z.array(phase7aRunTraceSchema).max(PHASE_7A_LIMITS.maxRunTraces),
   artifact: phase7aPreparationArtifactSchema.nullable(),
@@ -343,6 +349,12 @@ export const phase7aReceiptSchema = z.object({
   status: z.enum(["complete", "partial", "stopped", "failed"]),
   counts: phase7aCountsSchema,
   accounted_cost_usd: z.number().min(0).max(PHASE_7A_LIMITS.costCapUsd),
+  costs: z.object({
+    luna_usd: z.number().min(0).max(PHASE_7A_LIMITS.costCapUsd),
+    exa_usd: z.number().min(0).max(PHASE_7A_LIMITS.costCapUsd),
+    retrieval_usd: z.number().min(0).max(PHASE_7A_LIMITS.costCapUsd),
+    combined_usd: z.number().min(0).max(PHASE_7A_LIMITS.costCapUsd),
+  }).strict().optional(),
   elapsed_ms: z.number().nonnegative(),
   limitations: z.array(z.string().max(240)).max(20),
   artifact_revision: z.number().int().nonnegative(),
