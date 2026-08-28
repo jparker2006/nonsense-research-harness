@@ -29,11 +29,12 @@ export type SafeHttpResponse = {
 
 export type SafeFetchExecutor = (url: URL, signal: AbortSignal) => Promise<SafeHttpResponse>;
 
-type ReadUrlDependencies = {
+export type ReadUrlDependencies = {
   resolver?: DnsResolver;
   fetchExecutor?: SafeFetchExecutor;
   now?: () => Date;
   signal?: AbortSignal;
+  sleep?: (milliseconds: number) => Promise<void>;
 };
 
 function responseContentType(response: SafeHttpResponse): string | null {
@@ -112,7 +113,7 @@ function createLiveExecutor(pinned: PinnedAddressStore) {
   return { execute, close: () => dispatcher.close() };
 }
 
-export async function readUrl(
+async function readUrlOnce(
   input: ReadUrlInput,
   dependencies: ReadUrlDependencies = {},
 ): Promise<WebSourceRecord> {
@@ -152,7 +153,7 @@ export async function readUrl(
       pinned.set(parsed.hostname.toLowerCase(), answers);
 
       httpRequests += 1;
-      if (dependencies.signal?.aborted) throw new Error("phase5_run_stopped");
+      if (dependencies.signal?.aborted) throw new Error("research_run_stopped");
       const response = await execute(
         parsed,
         dependencies.signal ? AbortSignal.any([controller.signal, dependencies.signal]) : controller.signal,
@@ -238,7 +239,7 @@ export async function readUrl(
       typeof error === "object" && error !== null && "code" in error
         ? String((error as { code?: unknown }).code ?? "")
         : "";
-    if (dependencies.signal?.aborted) throw new Error("phase5_run_stopped");
+    if (dependencies.signal?.aborted) throw new Error("research_run_stopped");
     const timedOut =
       controller.signal.aborted ||
       ["UND_ERR_CONNECT_TIMEOUT", "UND_ERR_HEADERS_TIMEOUT", "UND_ERR_BODY_TIMEOUT"].includes(errorCode) ||
@@ -263,4 +264,33 @@ export async function readUrl(
     clearTimeout(timeout);
     await live?.close();
   }
+}
+
+function retryableRead(record: WebSourceRecord): boolean {
+  if (record.evidence_usable || record.availability !== "unavailable") return false;
+  const code = record.failure?.code;
+  if (code === "timeout" || code === "network_failure") return true;
+  const status = record.receipt.http_status;
+  return code === "http_unavailable" && (status === 429 || (typeof status === "number" && status >= 500));
+}
+
+export async function readUrl(
+  input: ReadUrlInput,
+  dependencies: ReadUrlDependencies = {},
+): Promise<WebSourceRecord> {
+  const first = await readUrlOnce(input, dependencies);
+  if (!retryableRead(first) || dependencies.signal?.aborted) {
+    return { ...first, receipt: { ...first.receipt, attempts: 1 } };
+  }
+  const sleep = dependencies.sleep ?? ((milliseconds: number) => new Promise<void>((resolve) => setTimeout(resolve, milliseconds)));
+  await sleep(WEB_RESEARCH_LIMITS.transientRetryDelayMs);
+  const second = await readUrlOnce(input, dependencies);
+  return {
+    ...second,
+    receipt: {
+      ...second.receipt,
+      attempts: 2,
+      http_requests: (first.receipt.http_requests ?? 0) + (second.receipt.http_requests ?? 0),
+    },
+  };
 }

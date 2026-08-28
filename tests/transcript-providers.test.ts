@@ -1,26 +1,30 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   embedTexts,
-  PHASE_3_PROVIDER_LIMITS,
+  TRANSCRIPT_PROVIDER_LIMITS,
   rerankDocuments,
 } from "../src/lib/transcript-retrieval/providers";
+import { createOpenRouterTranscriptProvider } from "../src/lib/transcript-retrieval/search";
 
-afterEach(() => vi.unstubAllEnvs());
+afterEach(() => {
+  vi.unstubAllEnvs();
+  vi.unstubAllGlobals();
+});
 
-describe("Phase 3 OpenRouter embedding and rerank boundary", () => {
+describe("Transcript retrieval OpenRouter embedding and rerank boundary", () => {
   it("fails before fetch without explicit live authority", async () => {
     const fetchSpy = vi.fn<typeof fetch>();
     await expect(embedTexts("test-key", ["synthetic"], fetchSpy)).rejects.toThrow(
-      "PHASE3_EXECUTE_LIVE=approved",
+      "TRANSCRIPT_RETRIEVAL_LIVE=approved",
     );
     expect(fetchSpy).not.toHaveBeenCalled();
   });
 
   it("pins the Azure ZDR embedding request and validates its vector", async () => {
-    vi.stubEnv("PHASE3_EXECUTE_LIVE", "approved");
+    vi.stubEnv("TRANSCRIPT_RETRIEVAL_LIVE", "approved");
     const fetchSpy = vi.fn<typeof fetch>().mockResolvedValue(new Response(JSON.stringify({
       id: "embed-1",
-      model: PHASE_3_PROVIDER_LIMITS.embedding.model,
+      model: TRANSCRIPT_PROVIDER_LIMITS.embedding.model,
       provider: "Azure",
       data: [{ index: 0, embedding: [0.25, 0.75] }],
       usage: { prompt_tokens: 4, total_tokens: 4, cost: 0.00000008 },
@@ -44,12 +48,12 @@ describe("Phase 3 OpenRouter embedding and rerank boundary", () => {
     expect(String(call?.[1]?.headers)).not.toContain("test-key");
   });
 
-  it("authorizes Phase 7A transcript providers only in explicitly enabled local development", async () => {
+  it("authorizes transcript providers only in explicitly enabled local development", async () => {
     vi.stubEnv("NODE_ENV", "development");
-    vi.stubEnv("PHASE7A_LOCAL_LIVE", "approved");
+    vi.stubEnv("RESEARCH_LOCAL_LIVE", "approved");
     const fetchSpy = vi.fn<typeof fetch>().mockResolvedValue(new Response(JSON.stringify({
-      id: "embed-phase7a",
-      model: PHASE_3_PROVIDER_LIMITS.embedding.model,
+      id: "embed-local-research",
+      model: TRANSCRIPT_PROVIDER_LIMITS.embedding.model,
       provider: "Azure",
       data: [{ index: 0, embedding: [0.5, 0.5] }],
       usage: { total_tokens: 2, cost: 0.00000004 },
@@ -68,7 +72,7 @@ describe("Phase 3 OpenRouter embedding and rerank boundary", () => {
   });
 
   it("accepts only the exact requested model or its provider-native alias", async () => {
-    vi.stubEnv("PHASE3_EXECUTE_LIVE", "approved");
+    vi.stubEnv("TRANSCRIPT_RETRIEVAL_LIVE", "approved");
     const fetchSpy = vi.fn<typeof fetch>().mockResolvedValue(new Response(JSON.stringify({
       id: "embed-alias",
       model: "text-embedding-3-small",
@@ -81,11 +85,11 @@ describe("Phase 3 OpenRouter embedding and rerank boundary", () => {
   });
 
   it("pins the Fireworks ZDR reranker and never returns raw HTTP errors", async () => {
-    vi.stubEnv("PHASE3_EXECUTE_LIVE", "approved");
+    vi.stubEnv("TRANSCRIPT_RETRIEVAL_LIVE", "approved");
     const fetchSpy = vi.fn<typeof fetch>()
       .mockResolvedValueOnce(new Response(JSON.stringify({
         id: "rerank-1",
-        model: PHASE_3_PROVIDER_LIMITS.rerank.model,
+        model: TRANSCRIPT_PROVIDER_LIMITS.rerank.model,
         provider: "Fireworks",
         results: [{ index: 1, relevance_score: 0.9 }, { index: 0, relevance_score: 0.2 }],
         usage: { total_tokens: 12, cost: 0.0000024 },
@@ -110,7 +114,7 @@ describe("Phase 3 OpenRouter embedding and rerank boundary", () => {
   });
 
   it("rejects over-limit inputs without calling the provider", async () => {
-    vi.stubEnv("PHASE3_EXECUTE_LIVE", "approved");
+    vi.stubEnv("TRANSCRIPT_RETRIEVAL_LIVE", "approved");
     const fetchSpy = vi.fn<typeof fetch>();
     await expect(embedTexts("test-key", Array.from({ length: 65 }, () => "x"), fetchSpy)).rejects.toThrow(
       "between 1 and 64",
@@ -119,5 +123,41 @@ describe("Phase 3 OpenRouter embedding and rerank boundary", () => {
       "between 1 and 20",
     );
     expect(fetchSpy).not.toHaveBeenCalled();
+  });
+
+  it("retries one transient embedding failure in the archive provider boundary", async () => {
+    vi.stubEnv("NODE_ENV", "development");
+    vi.stubEnv("RESEARCH_LOCAL_LIVE", "approved");
+    const receipts: Array<{ requests?: number }> = [];
+    const fetchSpy = vi.fn<typeof fetch>()
+      .mockResolvedValueOnce(new Response("temporary outage", { status: 503 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({
+        id: "embed-recovered",
+        model: TRANSCRIPT_PROVIDER_LIMITS.embedding.model,
+        provider: "Azure",
+        data: [{ index: 0, embedding: [0.2, 0.8] }],
+        usage: { total_tokens: 2, cost: 0.00000004 },
+      }), { status: 200 }));
+    vi.stubGlobal("fetch", fetchSpy);
+
+    const provider = createOpenRouterTranscriptProvider("test-key", (receipt) => receipts.push(receipt));
+    await expect(provider.embedQuery("Disneyland history")).resolves.toEqual([0.2, 0.8]);
+    expect(fetchSpy).toHaveBeenCalledTimes(2);
+    expect(receipts).toEqual([expect.objectContaining({ requests: 2 })]);
+  });
+
+  it("does not retry a deterministic reranker rejection", async () => {
+    vi.stubEnv("NODE_ENV", "development");
+    vi.stubEnv("RESEARCH_LOCAL_LIVE", "approved");
+    const receipts: Array<{ requests?: number }> = [];
+    const fetchSpy = vi.fn<typeof fetch>().mockResolvedValue(
+      new Response("not authorized", { status: 401 }),
+    );
+    vi.stubGlobal("fetch", fetchSpy);
+
+    const provider = createOpenRouterTranscriptProvider("test-key", (receipt) => receipts.push(receipt));
+    await expect(provider.rerank("Disneyland", ["A passage"])).rejects.toThrow("HTTP 401");
+    expect(fetchSpy).toHaveBeenCalledOnce();
+    expect(receipts).toEqual([expect.objectContaining({ requests: 1 })]);
   });
 });

@@ -31,14 +31,11 @@ describe("bounded direct Exa search", () => {
     const validated = validateWebSearchInput({
       query: " current food rules ",
       limit: 3,
-      allowed_domains: ["fda.gov", "*.hhs.gov/news"],
-      freshness: "live",
     });
     expect(buildWebSearchRequest(validated)).toEqual({
       query: "current food rules",
       type: "auto",
       numResults: 3,
-      includeDomains: ["fda.gov", "*.hhs.gov/news"],
       contents: { highlights: { maxCharacters: 1_200 }, maxAgeHours: 0 },
     });
     expect(WEB_SEARCH_PROVIDER).toMatchObject({
@@ -49,20 +46,17 @@ describe("bounded direct Exa search", () => {
     expect(WEB_RESEARCH_LIMITS.searchTimeoutMs).toBe(20_000);
   });
 
-  it("rejects invalid queries, limits, domains, duplicates, and mixed filters before fetch", async () => {
+  it("rejects only invalid queries and limits before fetch", async () => {
     const invalid = [
       { query: "a" },
       { query: "x".repeat(301) },
       { query: "valid", limit: 0 },
       { query: "valid", limit: 11 },
-      { query: "valid", allowed_domains: ["https://example.com"] },
-      { query: "valid", allowed_domains: ["example.com", "example.com"] },
-      { query: "valid", allowed_domains: ["example.com"], excluded_domains: ["other.com"] },
     ];
     const fetchSpy = vi.fn<typeof fetch>();
     for (const input of invalid) {
       await expect(webSearch(input, { apiKey: "synthetic", liveAuthorized: true, fetchImpl: fetchSpy }))
-        .resolves.toMatchObject({ status: "unavailable", failure: { code: "invalid_input" } });
+        .resolves.toMatchObject({ status: "failed", failure: { code: "invalid_input" } });
     }
     expect(fetchSpy).not.toHaveBeenCalled();
   });
@@ -121,7 +115,7 @@ describe("bounded direct Exa search", () => {
         }),
       },
     );
-    expect(result.status).toBe("partial");
+    expect(result.status).toBe("limited");
     expect(result.sources).toHaveLength(1);
     expect(result.sources[0]).toMatchObject({ url: "https://example.com/a", evidence_usable: false });
   });
@@ -137,21 +131,36 @@ describe("bounded direct Exa search", () => {
     });
   });
 
+  it("retries one transient provider failure and reports both attempts", async () => {
+    const fetchSpy = vi.fn<typeof fetch>()
+      .mockResolvedValueOnce(new Response("temporary", { status: 503 }))
+      .mockResolvedValueOnce(exaResponse());
+    const result = await webSearch(
+      { query: "current food rules" },
+      { apiKey: "synthetic", liveAuthorized: true, fetchImpl: fetchSpy, sleep: async () => undefined },
+    );
+    expect(result).toMatchObject({ status: "complete", receipt: { attempts: 2, web_search_requests: 2 } });
+    expect(fetchSpy).toHaveBeenCalledTimes(2);
+  });
+
   it.each([
-    [401, "unauthorized"],
-    [403, "unauthorized"],
-    [429, "rate_limited"],
-    [500, "provider_http_error"],
-  ])("classifies HTTP %i without leaking its body", async (status, code) => {
+    [401, "unauthorized", 1],
+    [403, "unauthorized", 1],
+    [429, "rate_limited", 2],
+    [500, "provider_http_error", 2],
+  ])("classifies HTTP %i without leaking its body", async (status, code, attempts) => {
+    const fetchSpy = vi.fn<typeof fetch>(async () => new Response("SECRET provider body", { status }));
     const result = await webSearch(
       { query: "provider failure" },
       {
         apiKey: "synthetic",
         liveAuthorized: true,
-        fetchImpl: async () => new Response("SECRET provider body", { status }),
+        fetchImpl: fetchSpy,
+        sleep: async () => undefined,
       },
     );
-    expect(result).toMatchObject({ status: "unavailable", receipt: { http_status: status }, failure: { code } });
+    expect(result).toMatchObject({ status: "unavailable", receipt: { http_status: status, attempts }, failure: { code } });
+    expect(fetchSpy).toHaveBeenCalledTimes(attempts);
     expect(JSON.stringify(result)).not.toContain("SECRET");
   });
 
@@ -175,7 +184,7 @@ describe("bounded direct Exa search", () => {
     expect(fetchSpy).not.toHaveBeenCalled();
   });
 
-  it("returns timeout without retrying", async () => {
+  it("retries one timeout and then returns unavailable", async () => {
     vi.useFakeTimers();
     try {
       const fetchSpy = vi.fn<typeof fetch>((_url, init) => new Promise((_resolve, reject) => {
@@ -183,11 +192,12 @@ describe("bounded direct Exa search", () => {
       }));
       const pending = webSearch(
         { query: "slow direct Exa" },
-        { apiKey: "synthetic", liveAuthorized: true, fetchImpl: fetchSpy },
+        { apiKey: "synthetic", liveAuthorized: true, fetchImpl: fetchSpy, sleep: async () => undefined },
       );
       await vi.advanceTimersByTimeAsync(WEB_RESEARCH_LIMITS.searchTimeoutMs + 1);
+      await vi.advanceTimersByTimeAsync(WEB_RESEARCH_LIMITS.searchTimeoutMs + 1);
       await expect(pending).resolves.toMatchObject({ failure: { code: "timeout" } });
-      expect(fetchSpy).toHaveBeenCalledTimes(1);
+      expect(fetchSpy).toHaveBeenCalledTimes(2);
     } finally {
       vi.useRealTimers();
     }

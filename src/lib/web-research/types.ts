@@ -28,6 +28,7 @@ export type WebSourceReceipt = {
   request_id?: string;
   resolved_search_type?: string;
   search_time_ms?: number;
+  attempts?: number;
 };
 
 export type WebSourceRecord = {
@@ -53,12 +54,9 @@ export type WebSourceRecord = {
 export type WebSearchInput = {
   query: string;
   limit?: number;
-  allowed_domains?: string[];
-  excluded_domains?: string[];
-  freshness?: "default" | "live";
 };
 
-export type WebSearchStatus = "complete" | "partial" | "no_match" | "unavailable";
+export type WebSearchStatus = "complete" | "limited" | "no_match" | "unavailable" | "failed";
 
 export type WebSearchResult = {
   status: WebSearchStatus;

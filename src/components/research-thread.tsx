@@ -13,9 +13,9 @@ import {
   X,
 } from "lucide-react";
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
-import type { BrowserArtifact, BrowserSource, Phase7AResearchDepth } from "@/lib/phase7a/client";
-import type { ResearchExchange } from "@/lib/phase7a/client-state";
-import { exchangeCreatedArtifact } from "@/lib/phase7a/client-state";
+import type { BrowserArtifact, BrowserSource, ResearchDepth } from "@/lib/research/client";
+import type { ResearchExchange } from "@/lib/research/client-state";
+import { exchangeCreatedArtifact } from "@/lib/research/client-state";
 import {
   buildSourceReferences,
   groupObservableWork,
@@ -27,7 +27,7 @@ import {
   researchReceiptSummary,
   sourcePublisher,
   type SourceReference,
-} from "@/lib/phase7a/presentation";
+} from "@/lib/research/presentation";
 
 export const RESEARCH_STARTERS = [
   "Research this headline from the links I paste and tell me what is actually interesting.",
@@ -210,9 +210,9 @@ export function ConversationThread({ exchanges, sources, draft, setDraft, resear
   sources: Record<string, BrowserSource>;
   draft: string;
   setDraft: (value: string) => void;
-  researchDepth: Phase7AResearchDepth;
-  setResearchDepth: (value: Phase7AResearchDepth) => void;
-  send: (message: string, researchDepth: Phase7AResearchDepth) => void;
+  researchDepth: ResearchDepth;
+  setResearchDepth: (value: ResearchDepth) => void;
+  send: (message: string, researchDepth: ResearchDepth) => void;
   running: boolean;
   openSource: (id: string, references: SourceReference[]) => void;
   focusArtifact: (localId: string) => void;

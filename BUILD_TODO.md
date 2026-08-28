@@ -1,10 +1,10 @@
 # Nonsense Research Harness — Build TODO
 
-Status: Earlier phase gates remain historical evidence. The **one-agent simplification is complete: its watched three-turn browser proof and full 258-test repository gate passed.** `docs/ONE_AGENT_RESEARCH_SPEC.md` and private issue `#2` are the build authority, and `docs/ONE_AGENT_RESEARCH_RESULT.md` is the current evidence record. Comparative model evaluation, model replacement, persistence, knowledge-base work, broad UI work, Episode Research Spaces, and Topic Watches remain later work.
+Status: Earlier phase gates remain historical evidence. The three-stage **Reliability → Cleanup → Persistence build is complete and verified**: one canonical Luna agent runtime, truthful tool fallbacks, durable Neon Research Threads, and the minimal history sidebar all passed deterministic, real-Neon, restart, watched-browser, security, and production-build gates. Evidence is in `docs/RELIABLE_DURABLE_RESEARCH_THREADS_RESULT.md`. Comparative model evaluation, model replacement, authentication, deployment, knowledge-base work, Episode Research Spaces, and Topic Watches remain later work.
 
 ## Intended v0 outcome
 
-CJ or Jeff can open a private web application and talk naturally with one agent about a topic, links, rough notes, current reporting, or earlier Nonsense coverage. The agent researches when useful, shows compact observable work without exposing private chain-of-thought, retains evidence for follow-ups in the current process, and returns concise cited answers. It creates a Headlines or Big Story preparation brief only when explicitly asked.
+CJ or Jeff can open a private web application and talk naturally with one agent about a topic, links, rough notes, current reporting, or earlier Nonsense coverage. The agent researches when useful, shows compact observable work without exposing private chain-of-thought, saves Research Threads for follow-ups across application restarts, and returns concise cited answers. It creates a Headlines or Big Story preparation brief only when explicitly asked.
 
 The product prepares conversation material. It does not choose the final stories, imitate either host, invent dialogue, or automate away CJ and Jeff's deliberation.
 
@@ -23,8 +23,21 @@ The product prepares conversation material. It does not choose the final stories
 - Phase 6 streams the real bounded Phase 5 workflow through the browser workbench. Its corrected live Headlines proof completed with a validated artifact using five of six provider requests, zero retries, and `$0.05391264` of its `$0.50` cap. The interface and Big Story path also pass deterministic fixtures; no deployed persistence exists yet.
 - Phase 7A replaces the form/fixture default with a live-only chat route, a typed observe-decide-act loop, genuine follow-ups, in-memory evidence reuse, and optional artifact creation. Deterministic fixtures are test injection only; missing provider authorization is explicitly unavailable.
 - Phase 7A.1 keeps that architecture but makes it sturdier and easier to inspect: the controller carries a bounded public research notebook, code can read up to three already-authorized web or archive targets concurrently, and the workspace retains up to eight sanitized run traces. The UI is now one light research workspace with inline activity, chat/artifact views, and a source drawer instead of permanent side rails.
-- Conversation—not a packet—is the primary product. Ordinary Standard, explicit Deep Research, and explicitly requested briefs now use the same GPT-5.6 Luna Max `ToolLoopAgent`; Research Depth changes ceilings only.
-- `prompts/research-agent/ONE_AGENT.md` is the sole active production prompt. Direct Exa discovery, safe URL reading, exact S3-S4 archive retrieval, citation validation, session ownership, budgets, and artifact authorization remain code-owned.
+- Conversation—not a packet—is the primary product. Ordinary Standard, explicit Deep Research, and explicitly requested briefs use the same GPT-5.6 Luna Max `ToolLoopAgent`; Research Depth changes ceilings only.
+- `prompts/NONSENSE_RESEARCH_AGENT.md` is the sole active production prompt. Direct Exa discovery, safe URL reading, exact S3-S4 archive retrieval, citation validation, budgets, and artifact authorization remain code-owned.
+- `src/lib/research/*` is the one active research runtime. Durable product state flows through one server-only `ThreadStore`, with Neon as the configured durable implementation and a clearly labeled process-local fallback.
+
+## Reliable, understandable, durable research — COMPLETE
+
+Build authority: `docs/RELIABLE_DURABLE_RESEARCH_THREADS_SPEC.md` and private GitHub issue [#3](https://github.com/jparker2006/nonsense-research-harness/issues/3).
+
+- [x] Stage 1 — Reliability: fix canonical tool contracts, bounded transient retry, truthful Tool Outcomes, parallel hybrid archive fallback, always-available artifact choice, and direct structured-answer validation.
+- [x] Pass the approved five-part Reliability proof gate before changing runtime structure.
+- [x] Stage 2 — Cleanup: remove superseded executable architectures and leave one neutral, understandable Luna agent runtime with one active prompt and tool catalog.
+- [x] Re-run the complete Reliability gate and architecture/dependency audit before adding persistence.
+- [x] Stage 3 — Persistence: add one-table Neon Research Threads through a thin `ThreadStore`, restart-safe product-level context, and the minimal New Research/recent/open/delete sidebar.
+- [x] Pass deterministic storage/security/UI tests, a real Neon restart proof, the watched browser proof, the complete repository gate, and exact corpus-hash verification.
+- [x] Do not implement authentication, deploy, add a Knowledge Base, add Topic Watches, add Episode Research Spaces, change models, add tools, or add subagents in this build.
 
 ## Standard Research v2 — PASSED
 
@@ -581,12 +594,9 @@ The approved architecture, implementation evidence, watched browser runs, and ho
 - [x] The final tree passes supply-chain review, lint, typecheck, all tests, and production build at a clean local commit.
 - [x] No push or deployment occurred.
 
-## Phase 7B — Durable private workspaces — NOT STARTED
+## Earlier Phase 7B placeholder — SUPERSEDED BY ISSUE #3
 
-- [ ] Decide whether persistence/auth is worth building only after Phase 8 usefulness testing.
-- [ ] If approved, freeze a narrow serverless store adapter, shared access control, retention/deletion, idempotency, one-thread lease, reload/replay, and Vercel constraints.
-- [ ] Obtain separate approval before installing a storage dependency, creating hosted infrastructure, writing remote data, or deploying.
-- [ ] Do not add subagents, background jobs, multiplayer editing, or broader tools as a persistence workaround.
+The persistence decision has now been approved as the third gate of the Reliability → Cleanup → Persistence specification. Authentication, deployment, background jobs, multiplayer editing, and broader tools remain outside that build.
 
 ## Phase 8 — Evaluate usefulness before deployment
 
@@ -659,4 +669,4 @@ Do not pull these into a phase unless the usefulness evaluation identifies a con
 
 ## First next action
 
-Have Jake visually accept the Phase 7A.5 answer formatting and observable-work treatment when he returns to the laptop. If accepted, freeze the smallest Phase 8 usefulness comparison before adding persistence or deployment. Compare the Phase 7A harness against plain Gemini/Grok on identical inputs; do not make comparison calls or deploy automatically.
+Run the user-owned blind Phase 8 usefulness comparison against answers generated separately in Claude, without calling Opus through an API. Treat a tie on general research plus a clear win on Nonsense archive context and continuing durable work as the initial product bar; do not deploy until that bar is demonstrated.

@@ -62,7 +62,7 @@ const provider: TranscriptProvider = {
   },
 };
 
-describe("Phase 3 server-side transcript retrieval service", () => {
+describe("Transcript retrieval server-side transcript retrieval service", () => {
   it("opens an exact stored chunk and returns typed not_found", () => {
     const service = new TranscriptRetrievalService({ artifacts: syntheticArtifacts() });
     expect(service.openTranscriptChunk("alpha:c001")).toMatchObject({

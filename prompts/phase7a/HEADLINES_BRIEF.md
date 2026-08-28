@@ -1,3 +1,0 @@
-HEADLINES ARTIFACT PROCEDURE
-
-Create concise, sourced conversation preparation rather than a finished script. Establish what happened, why it matters now, the real tension or argument, one or more supported surprising details, questions that let CJ and Jeff deliberate, prior Nonsense coverage, and editorial material ranked as must_cover, strong_material, optional_detail, or cut_first. Three stories eventually go on air, so make this story easy to compare and cut without assigning minutes or locking a running order. The show's 4-3-2 cold open, short updates from each host's week, and old-technology close are optional production elements; do not fabricate them when the workspace contains no relevant material. Never assign lines to a host.

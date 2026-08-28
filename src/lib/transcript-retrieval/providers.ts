@@ -1,4 +1,4 @@
-export const PHASE_3_PROVIDER_LIMITS = Object.freeze({
+export const TRANSCRIPT_PROVIDER_LIMITS = Object.freeze({
   embedding: Object.freeze({
     endpoint: "https://openrouter.ai/api/v1/embeddings",
     model: "openai/text-embedding-3-small",
@@ -42,6 +42,7 @@ export type ProviderReceipt = {
   usage: ProviderUsage;
   reportedCostUsd?: number;
   calculatedCostUsd: number;
+  requests?: number;
 };
 
 export type EmbeddingBatchResult = {
@@ -59,17 +60,17 @@ export type RerankBatchResult = {
   receipt: ProviderReceipt;
 };
 
-export class Phase3ProviderError extends Error {
+export class TranscriptProviderError extends Error {
   readonly kind: "configuration" | "policy" | "http" | "response" | "timeout";
   readonly status?: number;
 
   constructor(
-    kind: Phase3ProviderError["kind"],
+    kind: TranscriptProviderError["kind"],
     message: string,
     status?: number,
   ) {
     super(message);
-    this.name = "Phase3ProviderError";
+    this.name = "TranscriptProviderError";
     this.kind = kind;
     this.status = status;
   }
@@ -112,19 +113,17 @@ function providerPolicy(provider: string, promptPrice: number): ProviderPolicy {
 
 function assertLiveAuthority(apiKey: string) {
   if (!apiKey.trim()) {
-    throw new Phase3ProviderError("configuration", "OPENROUTER_API_KEY is missing. No request was sent.");
+    throw new TranscriptProviderError("configuration", "OPENROUTER_API_KEY is missing. No request was sent.");
   }
-  const phase7aLocalAuthorized = process.env.NODE_ENV !== "production" &&
-    process.env.PHASE7A_LOCAL_LIVE === "approved";
+  const localResearchAuthorized = process.env.NODE_ENV !== "production" &&
+    process.env.RESEARCH_LOCAL_LIVE === "approved";
   if (
-    process.env.PHASE3_EXECUTE_LIVE !== "approved" &&
-    process.env.PHASE5_EXECUTE_LIVE !== "approved" &&
-    process.env.PHASE6_EXECUTE_LIVE !== "approved" &&
-    !phase7aLocalAuthorized
+    process.env.TRANSCRIPT_RETRIEVAL_LIVE !== "approved" &&
+    !localResearchAuthorized
   ) {
-    throw new Phase3ProviderError(
+    throw new TranscriptProviderError(
       "policy",
-      "Explicit live authority is required: PHASE3_EXECUTE_LIVE=approved, PHASE5_EXECUTE_LIVE=approved, PHASE6_EXECUTE_LIVE=approved, or local non-production PHASE7A_LOCAL_LIVE=approved. No request was sent.",
+      "Explicit live authority is required through TRANSCRIPT_RETRIEVAL_LIVE=approved or local non-production RESEARCH_LOCAL_LIVE=approved. No request was sent.",
     );
   }
 }
@@ -145,16 +144,16 @@ async function requestJson(
       headers: {
         Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json",
-        "X-Title": "Nonsense Research Harness Phase 3",
+        "X-Title": "Nonsense Research Harness Transcript retrieval",
       },
       body: JSON.stringify(body),
       signal: signal
-        ? AbortSignal.any([signal, AbortSignal.timeout(PHASE_3_PROVIDER_LIMITS.requestTimeoutMs)])
-        : AbortSignal.timeout(PHASE_3_PROVIDER_LIMITS.requestTimeoutMs),
+        ? AbortSignal.any([signal, AbortSignal.timeout(TRANSCRIPT_PROVIDER_LIMITS.requestTimeoutMs)])
+        : AbortSignal.timeout(TRANSCRIPT_PROVIDER_LIMITS.requestTimeoutMs),
     });
   } catch (error) {
     const timeout = error instanceof Error && error.name === "TimeoutError";
-    throw new Phase3ProviderError(
+    throw new TranscriptProviderError(
       timeout ? "timeout" : "http",
       timeout ? "OpenRouter request timed out." : "OpenRouter request could not be completed.",
     );
@@ -162,14 +161,14 @@ async function requestJson(
   const latencyMs = performance.now() - startedAt;
   if (!response.ok) {
     await response.text();
-    throw new Phase3ProviderError(
+    throw new TranscriptProviderError(
       "http",
       `OpenRouter request failed with HTTP ${response.status}.`,
       response.status,
     );
   }
   const payload = objectValue(await response.json());
-  if (!payload) throw new Phase3ProviderError("response", "OpenRouter returned an invalid JSON object.");
+  if (!payload) throw new TranscriptProviderError("response", "OpenRouter returned an invalid JSON object.");
   return { payload, latencyMs };
 }
 
@@ -188,7 +187,7 @@ function makeReceipt(
     (providerNativeModel !== undefined && model.endsWith(`/${providerNativeModel}`))
   );
   if (!model || !acceptedModel) {
-    throw new Phase3ProviderError("response", "OpenRouter returned an unexpected model identifier.");
+    throw new TranscriptProviderError("response", "OpenRouter returned an unexpected model identifier.");
   }
   const usage = parseUsage(payload.usage);
   const billableTokens = usage.total_tokens ?? usage.prompt_tokens ?? 0;
@@ -209,16 +208,16 @@ export async function embedTexts(
   fetchImplementation: typeof fetch = fetch,
   signal?: AbortSignal,
 ): Promise<EmbeddingBatchResult> {
-  if (inputs.length < 1 || inputs.length > PHASE_3_PROVIDER_LIMITS.embedding.maxInputs) {
-    throw new Phase3ProviderError(
+  if (inputs.length < 1 || inputs.length > TRANSCRIPT_PROVIDER_LIMITS.embedding.maxInputs) {
+    throw new TranscriptProviderError(
       "configuration",
-      `Embedding input count must be between 1 and ${PHASE_3_PROVIDER_LIMITS.embedding.maxInputs}.`,
+      `Embedding input count must be between 1 and ${TRANSCRIPT_PROVIDER_LIMITS.embedding.maxInputs}.`,
     );
   }
   if (inputs.some((input) => !input.trim())) {
-    throw new Phase3ProviderError("configuration", "Embedding inputs must be non-empty.");
+    throw new TranscriptProviderError("configuration", "Embedding inputs must be non-empty.");
   }
-  const config = PHASE_3_PROVIDER_LIMITS.embedding;
+  const config = TRANSCRIPT_PROVIDER_LIMITS.embedding;
   const { payload, latencyMs } = await requestJson(
     config.endpoint,
     apiKey,
@@ -233,7 +232,7 @@ export async function embedTexts(
   );
   const data = Array.isArray(payload.data) ? payload.data : [];
   if (data.length !== inputs.length) {
-    throw new Phase3ProviderError("response", "Embedding response count did not match the request.");
+    throw new TranscriptProviderError("response", "Embedding response count did not match the request.");
   }
   const vectors = data
     .map((raw) => objectValue(raw))
@@ -241,13 +240,13 @@ export async function embedTexts(
     .map((item) => {
       const embedding = Array.isArray(item?.embedding) ? item.embedding : [];
       if (embedding.length === 0 || !embedding.every((value) => numberValue(value) !== undefined)) {
-        throw new Phase3ProviderError("response", "Embedding response contained an invalid vector.");
+        throw new TranscriptProviderError("response", "Embedding response contained an invalid vector.");
       }
       return embedding as number[];
     });
   const dimensions = vectors[0]?.length ?? 0;
   if (vectors.some((vector) => vector.length !== dimensions)) {
-    throw new Phase3ProviderError("response", "Embedding vector dimensions were inconsistent.");
+    throw new TranscriptProviderError("response", "Embedding vector dimensions were inconsistent.");
   }
   return {
     vectors,
@@ -263,16 +262,16 @@ export async function rerankDocuments(
   fetchImplementation: typeof fetch = fetch,
   signal?: AbortSignal,
 ): Promise<RerankBatchResult> {
-  const config = PHASE_3_PROVIDER_LIMITS.rerank;
-  if (!query.trim()) throw new Phase3ProviderError("configuration", "Rerank query must be non-empty.");
+  const config = TRANSCRIPT_PROVIDER_LIMITS.rerank;
+  if (!query.trim()) throw new TranscriptProviderError("configuration", "Rerank query must be non-empty.");
   if (documents.length < 1 || documents.length > config.maxDocuments) {
-    throw new Phase3ProviderError(
+    throw new TranscriptProviderError(
       "configuration",
       `Rerank document count must be between 1 and ${config.maxDocuments}.`,
     );
   }
   if (!Number.isInteger(topN) || topN < 1 || topN > documents.length) {
-    throw new Phase3ProviderError("configuration", "Rerank topN is invalid.");
+    throw new TranscriptProviderError("configuration", "Rerank topN is invalid.");
   }
   const { payload, latencyMs } = await requestJson(
     config.endpoint,
@@ -293,14 +292,14 @@ export async function rerankDocuments(
     const index = numberValue(item?.index);
     const relevanceScore = numberValue(item?.relevance_score);
     if (!Number.isInteger(index) || index === undefined || index < 0 || index >= documents.length) {
-      throw new Phase3ProviderError("response", "Rerank response contained an invalid document index.");
+      throw new TranscriptProviderError("response", "Rerank response contained an invalid document index.");
     }
     if (relevanceScore === undefined) {
-      throw new Phase3ProviderError("response", "Rerank response contained an invalid relevance score.");
+      throw new TranscriptProviderError("response", "Rerank response contained an invalid relevance score.");
     }
     return { index, relevanceScore };
   });
-  if (results.length === 0) throw new Phase3ProviderError("response", "Rerank response was empty.");
+  if (results.length === 0) throw new TranscriptProviderError("response", "Rerank response was empty.");
   return {
     results,
     receipt: makeReceipt(payload, latencyMs, config.model, config.pricePerMillionTokens),

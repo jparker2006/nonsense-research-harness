@@ -6,7 +6,7 @@ import {
   resolvePublicAddresses,
 } from "../src/lib/web-research/network-policy.ts";
 
-describe("Phase 4 URL and DNS policy", () => {
+describe("Safe web URL and DNS policy", () => {
   it("normalizes public HTTP/HTTPS URLs while stripping fragments and default ports", () => {
     expect(parsePublicUrl("https://Example.COM:443/a?q=1#fragment").toString()).toBe(
       "https://example.com/a?q=1",

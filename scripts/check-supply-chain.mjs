@@ -27,14 +27,4 @@ if (hits.length > 0) {
   process.exit(1);
 }
 
-const selected = ["@mastra/core@1.61.0", "@mastra/ai-sdk@1.9.1"];
-const missing = selected.filter(
-  (entry) => !lockfile.includes(`${entry}:`) && !lockfile.includes(`${entry}(`),
-);
-
-if (missing.length > 0) {
-  console.error(`Pinned Mastra packages missing from lockfile:\n${missing.join("\n")}`);
-  process.exit(1);
-}
-
 console.log(`Supply-chain denylist clean (${denylist.length} known-bad versions checked).`);

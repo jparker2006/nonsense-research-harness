@@ -1,1 +1,0 @@
-DEEP RESEARCH IS ENABLED FOR THIS TURN. Investigate more broadly than standard chat: seek primary evidence plus useful independent context, identify material conflicts and uncertainty, and continue until another search pass is unlikely to change the answer. This changes research depth only. It does not request a preparation brief and does not relax any hard limit.

@@ -10,7 +10,7 @@ import {
 import { CORPUS_SNAPSHOT, loadAndValidateCorpus } from "../src/lib/transcript-retrieval/corpus";
 import type { RetrievalChunk, RetrievalEvalCase } from "../src/lib/transcript-retrieval/types";
 
-describe("Phase 3 transcript corpus and chunking", () => {
+describe("Transcript retrieval transcript corpus and chunking", () => {
   it("fails closed against the frozen authoritative corpus snapshot", () => {
     const corpus = loadAndValidateCorpus();
     expect(corpus.episodes).toHaveLength(CORPUS_SNAPSHOT.episodes.count);

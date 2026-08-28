@@ -40,9 +40,17 @@ _Avoid_: Memory, host opinion
 A source whose relevant content was retrieved with usable provenance and can support the specific claim attached to it. A search-result title or inaccessible page is not a Trusted Source.
 _Avoid_: Search candidate, citation decoration
 
+**Evidence Gate**:
+A deterministic source-integrity boundary that permits citations only to retrieved Trusted Sources, resolves citation numbers to their real provenance, and verifies direct quotations against retrieved text. It does not judge whether a source semantically proves the agent's interpretation.
+_Avoid_: Fact checker, semantic validator, research judge
+
 **Cited Claim**:
 A material factual statement linked to the exact Trusted Source or Past Nonsense Coverage that supports it.
 _Avoid_: Unverified assertion, source list
+
+**Research Thread**:
+A durable conversation through which CJ and Jeff continue one Topic Research Workspace across follow-up turns and application restarts. It preserves the dialogue and links to the workspace without becoming cross-topic memory or a personal profile.
+_Avoid_: Chat history, memory, knowledge base
 
 **Preparation Brief**:
 A user-requested organization of research, arguments, priorities, questions, or an outline for editorial use. It is not dialogue, a joke, or a finished script intended to be read on air.
@@ -59,6 +67,10 @@ _Avoid_: Chat history, host profile
 **Research Action**:
 An autonomous read-only operation that gathers, opens, compares, verifies, or cross-references evidence for a Topic Research Workspace.
 _Avoid_: Agent step, editorial action
+
+**Tool Outcome**:
+The honest result of one Research Action: `complete` when usable evidence was returned, `limited` when usable evidence has a material constraint, `no_match` when the tool worked but found nothing, `unavailable` when an external dependency could not be reached, or `failed` when the harness contract or implementation broke. A later limit or optional-ranking failure cannot relabel earlier usable evidence as unavailable.
+_Avoid_: Worst-event status, generic partial, hidden fallback
 
 **Workspace Action**:
 A user-requested change that saves, organizes, combines, or revises material inside a Topic Research Workspace or Episode Research Space. It does not publish externally or make a final editorial decision.

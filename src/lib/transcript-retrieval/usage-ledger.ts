@@ -1,13 +1,13 @@
 import { mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
-import { PHASE_3_PROVIDER_LIMITS, type ProviderReceipt } from "./providers.ts";
+import { TRANSCRIPT_PROVIDER_LIMITS, type ProviderReceipt } from "./providers.ts";
 
-export type Phase3RequestKind = "embedding" | "rerank";
+export type TranscriptRequestKind = "embedding" | "rerank";
 
-export type Phase3UsageEvent = {
+export type TranscriptUsageEvent = {
   request_number: number;
   purpose: string;
-  kind: Phase3RequestKind;
+  kind: TranscriptRequestKind;
   model: string;
   provider: string;
   status: "started" | "succeeded" | "failed";
@@ -19,34 +19,34 @@ export type Phase3UsageEvent = {
   failure_kind: string | null;
 };
 
-export type Phase3UsageLedgerData = {
+export type TranscriptUsageLedgerData = {
   schema_version: "1.0";
   approved_budget_usd: number;
   maximum_provider_requests: number;
   provider_requests: number;
   cumulative_cost_usd: number;
-  events: Phase3UsageEvent[];
+  events: TranscriptUsageEvent[];
 };
 
-function emptyLedger(): Phase3UsageLedgerData {
+function emptyLedger(): TranscriptUsageLedgerData {
   return {
     schema_version: "1.0",
-    approved_budget_usd: PHASE_3_PROVIDER_LIMITS.approvedBudgetUsd,
-    maximum_provider_requests: PHASE_3_PROVIDER_LIMITS.maxProviderRequests,
+    approved_budget_usd: TRANSCRIPT_PROVIDER_LIMITS.approvedBudgetUsd,
+    maximum_provider_requests: TRANSCRIPT_PROVIDER_LIMITS.maxProviderRequests,
     provider_requests: 0,
     cumulative_cost_usd: 0,
     events: [],
   };
 }
 
-export class Phase3UsageLedger {
+export class TranscriptUsageLedger {
   readonly path: string;
-  private data: Phase3UsageLedgerData;
+  private data: TranscriptUsageLedgerData;
 
   constructor(root = process.cwd()) {
     this.path = resolve(root, "reports/phase-3-usage.json");
     try {
-      this.data = JSON.parse(readFileSync(this.path, "utf8")) as Phase3UsageLedgerData;
+      this.data = JSON.parse(readFileSync(this.path, "utf8")) as TranscriptUsageLedgerData;
     } catch (error) {
       const missing = error instanceof Error && "code" in error && error.code === "ENOENT";
       if (!missing) throw error;
@@ -57,13 +57,13 @@ export class Phase3UsageLedger {
 
   private assertValid() {
     if (
-      this.data.approved_budget_usd !== PHASE_3_PROVIDER_LIMITS.approvedBudgetUsd ||
-      this.data.maximum_provider_requests !== PHASE_3_PROVIDER_LIMITS.maxProviderRequests ||
+      this.data.approved_budget_usd !== TRANSCRIPT_PROVIDER_LIMITS.approvedBudgetUsd ||
+      this.data.maximum_provider_requests !== TRANSCRIPT_PROVIDER_LIMITS.maxProviderRequests ||
       this.data.provider_requests !== this.data.events.length ||
       !Number.isFinite(this.data.cumulative_cost_usd) ||
       this.data.cumulative_cost_usd < 0
     ) {
-      throw new Error("Phase 3 usage ledger is malformed or its approved limits drifted.");
+      throw new Error("Transcript retrieval usage ledger is malformed or its approved limits drifted.");
     }
   }
 
@@ -74,21 +74,21 @@ export class Phase3UsageLedger {
     renameSync(temporary, this.path);
   }
 
-  snapshot(): Phase3UsageLedgerData {
+  snapshot(): TranscriptUsageLedgerData {
     return structuredClone(this.data);
   }
 
   reserve(input: {
     purpose: string;
-    kind: Phase3RequestKind;
+    kind: TranscriptRequestKind;
     model: string;
     provider: string;
   }): number {
     if (this.data.cumulative_cost_usd > this.data.approved_budget_usd) {
-      throw new Error("Phase 3 budget was crossed; no further provider request is permitted.");
+      throw new Error("Transcript retrieval budget was crossed; no further provider request is permitted.");
     }
     if (this.data.provider_requests >= this.data.maximum_provider_requests) {
-      throw new Error("Phase 3 provider request limit reached; no request was sent.");
+      throw new Error("Transcript retrieval provider request limit reached; no request was sent.");
     }
     const requestNumber = this.data.provider_requests + 1;
     this.data.events.push({
@@ -123,7 +123,7 @@ export class Phase3UsageLedger {
     this.data.cumulative_cost_usd += cost;
     this.save();
     if (this.data.cumulative_cost_usd > this.data.approved_budget_usd) {
-      throw new Error("Phase 3 budget crossed on the last response; execution is stopped.");
+      throw new Error("Transcript retrieval budget crossed on the last response; execution is stopped.");
     }
   }
 

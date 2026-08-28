@@ -1,6 +1,6 @@
 import { searchBm25 } from "./bm25.ts";
 import { loadRetrievalArtifacts, type RetrievalArtifacts } from "./artifacts.ts";
-import { embedTexts, rerankDocuments } from "./providers.ts";
+import { embedTexts, rerankDocuments, TranscriptProviderError } from "./providers.ts";
 import type { ProviderReceipt } from "./providers.ts";
 import { fuseCandidates, RANKING_POLICY, searchVectors } from "./ranking.ts";
 import type {
@@ -16,20 +16,80 @@ export type TranscriptProvider = {
   rerank(query: string, documents: string[]): Promise<Array<{ index: number; relevanceScore: number }>>;
 };
 
+const TRANSCRIPT_PROVIDER_RUNTIME = Object.freeze({
+  embeddingTimeoutMs: 10_000,
+  rerankTimeoutMs: 6_000,
+  retryDelayMs: 250,
+  maxAttempts: 2,
+});
+
+function transientProviderFailure(error: unknown): boolean {
+  if (!(error instanceof TranscriptProviderError)) return false;
+  const value = error;
+  return value.kind === "timeout" || (value.kind === "http" && (
+    value.status === undefined || value.status === 429 || value.status >= 500
+  ));
+}
+
+function boundedProviderSignal(signal: AbortSignal | undefined, timeoutMs: number): AbortSignal {
+  const timeout = AbortSignal.timeout(timeoutMs);
+  return signal ? AbortSignal.any([signal, timeout]) : timeout;
+}
+
 export function createOpenRouterTranscriptProvider(
   apiKey: string,
   onReceipt?: (receipt: ProviderReceipt) => void,
   signal?: AbortSignal,
 ): TranscriptProvider {
+  const run = async <T extends { receipt: ProviderReceipt }>(options: {
+    model: string;
+    provider: string;
+    timeoutMs: number;
+    execute: (attemptSignal: AbortSignal) => Promise<T>;
+  }): Promise<T> => {
+    const started = performance.now();
+    let attempts = 0;
+    while (attempts < TRANSCRIPT_PROVIDER_RUNTIME.maxAttempts) {
+      attempts += 1;
+      try {
+        const result = await options.execute(boundedProviderSignal(signal, options.timeoutMs));
+        result.receipt.requests = attempts;
+        onReceipt?.(result.receipt);
+        return result;
+      } catch (error) {
+        if (attempts >= TRANSCRIPT_PROVIDER_RUNTIME.maxAttempts || signal?.aborted || !transientProviderFailure(error)) {
+          onReceipt?.({
+            model: options.model,
+            provider: options.provider,
+            latencyMs: performance.now() - started,
+            usage: {},
+            calculatedCostUsd: 0,
+            requests: attempts,
+          });
+          throw error;
+        }
+        await new Promise<void>((resolve) => setTimeout(resolve, TRANSCRIPT_PROVIDER_RUNTIME.retryDelayMs));
+      }
+    }
+    throw new Error("transcript_provider_retry_exhausted");
+  };
   return {
     async embedQuery(query) {
-      const result = await embedTexts(apiKey, [query], fetch, signal);
-      onReceipt?.(result.receipt);
+      const result = await run({
+        model: "openai/text-embedding-3-small",
+        provider: "azure",
+        timeoutMs: TRANSCRIPT_PROVIDER_RUNTIME.embeddingTimeoutMs,
+        execute: (attemptSignal) => embedTexts(apiKey, [query], fetch, attemptSignal),
+      });
       return result.vectors[0] ?? [];
     },
     async rerank(query, documents) {
-      const result = await rerankDocuments(apiKey, query, documents, documents.length, fetch, signal);
-      onReceipt?.(result.receipt);
+      const result = await run({
+        model: "qwen/qwen3-reranker-8b",
+        provider: "fireworks",
+        timeoutMs: TRANSCRIPT_PROVIDER_RUNTIME.rerankTimeoutMs,
+        execute: (attemptSignal) => rerankDocuments(apiKey, query, documents, documents.length, fetch, attemptSignal),
+      });
       return result.results;
     },
   };

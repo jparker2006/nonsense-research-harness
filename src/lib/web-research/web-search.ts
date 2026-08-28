@@ -42,23 +42,6 @@ const exaResponseSchema = z.object({
   searchTime: z.number().nonnegative().max(3_600_000).optional(),
 }).passthrough();
 
-function validateDomain(value: string): string {
-  const trimmed = value.trim().toLowerCase();
-  const wildcard = trimmed.startsWith("*.");
-  const hostAndPath = wildcard ? trimmed.slice(2) : trimmed;
-  if (!hostAndPath || hostAndPath.length > 253 || hostAndPath.includes(":") || hostAndPath.includes("@")) {
-    throw new Error("Invalid domain filter.");
-  }
-  const [host, ...path] = hostAndPath.split("/");
-  if (!host) throw new Error("Invalid domain filter.");
-  const normalized = new URL(`http://${host}`).hostname;
-  if (normalized !== host || !normalized.includes(".") || normalized.startsWith(".") || normalized.endsWith(".")) {
-    throw new Error("Invalid domain filter.");
-  }
-  const suffix = path.length ? `/${path.join("/")}` : "";
-  return `${wildcard ? "*." : ""}${normalized}${suffix}`;
-}
-
 export function validateWebSearchInput(input: WebSearchInput) {
   const query = input.query.trim();
   if (query.length < 3 || query.length > 300) throw new Error("Query must contain 3 to 300 characters.");
@@ -66,23 +49,7 @@ export function validateWebSearchInput(input: WebSearchInput) {
   if (!Number.isInteger(limit) || limit < 1 || limit > WEB_RESEARCH_LIMITS.searchMaxResults) {
     throw new Error("Result limit must be an integer from 1 to 10.");
   }
-  if (input.allowed_domains?.length && input.excluded_domains?.length) {
-    throw new Error("Allowed and excluded domains cannot be combined.");
-  }
-  const normalizeDomains = (values?: string[]) => {
-    if (!values) return undefined;
-    if (values.length < 1 || values.length > 5) throw new Error("Domain filters must contain 1 to 5 entries.");
-    const normalized = values.map(validateDomain);
-    if (new Set(normalized).size !== normalized.length) throw new Error("Domain filters cannot contain duplicates.");
-    return normalized;
-  };
-  return {
-    query,
-    limit,
-    allowed_domains: normalizeDomains(input.allowed_domains),
-    excluded_domains: normalizeDomains(input.excluded_domains),
-    freshness: input.freshness ?? "default",
-  } as const;
+  return { query, limit } as const;
 }
 
 export function buildWebSearchRequest(input: ReturnType<typeof validateWebSearchInput>) {
@@ -90,11 +57,9 @@ export function buildWebSearchRequest(input: ReturnType<typeof validateWebSearch
     query: input.query,
     type: WEB_SEARCH_PROVIDER.searchType,
     numResults: input.limit,
-    ...(input.allowed_domains ? { includeDomains: input.allowed_domains } : {}),
-    ...(input.excluded_domains ? { excludeDomains: input.excluded_domains } : {}),
     contents: {
       highlights: { maxCharacters: WEB_RESEARCH_LIMITS.searchMaxCharactersPerResult },
-      ...(input.freshness === "live" ? { maxAgeHours: 0 } : {}),
+      maxAgeHours: 0,
     },
   };
 }
@@ -111,6 +76,11 @@ function failureCode(error: unknown, controller: AbortController, signal?: Abort
     return "malformed_response";
   }
   return "provider_unavailable";
+}
+
+function transientFailure(code: string, error: unknown): boolean {
+  if (["timeout", "rate_limited", "provider_unavailable"].includes(code)) return true;
+  return code === "provider_http_error" && error instanceof SearchProviderHttpError && error.status >= 500;
 }
 
 export async function parseWebSearchResponse(response: Response, retrievedAt = new Date().toISOString()): Promise<{
@@ -182,6 +152,7 @@ export async function webSearch(
     fetchImpl?: typeof fetch;
     now?: () => Date;
     signal?: AbortSignal;
+    sleep?: (milliseconds: number) => Promise<void>;
   } = {},
 ): Promise<WebSearchResult> {
   const retrievedAt = (options.now?.() ?? new Date()).toISOString();
@@ -190,7 +161,7 @@ export async function webSearch(
     validated = validateWebSearchInput(input);
   } catch {
     return {
-      status: "unavailable",
+      status: "failed",
       query: input.query.trim().slice(0, 300),
       sources: [],
       retrieved_at: retrievedAt,
@@ -219,41 +190,56 @@ export async function webSearch(
     };
   }
 
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), WEB_RESEARCH_LIMITS.searchTimeoutMs);
-  try {
-    const response = await (options.fetchImpl ?? fetch)(WEB_SEARCH_PROVIDER.endpoint, {
-      method: "POST",
-      headers: {
-        "content-type": "application/json",
-        "x-api-key": options.apiKey.trim(),
-      },
-      body: JSON.stringify(buildWebSearchRequest(validated)),
-      signal: options.signal ? AbortSignal.any([controller.signal, options.signal]) : controller.signal,
-    });
-    const parsed = await parseWebSearchResponse(response, retrievedAt);
-    const sources = parsed.records.slice(0, validated.limit);
-    if (!sources.length) {
-      return { status: "no_match", query: validated.query, sources, retrieved_at: retrievedAt, receipt: parsed.receipt };
+  const sleep = options.sleep ?? ((milliseconds: number) => new Promise<void>((resolve) => setTimeout(resolve, milliseconds)));
+  let lastError: unknown;
+  let lastCode = "provider_unavailable";
+  let attempts = 0;
+  for (let attempt = 1; attempt <= WEB_RESEARCH_LIMITS.maxAttempts; attempt += 1) {
+    attempts = attempt;
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), WEB_RESEARCH_LIMITS.searchTimeoutMs);
+    try {
+      const response = await (options.fetchImpl ?? fetch)(WEB_SEARCH_PROVIDER.endpoint, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          "x-api-key": options.apiKey.trim(),
+        },
+        body: JSON.stringify(buildWebSearchRequest(validated)),
+        signal: options.signal ? AbortSignal.any([controller.signal, options.signal]) : controller.signal,
+      });
+      const parsed = await parseWebSearchResponse(response, retrievedAt);
+      const sources = parsed.records.slice(0, validated.limit);
+      const receipt = { ...parsed.receipt, web_search_requests: attempt, attempts: attempt };
+      if (!sources.length) {
+        return { status: "no_match", query: validated.query, sources, retrieved_at: retrievedAt, receipt };
+      }
+      return {
+        status: parsed.rejected > 0 ? "limited" : "complete",
+        query: validated.query,
+        sources,
+        retrieved_at: retrievedAt,
+        receipt,
+      };
+    } catch (error) {
+      lastError = error;
+      lastCode = failureCode(error, controller, options.signal);
+      if (attempt >= WEB_RESEARCH_LIMITS.maxAttempts || !transientFailure(lastCode, error) || options.signal?.aborted) break;
+      await sleep(WEB_RESEARCH_LIMITS.transientRetryDelayMs);
+    } finally {
+      clearTimeout(timeout);
     }
-    return {
-      status: parsed.rejected > 0 ? "partial" : "complete",
-      query: validated.query,
-      sources,
-      retrieved_at: retrievedAt,
-      receipt: parsed.receipt,
-    };
-  } catch (error) {
-    const code = failureCode(error, controller, options.signal);
-    return {
-      status: "unavailable",
-      query: validated.query,
-      sources: [],
-      retrieved_at: retrievedAt,
-      receipt: error instanceof SearchProviderHttpError ? { http_status: error.status } : {},
-      failure: sanitizedFailure(code, "The bounded direct Exa search did not complete."),
-    };
-  } finally {
-    clearTimeout(timeout);
   }
+  return {
+    status: "unavailable",
+    query: validated.query,
+    sources: [],
+    retrieved_at: retrievedAt,
+    receipt: {
+      ...(lastError instanceof SearchProviderHttpError ? { http_status: lastError.status } : {}),
+      web_search_requests: attempts,
+      attempts,
+    },
+    failure: sanitizedFailure(lastCode, "The bounded direct Exa search did not complete."),
+  };
 }
